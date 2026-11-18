@@ -11,7 +11,7 @@ The harness is built to run inside herdr-app. When the agent starts a delegate, 
 This repo was pi-setup, a pi config installed with mise. pi-harness replaced it on `main` with an unrelated history, so a plain `git pull` on a pi-setup clone stops with a divergent-branches error. Your remote URL keeps working, because GitHub redirects `pi-setup` to `pi-harness`.
 
 - To stay on pi-setup, run `git fetch origin && git checkout v1`. The `v1` branch and the `v1-final` tag hold its last commit, and nothing new lands on them.
-- To move to pi-harness, keep your own commits on a branch with `git branch my-pi-setup`, run `git fetch origin && git checkout -B main origin/main`, and continue the setup below from step 2.
+- To move to pi-harness, keep your commits on `main` with `git branch my-pi-setup main`, run `git fetch origin && git checkout -B main origin/main`, and continue the setup below from step 2.
 
 ## Run it inside herdr-app
 
