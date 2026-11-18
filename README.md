@@ -8,10 +8,12 @@ The harness is built to run inside herdr-app. When the agent starts a delegate, 
 
 ## Coming from pi-setup
 
-This repo was pi-setup, a pi config installed with mise. pi-harness replaced it on `main` with an unrelated history, so a plain `git pull` on a pi-setup clone stops with a divergent-branches error. Your remote URL keeps working, because GitHub redirects `pi-setup` to `pi-harness`.
+pi-harness took over the pi-setup repo with a new history. pi-setup's last commit lives on as the `v1` branch and the `v1-final` tag. A fork of pi-setup is unaffected.
 
-- To stay on pi-setup, run `git fetch origin && git checkout v1`. The `v1` branch and the `v1-final` tag hold its last commit, and nothing new lands on them.
-- To move to pi-harness, keep your commits on `main` with `git branch my-pi-setup main`, run `git fetch origin && git checkout -B main origin/main`, and continue the setup below from step 2.
+- **Stay on pi-setup.** In `~/.pi`, run `git fetch origin && git branch -u origin/v1 main` before you pull again. Your checkout and your commits stay as they are, and later pulls on `main` follow `v1`.
+- **Switch to pi-harness.** Move the old folder aside with `mv ~/.pi ~/.pi-setup`, then follow the setup below. After the clone, keep your logins and history with `cp -r ~/.pi-setup/agent/auth.json ~/.pi-setup/agent/sessions ~/.pi/agent/`. pi-setup ran pi through mise links into the old folder, so delete them with `rm ~/.config/mise/conf.d/pi-setup-*` and install pi again.
+
+If a pull already moved `~/.pi` to pi-harness, `git reflog` shows the commit it left.
 
 ## Run it inside herdr-app
 
