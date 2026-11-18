@@ -10,10 +10,10 @@ The harness is built to run inside herdr-app. When the agent starts a delegate, 
 
 pi-harness took over the pi-setup repo with a new history. pi-setup's last commit lives on as the `v1` branch and the `v1-final` tag. A fork of pi-setup is unaffected.
 
-- **Stay on pi-setup.** In `~/.pi`, run `git fetch origin && git branch -u origin/v1 main` before you pull again. Your checkout and your commits stay as they are, and later pulls on `main` follow `v1`.
-- **Switch to pi-harness.** Move the old folder aside with `mv ~/.pi ~/.pi-setup`, then follow the setup below. After the clone, keep your logins and history with `cp -r ~/.pi-setup/agent/auth.json ~/.pi-setup/agent/sessions ~/.pi/agent/`. pi-setup ran pi through mise links into the old folder, so delete them with `rm ~/.config/mise/conf.d/pi-setup-*` and install pi again.
+- **Stay on pi-setup.** In `~/.pi`, run `git remote set-branches --add origin v1 && git fetch origin && git branch -u origin/v1 main` before you pull again. Your checkout and your commits stay as they are, and later pulls on `main` follow `v1`.
+- **Switch to pi-harness.** Quit pi, move the old folder aside with `mv -T ~/.pi ~/.pi-setup`, then follow the setup below. After the clone, keep your logins and history with `cp -r ~/.pi-setup/agent/auth.json ~/.pi-setup/agent/sessions ~/.pi/agent/`. pi-setup ran pi through mise links into the old folder, so delete them with `rm ~/.config/mise/conf.d/pi-setup-*` and install pi again.
 
-If a pull already moved `~/.pi` to pi-harness, `git reflog` shows the commit it left.
+`mv -T` stops when `~/.pi-setup` already exists. Pick another name and use it in the copy command too. If a pull already moved `~/.pi` to pi-harness, `git reflog` shows the commit it left.
 
 ## Run it inside herdr-app
 
