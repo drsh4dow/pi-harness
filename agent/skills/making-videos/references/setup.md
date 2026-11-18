@@ -4,10 +4,10 @@
 
 ## Install the skill
 
-The skill is the folder `agent/skills/making-videos/` in the pi harness, https://github.com/drsh4dow/.pi, which lives at `~/.pi`. Web capture also uses the `agent-browser` skill, which the harness's web extension loads from `features/web/agent-browser/`. On a new machine, clone the harness and install its packages:
+The skill is the folder `agent/skills/making-videos/` in the pi harness, https://github.com/drsh4dow/pi-harness, which lives at `~/.pi`. Web capture also uses the `agent-browser` skill, which the harness's web extension loads from `features/web/agent-browser/`. On a new machine, clone the harness and install its packages:
 
 ```bash
-git clone https://github.com/drsh4dow/.pi ~/.pi
+git clone https://github.com/drsh4dow/pi-harness ~/.pi
 bun install --cwd ~/.pi
 ```
 
