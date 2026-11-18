@@ -6,6 +6,13 @@ The harness is built to run inside herdr-app. When the agent starts a delegate, 
 
 `AGENTS.md` holds the rules for working on this repo.
 
+## Coming from pi-setup
+
+This repo was pi-setup, a pi config installed with mise. pi-harness replaced it on `main` with an unrelated history, so a plain `git pull` on a pi-setup clone stops with a divergent-branches error. Your remote URL keeps working, because GitHub redirects `pi-setup` to `pi-harness`.
+
+- To stay on pi-setup, run `git fetch origin && git checkout v1`. The `v1` branch and the `v1-final` tag hold its last commit, and nothing new lands on them.
+- To move to pi-harness, keep your own commits on a branch with `git branch my-pi-setup`, run `git fetch origin && git checkout -B main origin/main`, and follow the setup below.
+
 ## Run it inside herdr-app
 
 You need:
@@ -16,7 +23,7 @@ You need:
 
 To set it up:
 
-1. Clone the repo as pi's config folder: `git clone git@github.com:drsh4dow/.pi.git ~/.pi`.
+1. Clone the repo as pi's config folder: `git clone git@github.com:drsh4dow/pi-harness.git ~/.pi`.
 2. Install the dependencies: `cd ~/.pi && bun install`.
 3. Link the harness's mods into herdr-app: `ln -s ~/.pi/herdr/mods/ow-skills ~/.pi/herdr/mods/ow-work ~/.pi/herdr/mods/ow-tabs ~/.pi/herdr/mods/ow-status ~/.config/herdr-app/mods/`. In your layout (a clone of `main`), point the `tabs` block at `ow-tabs` and the `status` block at `ow-status`, and make `panel-body` a stack holding three blocks: `{ "id": "skills", "type": "block", "content": { "mod": "ow-skills" } }`, `{ "id": "trace", "type": "block", "content": { "mod": "ow-work", "props": { "view": "trace" } } }` and `{ "id": "actions", "type": "block", "content": { "mod": "ow-work", "props": { "view": "actions" } } }`. The top bar shows a button for each block the stack holds. herdr-app does not reload a linked mod when the files behind the link change, so after a pull that changes a mod, replace its link: `cd ~/.config/herdr-app/mods && ln -s ~/.pi/herdr/mods/<mod> .<mod>.new && mv -T .<mod>.new <mod>`.
 4. Open a tab in herdr-app and run `pi`.
