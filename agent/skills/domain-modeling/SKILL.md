@@ -2,6 +2,7 @@
 name: domain-modeling
 description: Discussing codebase terminology, or editing a GLOSSARY.md.
 user-invocable: false
+for: [root]
 ---
 
 # Domain Modeling
