@@ -310,6 +310,52 @@
 			}
 		]
 	},
+	"create-formal-verification-skill": {
+		"positive": [
+			{
+				"prompt": "Prove the lock-free queue never loses an item"
+			},
+			{
+				"prompt": "Tests are not enough for the retry and cancellation logic, set up formal verification for it"
+			},
+			{
+				"prompt": "Model-check this parser so the check reruns when the code changes"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Draw the checkout flow as a statechart",
+				"owner": "statechart"
+			},
+			{
+				"prompt": "Add a regression test for the off-by-one bug in pagination",
+				"owner": "tdd"
+			}
+		]
+	},
+	"create-verification-skill": {
+		"positive": [
+			{
+				"prompt": "I drove the CLI by hand because this project has no verify skill, make one"
+			},
+			{
+				"prompt": "Write a verification skill that drives our web app the way a user does"
+			},
+			{
+				"prompt": "We keep checking the service by hand, script that as a skill"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Audit the verify-web skill against the live app",
+				"owner": "maintain-verification-skill"
+			},
+			{
+				"prompt": "Model-check the retry state machine and keep the check in the project",
+				"owner": "create-formal-verification-skill"
+			}
+		]
+	},
 	"deprecation-and-migration": {
 		"positive": [
 			{
@@ -359,6 +405,24 @@
 			{
 				"prompt": "Harden the login endpoint against brute force attacks",
 				"owner": "security-and-hardening"
+			}
+		]
+	},
+	"dumpfile": {
+		"positive": [
+			{
+				"prompt": "Put this screenshot in the PR description"
+			},
+			{
+				"prompt": "Link the screen recording of the bug in the issue"
+			},
+			{
+				"prompt": "Post the before and after images as a comment on the PR"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Commit the new logo image to the assets folder"
 			}
 		]
 	},
@@ -901,6 +965,32 @@
 			}
 		]
 	},
+	"swarm": {
+		"positive": [
+			{
+				"prompt": "Swarm this PR: one review lane each for security, tests and docs"
+			},
+			{
+				"prompt": "Start five delegates in parallel to audit every package in the monorepo and give me one report"
+			},
+			{
+				"prompt": "Race three workers on the same brief and keep the first that passes"
+			},
+			{
+				"prompt": "Start four delegates in one group to research each area of the codebase"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Have three models write competing designs and graft the best parts into one",
+				"owner": "arena"
+			},
+			{
+				"prompt": "Try to break the retry logic before we ship it",
+				"owner": "interrogate"
+			}
+		]
+	},
 	"tdd": {
 		"positive": [
 			{
@@ -980,6 +1070,27 @@
 		"negative": [
 			{
 				"prompt": "Make this page responsive and accessible"
+			}
+		]
+	},
+	"wizard": {
+		"positive": [
+			{
+				"prompt": "I have to add the Stripe keys and the CI secrets myself, walk me through it"
+			},
+			{
+				"prompt": "Provisioning the database needs my credentials, write me a guided script for it"
+			},
+			{
+				"prompt": "The cutover needs me to click through the Cloudflare dashboard, guide me step by step"
+			},
+			{
+				"prompt": "Write the access item in USER_ACTION_ITEMS.md for the production deploy key"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Add a timeout option to the config loader"
 			}
 		]
 	},

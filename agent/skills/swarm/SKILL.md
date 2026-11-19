@@ -1,6 +1,6 @@
 ---
 name: swarm
-description: Fan out parallel workers and return one report. Use when asked to swarm, or for parallel coverage, races, gauntlets or exploration.
+description: "About to start three or more leaf delegates in one group, or asked to swarm: review lanes, verification, audits, research across areas, or a race on one brief, merged into one report."
 for: [root, owner]
 ---
 
