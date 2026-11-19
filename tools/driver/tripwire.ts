@@ -1,8 +1,10 @@
 /**
- * The tripwire for a run's isolation. What the run names outside its own folder carries its run id or its core's
- * session: pi names a session folder for its working folder, which the run's `pi` wrapper keeps inside the run's folder,
- * an agent names its state folder for its project, and the core names its state folder for its session. So either name
- * under the human's session or state folders is this run's write, whoever else writes there meanwhile.
+ * The tripwire for a run's isolation. The run's service mounts the human's session and state folders read-only, but a
+ * folder missing when the run starts stays unmounted, so the run could create it. What the run names outside its own
+ * folder carries its run id or its core's session: pi names a session folder for its working folder, which the run's
+ * `pi` wrapper keeps inside the run's folder, an agent names its state folder for its project, and the core names its
+ * state folder for its session. So either name under the human's session or state folders is this run's write,
+ * whoever else writes there meanwhile.
  */
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
@@ -25,11 +27,13 @@ const holdingAny = ([first, ...rest]: Names) => [
 	")",
 ];
 
+/** The session and state folders under `home`, which a run must leave alone. */
+export const guardedFolders = (home: string) => [`${home}/.pi/agent/sessions`, `${home}/.local/state`];
+
 /** Every path under `home`'s session and state folders whose own name holds one of `names`. A linked root is followed. */
 export const strayed = Effect.fn("strayed")(function* (input: { readonly home: string; readonly names: Names }) {
 	const fs = yield* FileSystem.FileSystem;
-	const folders = [`${input.home}/.pi/agent/sessions`, `${input.home}/.local/state`];
-	const roots = yield* Effect.filter(folders, (folder) => fs.exists(folder));
+	const roots = yield* Effect.filter(guardedFolders(input.home), (folder) => fs.exists(folder));
 
 	if (Arr.isReadonlyArrayEmpty(roots)) {
 		return [];

@@ -42,7 +42,4 @@ tree=$(git -C "$here" rev-parse --show-toplevel)
 		awk '{ printf "| %s | %d |\n", $2, $1 }'
 	echo
 	echo "Logs in $logs."
-	for name in $names; do
-		[ -e "$HOME/.local/state/pi-agent/$name" ] && echo "A run wrote outside its scratch HOME: $HOME/.local/state/pi-agent/$name exists."
-	done
 } | tee "$logs/table.md"

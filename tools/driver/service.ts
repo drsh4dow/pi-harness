@@ -22,6 +22,8 @@ import type * as Runtime from "effect/Runtime";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
+import { guardedFolders } from "./tripwire.ts";
+
 const marker = "PI_DRIVER_SERVICE";
 
 /** Whether this process is the driver inside the run's service. */
@@ -36,10 +38,15 @@ export const stdinEnded = Stream.runDrain(NodeStream.fromReadable({ evaluate: ()
 	Effect.andThen(Effect.interrupt),
 );
 
-/** Pure. The `systemd-run` command that runs `argv` as the run's service, in the caller's folder and environment. */
+/**
+ * Pure. The `systemd-run` command that runs `argv` as the run's service, in the caller's folder and environment, with
+ * the session and state folders under `home` read-only to every process in it. A folder `home` lacks is skipped, so a
+ * fresh home still runs.
+ */
 const serviceArgv = (command: {
 	readonly env: Readonly<Record<string, string | undefined>>;
 	readonly argv: ReadonlyArray<string>;
+	readonly home: string;
 }) => [
 	"systemd-run",
 	"--user",
@@ -48,6 +55,7 @@ const serviceArgv = (command: {
 	"--collect",
 	"--same-dir",
 	"--property=KillSignal=SIGKILL",
+	...Arr.map(guardedFolders(command.home), (folder) => `--property=ReadOnlyPaths=-${folder}`),
 	...Arr.map(
 		Arr.filter(Rec.keys(command.env), (key) => /^[A-Za-z_]\w*$/u.test(key)),
 		(key) => `--setenv=${key}`,
@@ -81,10 +89,10 @@ const exitCode: Runtime.Teardown = (exit, onExit) => {
 };
 
 /**
- * Runs `argv` as the run's service and exits with its code, or 2 when systemd cannot start one. Ctrl-C and SIGTERM end
- * the service's stdin and wait for it to exit, then exit 130. The `systemd-run` client runs in a session of its own, so
- * Ctrl-C reaches only this process, and nothing here signals it: Effect's spawner would signal its group after it
- * exited.
+ * Runs `argv` as the run's service and exits with its code, or 2 when HOME is unset or systemd cannot start one.
+ * Ctrl-C and SIGTERM end the service's stdin and wait for it to exit, then exit 130. The `systemd-run` client runs in a
+ * session of its own, so Ctrl-C reaches only this process, and nothing here signals it: Effect's spawner would signal
+ * its group after it exited.
  */
 export const runAsService = ({
 	name,
@@ -95,18 +103,18 @@ export const runAsService = ({
 	readonly argv: ReadonlyArray<string>;
 	readonly env: Readonly<Record<string, string | undefined>>;
 }) => {
-	const command = serviceArgv({ env, argv });
-
-	const service = Effect.acquireRelease(
-		Effect.sync(() => Bun.spawn(command, { stdin: "pipe", stdout: "inherit", stderr: "inherit", detached: true })),
-		(started) =>
-			Effect.tryPromise({ try: () => Promise.resolve(started.stdin.end()), catch: String }).pipe(
-				Effect.ignore,
-				Effect.andThen(Effect.promise(() => started.exited)),
-			),
-	);
+	const home = env["HOME"];
 
 	const program = Effect.gen(function* () {
+		if (home === undefined) {
+			yield* Console.log(
+				`broken ${name}: the driver keeps your session and state folders read-only, and HOME is unset`,
+			);
+
+			return 2;
+		}
+
+		const command = serviceArgv({ env, argv, home });
 		const failure = yield* failureOf([...Arr.takeWhile(command, (arg) => arg !== "--"), "--", "true"]);
 
 		if (Option.isSome(failure)) {
@@ -115,7 +123,14 @@ export const runAsService = ({
 			return 2;
 		}
 
-		const started = yield* service;
+		const started = yield* Effect.acquireRelease(
+			Effect.sync(() => Bun.spawn(command, { stdin: "pipe", stdout: "inherit", stderr: "inherit", detached: true })),
+			(service) =>
+				Effect.tryPromise({ try: () => Promise.resolve(service.stdin.end()), catch: String }).pipe(
+					Effect.ignore,
+					Effect.andThen(Effect.promise(() => service.exited)),
+				),
+		);
 
 		return yield* Effect.promise(() => started.exited);
 	}).pipe(Effect.scoped);
