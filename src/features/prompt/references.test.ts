@@ -216,7 +216,7 @@ const pathProblems = Effect.fn("pathProblems")(function* (root: string, { at, pa
 });
 
 const hasSection = (text: string, title: string) =>
-	Str.includes(`**${title}`)(text) ||
+	Arr.some(["**", ".**", ":**"], (end) => Str.includes(`**${title}${end}`)(text)) ||
 	Arr.some(Str.split("\n")(text), (line) => /^#+ /u.test(line) && Str.replace(/^#+ /u, "")(line) === title);
 
 const sectionProblems = Effect.fn("sectionProblems")(function* (root: string, { at, title, path }: Cited<"section">) {
@@ -273,6 +273,7 @@ test("a missing skill, principle, path or section is a hit, and so is a visible 
 				"agent/playbooks/plan.md:1: no file agent/principles/gone.md",
 				"agent/playbooks/plan.md:2: no file features/x.md",
 				"agent/playbooks/plan.md:3: agent/playbooks/kept.md has no section Stacks",
+				"agent/playbooks/plan.md:3: agent/playbooks/kept.md has no section Siz",
 				"agent/playbooks/plan.md:4: no skill install-thing",
 				"agent/skills/hidden/SKILL.md:6: no skill gone",
 			]);
