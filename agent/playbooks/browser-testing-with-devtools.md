@@ -24,7 +24,7 @@ Use the `agent-browser` skill to give your agent eyes into the browser. This bri
 
 ### Installation
 
-Load the `agent-browser` skill: read `~/.pi/features/web/agent-browser/SKILL.md`, then run `agent-browser skills get core` before the first browser command, and use a named session for the whole task as it describes. If the CLI is missing, install it:
+Load the `agent-browser` skill: read `~/.pi/src/features/web/agent-browser/SKILL.md`, then run `agent-browser skills get core` before the first browser command, and use a named session for the whole task as it describes. If the CLI is missing, install it:
 
 ```bash
 bun add -g agent-browser && agent-browser install
