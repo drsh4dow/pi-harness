@@ -1,17 +1,10 @@
-/**
- * A settled build that warrants a design step: the request carries acceptance criteria, and meeting them needs a new
- * pricing module that two callers share, with more than one fair shape for its rules and its breakdown. The root, or a
- * delegate of it, reads the `architect` skill before the first file under `cyclefare/` changes, and no turn of the root
- * ends handing a call to the human. The run stops at that first change, so it does not cover the build's end, its
- * verification, or a PR.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
 import { handsBack, judge } from "./judge.ts";
-import { type Commit, model, observe, offGitHub, plant, read, turnEnds } from "./observe.ts";
+import { type Commit, observe, offGitHub, plant, read, rootModel, turnEnds } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -111,7 +104,7 @@ Commit it on a branch. I'll push it and open the PR myself.`;
 
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
-	model,
+	model: rootModel,
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });

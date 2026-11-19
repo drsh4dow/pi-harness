@@ -1,16 +1,10 @@
-/**
- * A small build request with its destination settled: the request carries acceptance criteria the root can check, and
- * the root starts building with no turn ended on a call handed to the human. Whether it read `architect` prints as
- * info: a change this size may rightly skip a design step. The run stops at the first file under `shortlinks/` changed
- * in any worktree or commit, so it does not cover the build's end, its verification, or a PR.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
 import { handsBack, judge } from "./judge.ts";
-import { type Commit, model, observe, offGitHub, plant, read, turnEnds } from "./observe.ts";
+import { type Commit, observe, offGitHub, plant, read, rootModel, turnEnds } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -84,7 +78,7 @@ Commit it on a branch. I'll push it and open the PR myself.`;
 
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
-	model,
+	model: rootModel,
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });

@@ -1,14 +1,10 @@
-/**
- * A vague build request: the root asks one round of questions, each with its own pick, and ends its turn with no file
- * of the project edited. Who gets reminded, how and how early are product calls no run can settle.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
 import { handsBack, judge, pickIn } from "./judge.ts";
-import { type Commit, model, observe, offGitHub, plant } from "./observe.ts";
+import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -95,7 +91,7 @@ const request =
 
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
-	model,
+	model: rootModel,
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
