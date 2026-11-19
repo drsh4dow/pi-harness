@@ -1,6 +1,6 @@
 ---
 name: dumpfile
-description: Serve a local asset at a public URL. Use when media must be linked from a PR, issue, or other evidence.
+description: "About to reference a screenshot, recording or other local file in a PR, issue or comment: serve it at a public URL first."
 disable-model-invocation: false
 ---
 

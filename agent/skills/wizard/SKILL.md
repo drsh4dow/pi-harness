@@ -1,6 +1,6 @@
 ---
 name: wizard
-description: "Steps only a human can perform need a guided bash script: provisioning infrastructure, setting up credentials or CI secrets, walking a third-party dashboard, or a one-off migration or cutover."
+description: "About to write an access or irreversible-action item in `USER_ACTION_ITEMS.md`, or to tell the human to run commands themselves: hand them a guided bash script. Credentials, CI secrets, provisioning, a third-party dashboard, a one-off cutover."
 user-invocable: false
 for: [root]
 ---

@@ -1,6 +1,6 @@
 ---
 name: create-verification-skill
-description: Generate a project skill that drives the app the way a user does. Use when asked for a verification skill, or when a project has no scripted way to prove UI, CLI or service behavior.
+description: "Drove a UI, CLI or service by hand because the project has no `verify-*` skill, or asked for a verification skill: generate one that drives the app the way a user does."
 ---
 
 # Create a verification skill
