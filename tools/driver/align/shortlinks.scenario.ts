@@ -1,15 +1,16 @@
 /**
- * A build request with its destination settled: the request carries acceptance criteria the root can check. The root
- * designs with the `architect` skill and starts building with no turn ended on a question. The run stops at the first
- * file under `shortlinks/` changed in any worktree or commit, so it does not cover the build's end, its verification,
- * or a PR.
+ * A small build request with its destination settled: the request carries acceptance criteria the root can check, and
+ * the root starts building with no turn ended on a call handed to the human. Whether it read `architect` prints as
+ * info: a change this size may rightly skip a design step. The run stops at the first file under `shortlinks/` changed
+ * in any worktree or commit, so it does not cover the build's end, its verification, or a PR.
  */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, judge, model, observe, offGitHub, plant, questionsIn, read, turnEnds } from "./observe.ts";
+import { handsBack, judge } from "./judge.ts";
+import { type Commit, model, observe, offGitHub, plant, read, turnEnds } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -89,7 +90,11 @@ scenario({
 			const base = yield* plant({ run, history });
 			const { sessions, files } = yield* observe({ run, base, request, within: "40 minutes", stopAt: building });
 			const architect = yield* read({ run, sessions, guide: "skills/architect/SKILL.md" });
-			const asked = Arr.filter(turnEnds(sessions.root), (text) => Arr.isReadonlyArrayNonEmpty(questionsIn(text)));
+			const asked = Arr.getSomes(Arr.map(turnEnds(sessions.root), handsBack));
+
+			yield* run.say(
+				`info the root or a delegate read the architect skill by the time the build started: ${architect ? "yes" : "no"}`,
+			);
 
 			yield* judge({
 				run,
@@ -98,10 +103,9 @@ scenario({
 						Arr.some(files, building),
 						`with the destination settled, the root goes on to build: a file under shortlinks/ changes before the root settles idle (edited: ${Arr.join(files, ", ") || "none"})`,
 					],
-					[architect, "the root or a delegate read the architect skill by the time the build started"],
 					[
 						!Arr.isReadonlyArrayNonEmpty(asked),
-						`no turn of the root ended on a question before the build started (asked: ${Arr.join(asked, " | ")})`,
+						`no turn of the root ended handing a call to the human before the build started (it said: ${Arr.join(asked, " | ")})`,
 					],
 				],
 			});
