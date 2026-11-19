@@ -3,7 +3,7 @@ import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
 import { handsNothingBack, judge } from "./judge.ts";
-import { type Commit, observe, offGitHub, patches, plant, rootModel } from "./observe.ts";
+import { type Commit, observe, offGitHub, plant, rootModel, versions } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -48,14 +48,14 @@ scenario({
 			const base = yield* plant({ run, history });
 
 			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
-			const patch = yield* patches({ run, base });
+			const config = yield* versions({ run, file: "weatherline/config.py" });
 
 			yield* judge({
 				run,
 				rules: [
 					[
-						Str.includes('+DEFAULT_UNITS = "metric"')(patch),
-						"a fully specified edit gets made: a commit or worktree of the project sets DEFAULT_UNITS to metric",
+						Str.includes('DEFAULT_UNITS = "metric"')(config),
+						"a fully specified edit gets made: a branch tip or a worktree of the project sets DEFAULT_UNITS to metric",
 					],
 					handsNothingBack(reply),
 				],

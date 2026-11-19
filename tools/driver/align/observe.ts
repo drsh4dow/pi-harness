@@ -135,16 +135,20 @@ ${eachWorktree(`git -C "$tree" status --porcelain --untracked-files=all -- . ':(
 		({ output }) => Arr.filter(Str.split(output, "\n"), Str.isNonEmpty),
 	);
 
-/** Every patch after `base` on any branch, and the uncommitted diff of every worktree. */
-export const patches = ({ run, base }: { readonly run: Run; readonly base: string }) =>
+/** The text of `file` at the tip of every branch and in every worktree, so an edit later undone no longer shows. */
+export const versions = ({ run, file }: { readonly run: Run; readonly file: string }) =>
 	Effect.map(
-		sh(run, `git log --all -p --format= ^${base}\n${eachWorktree(`git -C "$tree" diff HEAD`)}`),
+		sh(
+			run,
+			`git for-each-ref --format='%(refname)' refs/heads | while read -r ref; do git show "$ref:${file}" 2>/dev/null || true; done
+${eachWorktree(`cat "$tree/${file}" 2>/dev/null || true`)}`,
+		),
 		({ output }) => output,
 	);
 
 /**
  * Writes the user's history into the root's project folder, one commit each, nine hours apart and the last nine hours ago, pushes `main` to `origin.git` beside the
- * project, and returns the last commit, so `filesChangedSince` and `patches` see only what came after.
+ * project, and returns the last commit, so `filesChangedSince` sees only what came after.
  */
 export const plant = ({ run, history }: { readonly run: Run; readonly history: ReadonlyArray<Commit> }) =>
 	Effect.gen(function* () {
