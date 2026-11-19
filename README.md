@@ -102,7 +102,7 @@ The badge on the Actions button counts the cards.
 | "Review PR #123"                                              | Ranks each finding from Critical to Nit                                       |
 | "Interrogate PR #123"                                         | Agents on several models try to break it, and only findings they prove remain |
 | "Try both layouts and pick one"                               | Builds a throwaway sketch of each and lets the result decide                  |
-| "/skill:grill-with-docs I want to add team billing"           | Interviews you, and writes down each term and decision as it settles          |
+| "/skill:grilling I want to add team billing"                  | Interviews you, and writes down each term and decision as it settles          |
 | "Build tickets #43 to #47. I'm going to bed, run until done." | Drives the tickets to pull requests without stopping                          |
 | "Catch me up"                                                 | What changed since your last message, and every call that waits on you        |
 
