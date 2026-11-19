@@ -53,7 +53,8 @@ const everyone = (sessions: Sessions) => [sessions.root, ...sessions.delegates];
 export const turnEnds = (root: Session): ReadonlyArray<string> =>
 	Arr.map(Arr.getSomes(Arr.map(root.entries, (entry) => Option.filter(assistantOf(entry), endsTurn))), textOf);
 
-const settledReply = (root: Session): Option.Option<string> => {
+/** The root's last turn-ending text, once every job it started has settled and nothing of owned-work came after. */
+export const settledReply = (root: Session): Option.Option<string> => {
 	const work = Arr.getSomes(
 		Arr.map(root.entries, (entry, index) => Option.map(decodeWork(entry), ({ data }) => ({ ...data, index }))),
 	);
@@ -72,7 +73,8 @@ const settledReply = (root: Session): Option.Option<string> => {
 
 const byLength = Order.mapInput(Order.Number, Str.length);
 
-const longestBodyLine = (text: string) => {
+/** The longest line of a guide's body, frontmatter left out: the line that shows the guide reached a session. */
+export const longestBodyLine = (text: string) => {
 	const body = Str.replace(/^---\n[\s\S]*?\n---\n/u, "")(text);
 
 	return Arr.max(Str.split(body, "\n"), byLength);
