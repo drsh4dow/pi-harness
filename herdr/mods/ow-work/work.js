@@ -46,14 +46,15 @@ export function parseTodo(text) {
 }
 
 // decisions.tsv, newest first. A `start` row marks where a run began; a line without six cells is kept as text.
+// `line` counts from the top of the file, so it names the same row as the file grows.
 export function parseTrail(text) {
   const rows = [];
-  for (const line of text.split("\n")) {
-    if (!line.trim() || line.startsWith("ts\tphase\t")) continue;
-    const cells = line.split("\t");
-    if (cells.length !== 6) { rows.push({ kind: "text", text: line.replaceAll("\t", "  ") }); continue; }
+  for (const [line, content] of text.split("\n").entries()) {
+    if (!content.trim() || content.startsWith("ts\tphase\t")) continue;
+    const cells = content.split("\t");
+    if (cells.length !== 6) { rows.push({ kind: "text", line, text: content.replaceAll("\t", "  ") }); continue; }
     const [ts, phase, decision, why, evidence, result] = cells;
-    rows.push({ kind: phase === "start" ? "start" : "row", ts, phase, decision, why, evidence, result });
+    rows.push({ kind: phase === "start" ? "start" : "row", line, ts, phase, decision, why, evidence, result });
   }
   return rows.reverse();
 }

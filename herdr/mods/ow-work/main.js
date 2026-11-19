@@ -1,5 +1,5 @@
-import { View, div, svg } from "gpui-kit";
-import { v_flex, h_flex, TextView } from "gpui-base";
+import { View, div, svg, list } from "gpui-kit";
+import { v_flex, h_flex, TextView, Scrollbar } from "gpui-base";
 import { theme, props, layout, readTextFile } from "herdr";
 import { stateFolder, parseTodo, parseTrail, parseActions } from "./work.js";
 
@@ -19,6 +19,30 @@ function when(ts) {
   if (Number.isNaN(date.getTime())) return ts;
   const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
   return date.toDateString() === new Date().toDateString() ? time : `${MONTHS[date.getMonth()]} ${date.getDate()}, ${time}`;
+}
+
+// The space above each trace row, by kind: the gaps the sections had when every row was drawn.
+const ROW_GAP = { section: 18, progress: 8, group: 8, todo: 1, start: 4, row: 4, text: 4 };
+
+// The Trace panel's rows in order, one list entry each, keyed so a row keeps its key as the files grow.
+function traceRows(todoText, trailText) {
+  const rows = [];
+  const todo = todoText ? parseTodo(todoText) : null;
+  if (todo?.groups.length) {
+    rows.push({ key: "todo", kind: "section", title: "Todo", right: `${todo.resolved} of ${todo.total}` });
+    rows.push({ key: "progress", kind: "progress", share: todo.total === 0 ? 0 : todo.resolved / todo.total });
+    todo.groups.forEach((group, g) => {
+      if (group.name !== null) rows.push({ key: `group-${g}`, kind: "group", name: group.name });
+      group.items.forEach((item, i) => rows.push({ key: `todo-${g}-${i}`, kind: "todo", item }));
+    });
+  }
+  const trail = trailText ? parseTrail(trailText) : [];
+  if (trail.length > 0) {
+    const decisions = trail.filter((r) => r.kind === "row").length;
+    rows.push({ key: "decisions", kind: "section", title: "Decisions", right: plural(decisions, "decision") });
+    for (const r of trail) rows.push({ ...r, key: `line-${r.line}` });
+  }
+  return rows;
 }
 
 function phaseColor(t, phase) {
@@ -47,6 +71,8 @@ export default class Work extends View {
     this.view = VIEWS[props()?.view] ? props().view : "trace";
     this.folder = undefined;
     this.texts = [];
+    this.parsed = null;
+    this.rows = [];
     this.error = null;
     this.ticking = false;
   }
@@ -123,64 +149,63 @@ export default class Work extends View {
     return ring(t.dim);
   }
 
-  todo(t, todo) {
-    const row = (item, key) => {
-      if (item.state === "text") return div().id(key).pl(24).text_size(12).text_color(t.muted).child(item.text);
-      const color = item.state === "skipped" ? t.dim : item.state === "done" ? t.muted : t.foreground;
-      return h_flex().id(key).items_start().gap(10).px(6).py(4).rounded(6)
-        .when(Boolean(item.current), (el) => el.bg(t.raised))
-        .child(div().pt(2).child(this.marker(t, item)))
-        .child(v_flex().flex_1().min_w(0).gap(1)
-          .child(h_flex().items_start().gap(6)
-            .when(item.number !== null, (el) => el.child(div().flex_none().text_color(t.dim).child(`${item.number}.`)))
-            .child(div().flex_1().min_w(0).text_color(color).when(item.state === "skipped", (el) => el.line_through()).child(item.text)))
-          .when(item.reason !== null, (el) => el.child(div().text_size(11.5).text_color(t.dim).child(`Skipped: ${item.reason}`))))
-        .when(Boolean(item.current), (el) => el.child(div().flex_none().mt(1).px(6).py(1).rounded(4).text_size(10).font_semibold().bg(t.accent).text_color(t.accent_foreground).child("NOW")));
-    };
-    const share = todo.total === 0 ? 0 : todo.resolved / todo.total;
-    return v_flex().gap(8)
-      .child(this.section(t, "Todo", `${todo.resolved} of ${todo.total}`))
-      .child(div().h(3).rounded(2).bg(t.border).child(div().h_full().rounded(2).bg(t.ansi2).w(`${Math.round(share * 100)}%`)))
-      .children(todo.groups.map((group, g) => v_flex().gap(1)
-        .when(group.name !== null, (el) => el.child(h_flex().pt(4).pb(2).px(6).gap(6).items_center().text_size(11.5).font_semibold().text_color(t.muted)
-          .when(group.name !== "task", (el) => el.child(svg("mods/ow-skills/playbook.svg").size(12).text_color(t.ansi2)))
-          .child(group.name)))
-        .children(group.items.map((item, i) => row(item, `todo-${g}-${i}`)))));
+  todoRow(t, item) {
+    if (item.state === "text") return div().pl(24).text_size(12).text_color(t.muted).child(item.text);
+    const color = item.state === "skipped" ? t.dim : item.state === "done" ? t.muted : t.foreground;
+    return h_flex().items_start().gap(10).px(6).py(4).rounded(6)
+      .when(Boolean(item.current), (el) => el.bg(t.raised))
+      .child(div().pt(2).child(this.marker(t, item)))
+      .child(v_flex().flex_1().min_w(0).gap(1)
+        .child(h_flex().items_start().gap(6)
+          .when(item.number !== null, (el) => el.child(div().flex_none().text_color(t.dim).child(`${item.number}.`)))
+          .child(div().flex_1().min_w(0).text_color(color).when(item.state === "skipped", (el) => el.line_through()).child(item.text)))
+        .when(item.reason !== null, (el) => el.child(div().text_size(11.5).text_color(t.dim).child(`Skipped: ${item.reason}`))))
+      .when(Boolean(item.current), (el) => el.child(div().flex_none().mt(1).px(6).py(1).rounded(4).text_size(10).font_semibold().bg(t.accent).text_color(t.accent_foreground).child("NOW")));
   }
 
-  trail(t, rows) {
-    const decisions = rows.filter((r) => r.kind === "row").length;
-    const row = (r, key) => {
-      if (r.kind === "text") return div().id(key).py(4).text_size(12).text_color(t.muted).child(r.text);
-      if (r.kind === "start") return v_flex().id(key).py(6).gap(3)
-        .child(h_flex().gap(8).items_center().text_size(10.5).text_color(t.dim)
-          .child(div().flex_1().h(1).bg(t.border)).child(`New run · ${when(r.ts)}`).child(div().flex_1().h(1).bg(t.border)))
-        .when(Boolean(r.decision), (el) => el.child(div().text_size(11.5).text_color(t.dim).text_center().child(r.decision)));
-      const color = phaseColor(t, r.phase);
-      return h_flex().id(key).items_start().gap(10).py(6)
-        .child(div().pt(5).child(div().size(7).rounded(4).bg(color)))
-        .child(v_flex().flex_1().min_w(0).gap(2)
-          .child(h_flex().gap(6).text_size(11)
-            .child(div().text_color(t.dim).child(when(r.ts)))
-            .child(div().text_color(color).child(r.phase)))
-          .child(div().text_color(t.foreground).child(r.decision))
-          .when(Boolean(r.why), (el) => el.child(div().text_size(12).text_color(t.muted).child(r.why)))
-          .when(Boolean(r.result), (el) => el.child(div().text_size(11.5).text_color(t.muted).child(`→ ${r.result}`)))
-          .when(Boolean(r.evidence), (el) => el.child(div().id(`${key}-evidence`).truncate().text_size(11.5).text_color(t.dim).tooltip(r.evidence).child(r.evidence))));
-    };
-    return v_flex().gap(4)
-      .child(this.section(t, "Decisions", plural(decisions, "decision")))
-      .children(rows.map((r, i) => row(r, `row-${i}`)));
+  decisionRow(t, r) {
+    if (r.kind === "text") return div().py(4).text_size(12).text_color(t.muted).child(r.text);
+    if (r.kind === "start") return v_flex().py(6).gap(3)
+      .child(h_flex().gap(8).items_center().text_size(10.5).text_color(t.dim)
+        .child(div().flex_1().h(1).bg(t.border)).child(`New run · ${when(r.ts)}`).child(div().flex_1().h(1).bg(t.border)))
+      .when(Boolean(r.decision), (el) => el.child(div().text_size(11.5).text_color(t.dim).text_center().child(r.decision)));
+    const color = phaseColor(t, r.phase);
+    return h_flex().items_start().gap(10).py(6)
+      .child(div().pt(5).child(div().size(7).rounded(4).bg(color)))
+      .child(v_flex().flex_1().min_w(0).gap(2)
+        .child(h_flex().gap(6).text_size(11)
+          .child(div().text_color(t.dim).child(when(r.ts)))
+          .child(div().text_color(color).child(r.phase)))
+        .child(div().text_color(t.foreground).child(r.decision))
+        .when(Boolean(r.why), (el) => el.child(div().text_size(12).text_color(t.muted).child(r.why)))
+        .when(Boolean(r.result), (el) => el.child(div().text_size(11.5).text_color(t.muted).child(`→ ${r.result}`)))
+        .when(Boolean(r.evidence), (el) => el.child(div().id(`evidence-${r.line}`).truncate().text_size(11.5).text_color(t.dim).tooltip(r.evidence).child(r.evidence))));
   }
 
+  traceRow(t, row) {
+    if (row.kind === "section") return this.section(t, row.title, row.right);
+    if (row.kind === "progress") return div().h(3).rounded(2).bg(t.border).child(div().h_full().rounded(2).bg(t.ansi2).w(`${Math.round(row.share * 100)}%`));
+    if (row.kind === "group") return h_flex().pt(4).pb(2).px(6).gap(6).items_center().text_size(11.5).font_semibold().text_color(t.muted)
+      .when(row.name !== "task", (el) => el.child(svg("mods/ow-skills/playbook.svg").size(12).text_color(t.ansi2)))
+      .child(row.name);
+    if (row.kind === "todo") return this.todoRow(t, row.item);
+    return this.decisionRow(t, row);
+  }
+
+  // Only the rows on screen are built and laid out, so a long trail costs what a short one does.
   traceBody(t) {
-    const [todoText, trailText] = this.texts;
-    const todo = todoText ? parseTodo(todoText) : null;
-    const rows = trailText ? parseTrail(trailText) : [];
-    if (!todo?.groups.length && rows.length === 0) return this.empty(t, "Nothing traced yet", "The todo list and the decisions show here once the agent writes TODO.md or decisions.tsv.");
-    return v_flex().id("trace-list").flex_1().min_h(0).overflow_y_scrollbar().p(12).gap(18)
-      .when(Boolean(todo?.groups.length), (el) => el.child(this.todo(t, todo)))
-      .when(rows.length > 0, (el) => el.child(this.trail(t, rows)));
+    if (this.parsed !== this.texts) {
+      this.parsed = this.texts;
+      this.rows = traceRows(this.texts[0], this.texts[1]);
+    }
+    const rows = this.rows;
+    if (rows.length === 0) return this.empty(t, "Nothing traced yet", "The todo list and the decisions show here once the agent writes TODO.md or decisions.tsv.");
+    return div().relative().flex_1().min_h(0)
+      .child(list("trace-list", rows.length, (i) => rows[i].key, (i) => div().px(12)
+        .pt(i === 0 ? 12 : ROW_GAP[rows[i].kind])
+        .when(i === rows.length - 1, (el) => el.pb(12))
+        .child(this.traceRow(t, rows[i]))).size_full())
+      .child(Scrollbar.vertical("trace-list").absolute().inset_0());
   }
 
   actionsBody(t, actions) {
