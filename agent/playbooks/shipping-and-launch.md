@@ -18,11 +18,10 @@ Ship with confidence. The goal is not just to deploy — it's to deploy safely, 
 
 ## Specialist Reviews
 
-Before the checklist, start three delegates on the change (the staged changes, the branch, or the scope the user named). Start all three in one turn with one `group` name, so they run in parallel:
+Before the checklist, start two delegates on the change (the staged changes, the branch, or the scope the user named). Start both in one turn with one `group` name, so they run in parallel:
 
 - `instructionsFile: "~/.pi/agent/instructions/code-reviewer.md"`
 - `instructionsFile: "~/.pi/agent/instructions/security-auditor.md"`
-- `instructionsFile: "~/.pi/agent/instructions/test-engineer.md"`
 
 Each persona file says what to check and what to report, so each task message names only the change.
 
@@ -327,7 +326,7 @@ End with one decision. Any Critical finding makes it NO-GO unless the user expli
 
 ### Specialist reports
 
-[the three reports in full]
+[the two reports in full]
 ```
 
 ## See Also
@@ -336,7 +335,6 @@ End with one decision. Any Critical finding makes it NO-GO unless the user expli
 - For security pre-launch checks, see `~/.pi/agent/references/security-checklist.md`
 - For performance pre-launch checklist, see `~/.pi/agent/references/performance-checklist.md`
 - For accessibility verification before launch, see `~/.pi/agent/references/accessibility-checklist.md`
-- For the alerting rules and SLO-tied thresholds, see `playbooks/observability-and-instrumentation.md`
 
 ## Common Rationalizations
 

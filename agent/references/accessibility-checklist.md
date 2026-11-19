@@ -1,6 +1,6 @@
 # Accessibility Checklist
 
-Quick reference for WCAG 2.1 AA compliance. Use alongside `playbooks/frontend-ui-engineering.md`.
+Quick reference for WCAG 2.1 AA compliance.
 
 ## Table of Contents
 

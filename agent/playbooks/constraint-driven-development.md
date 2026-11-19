@@ -29,7 +29,7 @@ Apply this skill when:
 
 - The project already has a `CONSTRAINTS.md` and the user isn't changing it — read it and follow it instead
 - One-off scripts, spikes, throwaway prototypes
-- The user wants a code review right now (`playbooks/code-review-and-quality.md`) or a CI pipeline built (`playbooks/ci-cd-and-automation.md`)
+- The user wants a code review right now (`playbooks/code-review-and-quality.md`) or a CI pipeline built
 - Pre-product-market-fit code with a two-week expected lifetime — the floor below is still worth it, the rest isn't
 
 ## Loading Constraints
@@ -311,7 +311,5 @@ The skill was applied correctly when:
 ## See Also
 
 - `playbooks/code-review-and-quality.md` — how to review; this skill decides what the review enforces
-- `playbooks/ci-cd-and-automation.md` — building the pipeline these constraints run in
 - `tdd` — the suite that coverage and mutation constraints measure
 - `playbooks/security-and-hardening.md` — what the security dimension should contain
-- `playbooks/performance-optimization.md` — where the performance numbers come from
