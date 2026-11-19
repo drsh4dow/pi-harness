@@ -11,7 +11,6 @@ import * as Str from "effect/String";
 
 const harness = Bun.fileURLToPath(new URL("../../..", import.meta.url));
 
-/** The files whose text reaches a model: the prompt layer, the web skills, and the repo docs `AGENTS.md` points at. */
 const promptFolders = [
 	"agent/roles",
 	"agent/principles",
@@ -28,20 +27,17 @@ const looseFiles = ["agent/SYSTEM.md", "AGENTS.md", "CODING_STANDARDS.md", "GLOS
 
 const skillFolders = ["agent/skills", "src/features/web"];
 
-/** Runtime files under `~/.pi/agent/`, which the allowlist `.gitignore` keeps out of a checkout. */
-const runtimePaths = ["agent/sessions/", "agent/phi-router.json"];
+const untrackedRuntimePaths = ["agent/sessions/", "agent/phi-router.json"];
 
-/**
- * One citation in a prompt file, at `at` (`file:line`). A skill is `named` as a skill, given as `/skill:` for the human
- * to type, or a bare `token` that counts only when a skill has that name. A principle cites the path of its file.
- */
 type Reference = { readonly at: string } & (
-	| { readonly kind: "skill"; readonly name: string; readonly form: "named" | "command" | "token" }
+	| { readonly kind: "skill"; readonly name: string; readonly form: "mention" | "command" | "bareName" }
 	| { readonly kind: "path"; readonly path: string }
 	| { readonly kind: "section"; readonly title: string; readonly path: string }
 );
 
 type Cited<Kind extends Reference["kind"]> = Extract<Reference, { kind: Kind }>;
+
+type Audience = "model" | "human";
 
 interface Skill {
 	readonly dir: string;
@@ -57,9 +53,10 @@ const word = "[a-z][a-z0-9-]*[a-z0-9]";
 
 const token = new RegExp(`(?<![\\w/-])[*\`]{1,2}(?<name>${word})[*\`]{1,2}`, "gu");
 
-/** Names followed by "skill", unless "a", "an" or a possessive marks it as an example of a project's own skill. */
+const notAnExample = String.raw`(?<!(?:\b[Aa]n?|'s) )`;
+
 const skillMention = new RegExp(
-	`(?<!(?:\\b[Aa]n?|'s) )(?<![*\`\\w])(?:[*\`]{1,2}${word}[*\`]{1,2}(?:,? (?:and|or) |, ))*[*\`]{1,2}${word}[*\`]{1,2} skills?\\b`,
+	`${notAnExample}(?<![*\`\\w])(?:[*\`]{1,2}${word}[*\`]{1,2}(?:,? (?:and|or) |, ))*[*\`]{1,2}${word}[*\`]{1,2} skills?\\b`,
 	"gu",
 );
 
@@ -77,15 +74,10 @@ const linkToSkill = /\[[^\]]*\]\([^)\s]*SKILL\.md\)/gu;
 
 const dropAnchor = Str.replace(/#.*$/u, "");
 
-/** The repo path `path` names from `base`, a repo path, with each `..` taking off the segment before it. */
-const normalize = (path: string, base = "") =>
+const resolveRepoPath = (path: string, base = "") =>
 	Str.slice(1)(decodeURIComponent(new URL(path, `file:///${base}`).pathname));
 
-/**
- * The repo path a citation names: a `~/.pi/` path, or a `playbooks/` or `principles/` file in its short form. Any other
- * path may belong to the project the agent works in, so it is not checked.
- */
-const resolve = (path: string): ReadonlyArray<string> => {
+const harnessPathOf = (path: string): ReadonlyArray<string> => {
 	const bare = dropAnchor(path);
 
 	if (/[*<>[\]{}$]|\.\.\./u.test(bare)) {
@@ -93,15 +85,16 @@ const resolve = (path: string): ReadonlyArray<string> => {
 	}
 
 	if (Str.startsWith("~/.pi/")(bare)) {
-		return [normalize(Str.slice(6)(bare))];
+		return [resolveRepoPath(Str.slice(6)(bare))];
 	}
 
 	return /^(?:playbooks|principles)\/[a-z0-9-]+\.md$/u.test(bare) ? [`agent/${bare}`] : [];
 };
 
-/** A relative link's target from `file`, when it reads as a file or folder path. */
-const linked = (file: string, target: string): ReadonlyArray<string> =>
-	/^(?:[a-z]+:|#|~)|[<[]/u.test(target) || !/[./]/u.test(target) ? [] : [normalize(dropAnchor(target), file)];
+const isPathLike = (target: string) => !/^(?:[a-z]+:|#|~)|[<[]/u.test(target) && /[./]/u.test(target);
+
+const linkedPath = (file: string, target: string): ReadonlyArray<string> =>
+	isPathLike(target) ? [resolveRepoPath(dropAnchor(target), file)] : [];
 
 const groups = (expression: RegExp, line: string) =>
 	Arr.map([...Str.matchAll(expression)(line)], (match): Groups => ({ ...match.groups, whole: match[0] }));
@@ -116,8 +109,8 @@ const skillsOnLine = (line: string, at: string): ReadonlyArray<Reference> => {
 		({ name = "" }: Groups): Reference => ({ at, kind: "skill", name, form });
 
 	return [
-		...Arr.flatMap(mentions, (mention) => Arr.map(groups(token, mention), cite("named"))),
-		...Arr.map(groups(token, rest), cite("token")),
+		...Arr.flatMap(mentions, (mention) => Arr.map(groups(token, mention), cite("mention"))),
+		...Arr.map(groups(token, rest), cite("bareName")),
 		...Arr.map(groups(command, line), cite("command")),
 	];
 };
@@ -129,16 +122,15 @@ const referencesOnLine = (file: string, line: string, at: string): ReadonlyArray
 		...skillsOnLine(line, at),
 		...Arr.map(groups(principle, line), ({ name = "" }) => path(`agent/principles/${name}.md`)),
 		...Arr.flatMap(groups(section, line), ({ title = "", path: target = "" }) =>
-			Arr.map(resolve(target), (resolved): Reference => ({ at, kind: "section", title, path: resolved })),
+			Arr.map(harnessPathOf(target), (resolved): Reference => ({ at, kind: "section", title, path: resolved })),
 		),
-		...Arr.flatMap(groups(cited, line), ({ whole, quoted }) => Arr.map(resolve(quoted ?? whole), path)),
-		...Arr.flatMap(groups(link, line), ({ target = "" }) => Arr.map(linked(file, target), path)),
+		...Arr.flatMap(groups(cited, line), ({ whole, quoted }) => Arr.map(harnessPathOf(quoted ?? whole), path)),
+		...Arr.flatMap(groups(link, line), ({ target = "" }) => Arr.map(linkedPath(file, target), path)),
 	];
 };
 
 const noReferences: ReadonlyArray<Reference> = [];
 
-/** Every citation outside fenced code, which holds examples rather than citations. */
 const referencesIn = (file: string, text: string) =>
 	Arr.reduce(Str.split("\n")(text), { fenced: false, found: noReferences }, ({ fenced, found }, line, index) => {
 		if (/^\s*(?:```|~~~)/u.test(line)) {
@@ -197,19 +189,21 @@ const listSkills = Effect.fn("listSkills")(function* (root: string) {
 	return new Map(Arr.flatten(Arr.flatten(found)));
 });
 
-const skillProblems = (skills: ReadonlyMap<string, Skill>, visible: boolean, { at, name, form }: Cited<"skill">) => {
+const skillProblems = (skills: ReadonlyMap<string, Skill>, audience: Audience, { at, name, form }: Cited<"skill">) => {
 	const skill = skills.get(name);
 
 	if (skill === undefined) {
-		return form === "token" ? [] : [`${at}: no skill ${name}`];
+		return form === "bareName" ? [] : [`${at}: no skill ${name}`];
 	}
 
-	return visible && form !== "command" && skill.hidden ? [`${at}: routes to ${name}, which the model never sees`] : [];
+	return audience === "model" && form !== "command" && skill.hidden
+		? [`${at}: routes to ${name}, which the model never sees`]
+		: [];
 };
 
 const pathProblems = Effect.fn("pathProblems")(function* (root: string, { at, path }: Cited<"path">) {
 	const fs = yield* FileSystem.FileSystem;
-	const runtime = Arr.some(runtimePaths, (prefix) => Str.startsWith(prefix)(path));
+	const runtime = Arr.some(untrackedRuntimePaths, (prefix) => Str.startsWith(prefix)(path));
 	const found = runtime || (yield* fs.exists(`${root}${path}`));
 
 	return found ? [] : [`${at}: no file ${path}`];
@@ -227,21 +221,15 @@ const sectionProblems = Effect.fn("sectionProblems")(function* (root: string, { 
 	return hasSection(text, title) ? [] : [`${at}: ${path} has no section ${title}`];
 });
 
-/** What is wrong with one citation, in a file the model lists when `visible`, or in one only the human starts. */
-const problemsOf = (root: string, skills: ReadonlyMap<string, Skill>, visible: boolean) =>
+const problemsOf = (root: string, skills: ReadonlyMap<string, Skill>, audience: Audience) =>
 	Match.type<Reference>().pipe(
 		Match.discriminatorsExhaustive("kind")({
-			skill: (reference) => Effect.succeed(skillProblems(skills, visible, reference)),
+			skill: (reference) => Effect.succeed(skillProblems(skills, audience, reference)),
 			path: (reference) => pathProblems(root, reference),
 			section: (reference) => sectionProblems(root, reference),
 		}),
 	);
 
-/**
- * Each citation in a prompt file that sends the model nowhere: a skill or a path that does not exist, a section its
- * file lacks, or a skill the model's list never shows because it carries `disable-model-invocation: true`. A hidden
- * skill's own files may route to hidden skills, since only the human starts them.
- */
 const brokenReferences = Effect.fn("brokenReferences")(function* (root: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const skills = yield* listSkills(root);
@@ -251,16 +239,15 @@ const brokenReferences = Effect.fn("brokenReferences")(function* (root: string) 
 	const broken = yield* Effect.forEach(files, (file) =>
 		Effect.gen(function* () {
 			const text = yield* fs.readFileString(`${root}${file}`);
-			const visible = !Arr.some(hiddenDirs, (dir) => Str.startsWith(dir)(file));
+			const audience: Audience = Arr.some(hiddenDirs, (dir) => Str.startsWith(dir)(file)) ? "human" : "model";
 
-			return yield* Effect.forEach(referencesIn(file, text), problemsOf(root, skills, visible));
+			return yield* Effect.forEach(referencesIn(file, text), problemsOf(root, skills, audience));
 		}),
 	);
 
 	return Arr.flatten(Arr.flatten(broken));
 });
 
-/** A tree with one break of each kind, and a citation of each kind that resolves. */
 const fixture = `${import.meta.dirname}/references-fixture/`;
 
 test("a missing skill, principle, path or section is a hit, and so is a visible route to a hidden skill", () =>
