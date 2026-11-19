@@ -180,7 +180,8 @@ test("an owner's staged brief carries the root's goal, state folder, owner rules
 			const inherited = yield* leafRead(leafCall, "inherits");
 			const overridden = yield* leafRead({ ...leafCall, goal: "Cap the retries at three." }, "overrides");
 			const moved = yield* leafRead({ ...leafCall, state: otherFolder }, "moves");
-			const work = { state: Option.some(stateFolder), facts: Option.some(`${facts}\n`) };
+			const noWorkFiles = { destinationFile: Option.none(), sharedDocuments: [] };
+			const work = { ...noWorkFiles, state: Option.some(stateFolder), facts: Option.some(`${facts}\n`) };
 
 			expect([ownerStaged, inherited, overridden, moved]).toEqual([
 				{
@@ -194,6 +195,7 @@ test("an owner's staged brief carries the root's goal, state folder, owner rules
 				{ ...work, role: "leaf", goal, instructions: Option.none() },
 				{ ...work, role: "leaf", goal: "Cap the retries at three.", instructions: Option.none() },
 				{
+					...noWorkFiles,
 					role: "leaf",
 					goal,
 					state: Option.some(otherFolder),

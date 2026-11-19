@@ -23,6 +23,8 @@ const ownerBrief: StagedBrief = {
 	goal: "Cap the retries.",
 	state: Option.some("/state/work"),
 	facts: Option.some("Build with make."),
+	destinationFile: Option.none(),
+	sharedDocuments: [],
 	instructions: Option.some("Review."),
 	ownerRules: Option.some("Push only to work branches."),
 	design: Design.cases.Sketch.make({ path: "/state/work/sketch.md" }),
@@ -102,6 +104,8 @@ test("a staged leaf brief that holds owner rules reads back as a leaf without th
 				goal: "Cap the retries.",
 				state: Option.none(),
 				facts: Option.some("Build with make."),
+				destinationFile: Option.none(),
+				sharedDocuments: [],
 				instructions: Option.none(),
 			});
 		}).pipe(Effect.provide(NodeServices.layer)),

@@ -118,6 +118,8 @@ const ledger = Layer.mock(Ledger)({
 						thinking: Option.none(),
 						state: Option.none(),
 						facts: Option.none(),
+						destinationFile: Option.none(),
+						sharedDocuments: [],
 						instructions: Option.none(),
 					},
 					childSession: { id: request.ref, cwd: "/", dir: "/d" },

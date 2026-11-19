@@ -12,6 +12,7 @@ import { roleFieldsFor } from "./brief.ts";
 import { type Brief, childExtensions, type ChildRole, inheritedEnv, launch, levels } from "./child.ts";
 import { type Alias, aliases, ModelName, modelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
+import { workFilesOf } from "./work-files.ts";
 
 /** One delegate as its parent would start it, minus the systemd scope and hc terminal around it. */
 export interface StagedLaunch {
@@ -95,11 +96,12 @@ export const stagedLaunches = Effect.fn("stagedLaunches")(function* (
 	const files = yield* Context.get(services, BriefSources).list(instructionsFolder);
 
 	const withInstructions = yield* Effect.provideContext(Effect.forEach(files, onInstructionsFile), services);
+	const workFiles = yield* Effect.provideContext(workFilesOf(cwd, Option.some(state)), services);
 
 	const launches = Effect.forEach([...withInstructions, ...bareDelegates], ({ level, role, design, ...staged }) =>
 		Effect.gen(function* () {
 			const roleFields = yield* roleFieldsFor(state, Option.some(state), role, design);
-			const brief: Brief = { ...staged, message, goal, state: Option.some(state), ...roleFields };
+			const brief: Brief = { ...staged, message, goal, state: Option.some(state), ...workFiles, ...roleFields };
 
 			const spec = yield* launch(cli)({
 				brief,

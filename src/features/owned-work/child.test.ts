@@ -144,6 +144,8 @@ const brief = {
 	goal: "Cap the retries.",
 	state: Option.none(),
 	facts: Option.none(),
+	destinationFile: Option.none(),
+	sharedDocuments: [],
 	instructions: Option.none(),
 };
 

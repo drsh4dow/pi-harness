@@ -115,6 +115,10 @@ interface BriefCommon extends Omit<ChildPi, "session" | "brief"> {
 	readonly goal: string;
 	readonly state: Option.Option<string>;
 	readonly facts: Option.Option<string>;
+	/** The state folder's `STATE.md`, which holds the work's destination and its acceptance criteria. */
+	readonly destinationFile: Option.Option<string>;
+	/** The glossary, coding standards and ADR folder at the root of the repo the delegate works in, by absolute path. */
+	readonly sharedDocuments: ReadonlyArray<string>;
 	/** The file the caller named and its text, read at the call. Only the text is staged, so a later edit never reaches the child. */
 	readonly instructions: Option.Option<{ readonly file: string; readonly text: string }>;
 }
@@ -137,6 +141,8 @@ const stagedOf = (brief: Brief): StagedBrief => {
 		goal: brief.goal,
 		state: brief.state,
 		facts: brief.facts,
+		destinationFile: brief.destinationFile,
+		sharedDocuments: brief.sharedDocuments,
 		instructions: Option.map(brief.instructions, ({ text }) => text),
 	};
 

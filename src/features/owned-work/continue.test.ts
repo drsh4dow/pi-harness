@@ -14,7 +14,7 @@ const { Hook, Start, Answer, End, Launched, TurnEnds, Delivered, SpawnLevels, Pa
 
 const runs = Hook({ event: "run starts" });
 
-const brief = '{"role":"leaf","goal":"Cap the retries.","instructions":"Review."}';
+const brief = '{"role":"leaf","goal":"Cap the retries.","sharedDocuments":[],"instructions":"Review."}';
 
 const rows: ReadonlyArray<Row> = [
 	{

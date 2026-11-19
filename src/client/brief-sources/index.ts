@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import type * as Option from "effect/Option";
+import * as Path from "effect/Path";
 import type * as PlatformError from "effect/PlatformError";
 import * as Schema from "effect/Schema";
 
@@ -13,8 +14,9 @@ class SourceRefused extends Schema.TaggedError<SourceRefused, { readonly brand: 
 }) {}
 
 /**
- * The files and folders a delegate's brief is built from: instructions files, state-folder notes, design sketches, and
- * the folders a delegate starts or keeps its state in. Owned-work reads them and never writes them.
+ * The files and folders a delegate's brief is built from: instructions files, state-folder notes, design sketches, a
+ * repo's shared documents, and the folders a delegate starts or keeps its state in. Owned-work reads them and never
+ * writes them.
  */
 export class BriefSources extends Context.Service<
 	BriefSources,
@@ -22,7 +24,10 @@ export class BriefSources extends Context.Service<
 		readonly read: (file: string) => Effect.Effect<string, SourceRefused>;
 		/** None when the file does not exist. */
 		readonly readIfPresent: (file: string) => Effect.Effect<Option.Option<string>, SourceRefused>;
+		readonly exists: (path: string) => Effect.Effect<boolean, SourceRefused>;
 		readonly list: (folder: string) => Effect.Effect<ReadonlyArray<string>, SourceRefused>;
+		/** The nearest folder at or above `folder` that holds a `.git`, or None outside a git repo. */
+		readonly repoRoot: (folder: string) => Effect.Effect<Option.Option<string>, SourceRefused>;
 		/** The real path of `folder`, which must exist and be a folder. */
 		readonly realFolder: (folder: string) => Effect.Effect<string, SourceRefused>;
 	}
@@ -31,10 +36,26 @@ export class BriefSources extends Context.Service<
 const refused = (path: string, error: PlatformError.PlatformError): SourceRefused =>
 	SourceRefused.make({ path, why: error.reason._tag });
 
-export const briefSourcesLayer: Layer.Layer<BriefSources, never, FileSystem.FileSystem> = Layer.effect(
+export const briefSourcesLayer: Layer.Layer<BriefSources, never, FileSystem.FileSystem | Path.Path> = Layer.effect(
 	BriefSources,
-	Effect.map(FileSystem.FileSystem, (fs) =>
-		BriefSources.of({
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		const path = yield* Path.Path;
+
+		const exists = (file: string) => Effect.mapError(fs.exists(file), (error) => refused(file, error));
+
+		const repoRoot = (folder: string): Effect.Effect<Option.Option<string>, SourceRefused> =>
+			Effect.flatMap(exists(path.join(folder, ".git")), (found) => {
+				const parent = path.dirname(folder);
+
+				if (found) {
+					return Effect.succeedSome(folder);
+				}
+
+				return parent === folder ? Effect.succeedNone : repoRoot(parent);
+			});
+
+		return BriefSources.of({
 			read: (file) => Effect.mapError(fs.readFileString(file), (error) => refused(file, error)),
 			readIfPresent: (file) =>
 				fs.readFileString(file).pipe(
@@ -42,7 +63,9 @@ export const briefSourcesLayer: Layer.Layer<BriefSources, never, FileSystem.File
 					Effect.catchReason("PlatformError", "NotFound", () => Effect.succeedNone),
 					Effect.mapError((error) => refused(file, error)),
 				),
+			exists,
 			list: (folder) => Effect.mapError(fs.readDirectory(folder), (error) => refused(folder, error)),
+			repoRoot,
 			realFolder: (folder) =>
 				Effect.gen(function* () {
 					const real = yield* Effect.mapError(fs.realPath(folder), (error) => refused(folder, error));
@@ -52,6 +75,6 @@ export const briefSourcesLayer: Layer.Layer<BriefSources, never, FileSystem.File
 						? real
 						: yield* SourceRefused.make({ path: folder, why: "not a folder" });
 				}),
-		}),
-	),
+		});
+	}),
 );

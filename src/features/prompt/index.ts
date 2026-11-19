@@ -17,6 +17,8 @@ import { compose } from "./compose.ts";
 import { entryIndex, type Kind, loadEntries } from "./kinds.ts";
 import { skillsFor } from "./skills.ts";
 
+export { briefBlocks } from "./compose.ts";
+
 const indexOf = Effect.fn("indexOf")(function* (kind: Kind, agentDir: string, role: Role) {
 	const dir = `${agentDir}/${kind}`;
 	const { entries, problems } = yield* loadEntries(kind, dir);

@@ -69,7 +69,16 @@ export const briefBlocks = (brief: StagedBrief): string => {
 	const workLines = [
 		`The user's goal: ${Str.trim(brief.goal)}`,
 		...Option.toArray(Option.map(brief.state, (state) => `The work's state folder: ${Str.trim(state)}`)),
+		...Option.toArray(
+			Option.map(brief.destinationFile, (file) => `The work's destination and acceptance criteria live in ${file}.`),
+		),
 		...(brief.role === "owner" ? [designLine(brief.design)] : []),
+		...(Arr.isReadonlyArrayNonEmpty(brief.sharedDocuments)
+			? [
+					`Your repo's shared documents: ${Arr.join(brief.sharedDocuments, ", ")}`,
+					"Read the parts of them that cover your area before you name a thing or write code.",
+				]
+			: []),
 	];
 
 	const ownerRules = brief.role === "owner" ? brief.ownerRules : Option.none();
