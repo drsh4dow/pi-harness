@@ -99,7 +99,7 @@ export const briefBlocks = (brief: StagedBrief): string => {
  * Writes `SYSTEM.md`, the role file, the delegate's brief and the principles and playbooks indexes into pi's
  * preamble, so they render before `<project_context>`. A custom preamble makes pi drop its `<tools>`, `<rules>` and `<docs>`. This adds
  * back `<rules>` as a custom section, which pi renders last. It leaves `<tools>` out, since each tool's schema already
- * describes it, and `<docs>`, which only work on this harness needs and its `AGENTS.md` carries. The `<skills>` section
+ * describes it, and `<docs>`, which only work on this harness needs and its `CODING_STANDARDS.md` carries. The `<skills>` section
  * replaces pi's own in place. pi builds fresh options for each run, so running this again never stacks.
  */
 export const compose = (layers: Layers) => (event: BeforeAgentStartEvent) => {
