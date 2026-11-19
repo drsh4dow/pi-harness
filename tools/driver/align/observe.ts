@@ -1,12 +1,11 @@
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
-import type * as Duration from "effect/Duration";
+import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 import * as Rec from "effect/Record";
-import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
@@ -179,7 +178,7 @@ export const plant = ({ run, history }: { readonly run: Run; readonly history: R
 		return Str.trim((yield* sh(run, "git rev-parse HEAD")).output);
 	});
 
-/** What the run came to: the sessions as last read, the root's last reply if it settled idle, and the files edited. */
+/** What the run came to: the sessions `watch` returned, the root's last reply if it settled idle, and the files edited. */
 interface Observed {
 	readonly sessions: Sessions;
 	readonly reply: Option.Option<string>;
@@ -219,10 +218,46 @@ const account = (run: Run, { sessions, reply, files }: Observed) =>
 		);
 	});
 
+interface Watched {
+	readonly sessions: Sessions;
+	readonly files: ReadonlyArray<string>;
+}
+
 /**
- * Sends `request` as the human's one message, then waits until the root settles idle holding no work or, given
- * `stopAt`, until a file it matches is edited, whichever comes first. Prints what the run spent, which skills and
- * playbooks each session read, the files edited and the root's last reply.
+ * Reads `sessions`, then `files`, until a look finds a file `stopAt` matches edited or the root settled idle. On an edit
+ * it returns the sessions of the look before, which predate the edit because that look found none after reading them.
+ * `start` is the sessions before the human's message.
+ */
+export const watch = <Failure>({
+	start,
+	sessions,
+	files,
+	stopAt,
+}: {
+	readonly start: Sessions;
+	readonly sessions: Effect.Effect<Sessions, Failure>;
+	readonly files: Effect.Effect<ReadonlyArray<string>, Failure>;
+	readonly stopAt: (file: string) => boolean;
+}) => {
+	const look = (clean: Sessions): Effect.Effect<Watched, Failure> =>
+		Effect.gen(function* () {
+			const now = yield* sessions;
+			const edited = yield* files;
+
+			if (Arr.some(edited, stopAt)) {
+				return { sessions: clean, files: edited };
+			}
+
+			return Option.isSome(settledReply(now.root)) ? { sessions: now, files: edited } : yield* look(now);
+		});
+
+	return look(start);
+};
+
+/**
+ * Sends `request` as the human's one message, then looks every 5 seconds until the root settles idle holding no work or,
+ * given `stopAt`, until a file it matches is edited, whichever comes first, per `watch`. Prints what the run spent, which
+ * skills and playbooks each session read, the files edited and the root's last reply, as of the sessions `watch` returns.
  */
 export const observe = ({
 	run,
@@ -238,21 +273,23 @@ export const observe = ({
 	readonly stopAt?: (file: string) => boolean;
 }) =>
 	Effect.gen(function* () {
-		const files = filesChangedSince({ run, base });
-		const settled = run.waitFor("the root settled idle", within, ({ root }) => settledReply(root));
+		const sessions = run.waitFor("the sessions", "1 minute", Option.some);
+		const settling = `the root settles idle within ${Duration.format(Duration.fromInputUnsafe(within))}`;
 
-		const editing =
-			stopAt === undefined
-				? Effect.never
-				: Effect.repeat(files, { until: (now) => Arr.some(now, stopAt), schedule: Schedule.spaced("5 seconds") });
-
-		yield* Effect.raceFirst(
-			Effect.andThen(run.root.prompt(request, within), Effect.never),
-			Effect.raceFirst(settled, editing),
+		const watching = watch({
+			start: yield* sessions,
+			sessions: Effect.andThen(Effect.sleep("5 seconds"), sessions),
+			files: filesChangedSince({ run, base }),
+			stopAt: stopAt ?? (() => false),
+		}).pipe(
+			Effect.timeoutOrElse({
+				duration: within,
+				orElse: () => Effect.andThen(run.check(false, settling), Effect.never),
+			}),
 		);
 
-		const sessions = yield* run.waitFor("the sessions", "1 minute", Option.some);
-		const observed = { sessions, reply: settledReply(sessions.root), files: yield* files };
+		const watched = yield* Effect.raceFirst(Effect.andThen(run.root.prompt(request, within), Effect.never), watching);
+		const observed = { ...watched, reply: settledReply(watched.sessions.root) };
 
 		yield* account(run, observed);
 
