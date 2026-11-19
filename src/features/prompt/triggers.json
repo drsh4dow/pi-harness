@@ -1,4 +1,31 @@
 {
+	"align": {
+		"positive": [
+			{
+				"prompt": "I have a rough idea for a habit tracker, help me refine it"
+			},
+			{
+				"prompt": "Before you build anything, let's define what done looks like"
+			},
+			{
+				"prompt": "Align with me on the destination before you start"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Audit the upload endpoint for vulnerabilities",
+				"owner": "security-and-hardening"
+			},
+			{
+				"prompt": "Grill me on this plan",
+				"owner": "grilling"
+			},
+			{
+				"prompt": "Fix the failing CI pipeline",
+				"owner": "ci-cd-and-automation"
+			}
+		]
+	},
 	"api-and-interface-design": {
 		"positive": [
 			{
@@ -499,7 +526,12 @@
 				"prompt": "grill me"
 			}
 		],
-		"negative": []
+		"negative": [
+			{
+				"prompt": "Refine my rough idea into something concrete",
+				"owner": "align"
+			}
+		]
 	},
 	"hillclimb": {
 		"positive": [
@@ -627,7 +659,8 @@
 				"owner": "grilling"
 			},
 			{
-				"prompt": "Refine my rough idea for the onboarding flow"
+				"prompt": "Refine my rough idea for the onboarding flow",
+				"owner": "align"
 			}
 		]
 	},
@@ -990,7 +1023,8 @@
 		],
 		"negative": [
 			{
-				"prompt": "Refine my rough product idea into something concrete"
+				"prompt": "Refine my rough product idea into something concrete",
+				"owner": "align"
 			},
 			{
 				"prompt": "Why is this function so slow on large inputs?"
