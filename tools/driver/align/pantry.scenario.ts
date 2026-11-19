@@ -7,7 +7,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, model, observe, offGitHub, plant, questionsIn } from "./observe.ts";
+import { type Commit, judge, model, observe, offGitHub, plant, questionsIn } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -103,17 +103,22 @@ scenario({
 			const { reply, files } = yield* observe({ run, base, request, within: "20 minutes", stopAt: () => true });
 			const text = Option.getOrElse(reply, () => "");
 
-			yield* run.check(
-				!Arr.isReadonlyArrayNonEmpty(files),
-				`a vague build request leaves every file of the project as it was, on every branch and worktree (edited: ${Arr.join(files, ", ")})`,
-			);
-			yield* run.check(
-				Option.isSome(reply) && Arr.isReadonlyArrayNonEmpty(questionsIn(text)),
-				`the root settles idle on a reply that asks the human questions (it asks ${String(questionsIn(text).length)})`,
-			);
-			yield* run.check(
-				picks.test(text),
-				"the root's questions come with its own picks: the reply recommends, suggests, proposes or names a default",
-			);
+			yield* judge({
+				run,
+				rules: [
+					[
+						!Arr.isReadonlyArrayNonEmpty(files),
+						`a vague build request leaves every file of the project as it was, on every branch and worktree (edited: ${Arr.join(files, ", ")})`,
+					],
+					[
+						Option.isSome(reply) && Arr.isReadonlyArrayNonEmpty(questionsIn(text)),
+						`the root settles idle on a reply that asks the human questions (it asks ${String(questionsIn(text).length)})`,
+					],
+					[
+						picks.test(text),
+						"the root's questions come with its own picks: the reply recommends, suggests, proposes or names a default",
+					],
+				],
+			});
 		}),
 });
