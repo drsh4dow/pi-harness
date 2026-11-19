@@ -61,15 +61,45 @@ const sentAll = (requests: ReadonlyArray<string>, text: string) =>
 
 const sentAny = (requests: ReadonlyArray<string>, text: string) => Arr.some(requests, Str.includes(text));
 
+const workFolder = (run: Run) => `${run.home}/.local/state/pi-agent/brief-scenario/work`;
+
 const stateFolder = (run: Run) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
-		const state = `${run.home}/.local/state/pi-agent/brief-scenario/work`;
+		const state = workFolder(run);
 
 		yield* fs.makeDirectory(state, { recursive: true });
 		yield* fs.writeFileString(`${state}/facts.md`, `${fact}\n`);
 		yield* fs.writeFileString(`${state}/owner.md`, `${ownerRule}\nSecond owner rule line.\n`);
 	});
+
+/** Makes the root's project folder a git repo that holds the three shared documents, and returns the `<work>` lines they and `STATE.md` give. */
+const sharedDocuments = (run: Run) =>
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		const { output } = yield* run.exec(["pwd", "-P"]);
+		const project = Str.trim(output);
+
+		yield* run.exec(["git", "init", "-q"]);
+		yield* fs.makeDirectory(`${project}/docs/adr`, { recursive: true });
+
+		yield* Effect.forEach(["GLOSSARY.md", "CODING_STANDARDS.md", "docs/adr/0001-briefs.md"], (file) =>
+			fs.writeFileString(`${project}/${file}`, "# Brief scenario\n"),
+		);
+
+		return [
+			`The work's destination and acceptance criteria live in ${workFolder(run)}/STATE.md.`,
+			`Your repo's shared documents: ${project}/GLOSSARY.md, ${project}/CODING_STANDARDS.md, ${project}/docs/adr/`,
+		];
+	});
+
+const workBlockOf = (requests: ReadonlyArray<string>) =>
+	Option.getOrElse(
+		Arr.findFirst(requests, (request) =>
+			Option.map(Str.match(/<work>\n[\s\S]*?\n<\/work>/u)(request), ([block]) => block),
+		),
+		() => "no <work> block",
+	);
 
 const task = `Quote two lines from your system prompt, each on its own line and nothing else: the line that starts with "The user's goal", then the first line inside <owner-rules>, or the words "${noRules}" when your prompt has no <owner-rules> block.`;
 
@@ -82,15 +112,20 @@ const request = Arr.join(
 	"\n",
 );
 
-const checkOwner = (run: Run, owner: Effect.Success<ReturnType<typeof settled>>) => {
+const checkOwner = (run: Run, owner: Effect.Success<ReturnType<typeof settled>>, workLines: ReadonlyArray<string>) => {
 	const text = owner.wake.details.outcome.text ?? "";
 	const { requests } = owner.session;
 
 	return Effect.gen(function* () {
 		yield* run.say(`owner answered: ${text}`);
+		yield* run.say(`owner's <work>: ${workBlockOf(requests)}`);
 		yield* run.check(
 			sentAll(requests, `The user's goal: ${goal}`) && sentAll(requests, fact) && sentAll(requests, ownerRule),
 			`every request of the owner carries the goal, the project facts and the owner rules (${String(requests.length)} requests)`,
+		);
+		yield* run.check(
+			Arr.every(workLines, (line) => sentAll(requests, line)),
+			`every request of the owner names STATE.md and the shared documents (${String(requests.length)} requests)`,
 		);
 		yield* run.check(
 			Str.includes(goal)(text) && Str.includes(ownerRule)(text),
@@ -99,15 +134,20 @@ const checkOwner = (run: Run, owner: Effect.Success<ReturnType<typeof settled>>)
 	});
 };
 
-const checkLeaf = (run: Run, leaf: Effect.Success<ReturnType<typeof settled>>) => {
+const checkLeaf = (run: Run, leaf: Effect.Success<ReturnType<typeof settled>>, workLines: ReadonlyArray<string>) => {
 	const text = leaf.wake.details.outcome.text ?? "";
 	const { requests } = leaf.session;
 
 	return Effect.gen(function* () {
 		yield* run.say(`leaf answered: ${text}`);
+		yield* run.say(`leaf's <work>: ${workBlockOf(requests)}`);
 		yield* run.check(
 			sentAll(requests, `The user's goal: ${goal}`) && sentAll(requests, fact) && !sentAny(requests, ownerRule),
 			`every request of the leaf carries the goal and the project facts, and none the owner rules (${String(requests.length)} requests)`,
+		);
+		yield* run.check(
+			Arr.every(workLines, (line) => sentAll(requests, line)),
+			`every request of the leaf names STATE.md and the shared documents (${String(requests.length)} requests)`,
 		);
 		yield* run.check(
 			Str.includes(goal)(text) && Str.includes(noRules)(text) && !Str.includes(ownerRule)(text),
@@ -122,8 +162,9 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			yield* stateFolder(run);
+			const workLines = yield* sharedDocuments(run);
 			yield* run.root.prompt(request);
-			yield* Effect.flatMap(settled(run, "brief owner"), (owner) => checkOwner(run, owner));
-			yield* Effect.flatMap(settled(run, "brief leaf"), (leaf) => checkLeaf(run, leaf));
+			yield* Effect.flatMap(settled(run, "brief owner"), (owner) => checkOwner(run, owner, workLines));
+			yield* Effect.flatMap(settled(run, "brief leaf"), (leaf) => checkLeaf(run, leaf, workLines));
 		}),
 });
