@@ -154,7 +154,7 @@ Its title names a remedy instead of a symptom. Its Problem states a guessed caus
 
 ## Size
 
-Size each ticket as a vertical slice. It cuts a narrow path through every layer it needs, is verifiable on its own, and fits in one agent session.
+Size each ticket as a vertical slice. It cuts a narrow path through every layer it needs, is verifiable on its own, and fits in one agent session. The expand, migrate and contract tickets of a wide refactor are the exception.
 
 ## Before you file
 
