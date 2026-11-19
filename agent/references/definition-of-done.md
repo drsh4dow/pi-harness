@@ -51,7 +51,7 @@ The depth behind these items lives in `playbooks/code-review-and-quality.md` (th
 ### Ship-readiness
 
 - [ ] Security implications reviewed for any untrusted input, auth, or data handling (see `playbooks/security-and-hardening.md`)
-- [ ] Observability in place for new critical paths (logs, metrics, traces) (see `playbooks/observability-and-instrumentation.md`)
+- [ ] Observability in place for new critical paths (logs, metrics, traces)
 - [ ] Rollback path exists for anything risky (see `playbooks/shipping-and-launch.md`)
 
 ## How to Apply

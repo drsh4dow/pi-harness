@@ -21,30 +21,7 @@
 				"owner": "grilling"
 			},
 			{
-				"prompt": "Fix the failing CI pipeline",
-				"owner": "ci-cd-and-automation"
-			}
-		]
-	},
-	"api-and-interface-design": {
-		"positive": [
-			{
-				"prompt": "Design a REST endpoint for creating invoices, including error responses and versioning"
-			},
-			{
-				"prompt": "What should the public interface of this payments module expose to other teams?"
-			},
-			{
-				"prompt": "Help me define the contract between the frontend and the orders service"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "My unit test is failing with a null pointer exception"
-			},
-			{
-				"prompt": "Make this landing page responsive on mobile",
-				"owner": "frontend-ui-engineering"
+				"prompt": "Fix the failing CI pipeline"
 			}
 		]
 	},
@@ -188,27 +165,6 @@
 			}
 		]
 	},
-	"browser-testing-with-devtools": {
-		"positive": [
-			{
-				"prompt": "Use Chrome DevTools to figure out why the checkout button click does nothing"
-			},
-			{
-				"prompt": "Inspect the network requests the dashboard makes when it first loads"
-			},
-			{
-				"prompt": "Verify in a real browser that the form submits and the data persists in localStorage"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Write a spec for the new billing feature before we start"
-			},
-			{
-				"prompt": "Break this PRD into ordered implementation tasks"
-			}
-		]
-	},
 	"bug-fix": {
 		"positive": [
 			{
@@ -229,29 +185,6 @@
 			{
 				"prompt": "Add CSV export to the reports page",
 				"owner": "feature"
-			}
-		]
-	},
-	"ci-cd-and-automation": {
-		"positive": [
-			{
-				"prompt": "Set up a GitHub Actions pipeline that runs the tests on every pull request"
-			},
-			{
-				"prompt": "Add a deploy stage to the pipeline with a manual approval gate"
-			},
-			{
-				"prompt": "Automate the quality gates so nothing merges without passing checks"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Refactor this function so it is easier to read",
-				"owner": "code-simplification"
-			},
-			{
-				"prompt": "Add structured logging to the checkout service",
-				"owner": "observability-and-instrumentation"
 			}
 		]
 	},
@@ -353,8 +286,7 @@
 				"owner": "code-review-and-quality"
 			},
 			{
-				"prompt": "Add a deploy stage to our pipeline with a manual approval gate",
-				"owner": "ci-cd-and-automation"
+				"prompt": "Add a deploy stage to our pipeline with a manual approval gate"
 			},
 			{
 				"prompt": "Write a failing test for this bug before we fix it",
@@ -398,12 +330,10 @@
 		],
 		"negative": [
 			{
-				"prompt": "Add dark mode to the settings page",
-				"owner": "frontend-ui-engineering"
+				"prompt": "Add dark mode to the settings page"
 			},
 			{
-				"prompt": "Why is this test flaky on CI?",
-				"owner": "ci-cd-and-automation"
+				"prompt": "Why is this test flaky on CI?"
 			}
 		]
 	},
@@ -481,36 +411,6 @@
 			{
 				"prompt": "Run this whole project over the coming weeks with many stacked PRs",
 				"owner": "orchestrate"
-			}
-		]
-	},
-	"frontend-ui-engineering": {
-		"positive": [
-			{
-				"prompt": "Make this page responsive and WCAG compliant",
-				"topK": 1
-			},
-			{
-				"prompt": "Build an accessible modal component with keyboard support"
-			},
-			{
-				"prompt": "Make the pricing page accessible and responsive on mobile",
-				"topK": 1
-			},
-			{
-				"prompt": "Refactor the dashboard into reusable components with sane state management"
-			},
-			{
-				"prompt": "Rework the profile page into reusable components with proper state management"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Optimize the slow database indexes",
-				"owner": "perf-issue"
-			},
-			{
-				"prompt": "Tag and publish the release"
 			}
 		]
 	},
@@ -677,28 +577,6 @@
 			}
 		]
 	},
-	"observability-and-instrumentation": {
-		"positive": [
-			{
-				"prompt": "Add structured logging and metrics to the checkout service"
-			},
-			{
-				"prompt": "Set up tracing so we can follow a request across services"
-			},
-			{
-				"prompt": "What alerts should we page on for this new endpoint?"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Simplify this over-clever component",
-				"owner": "code-simplification"
-			},
-			{
-				"prompt": "Draft the PRD for the referral program"
-			}
-		]
-	},
 	"opening-a-pr": {
 		"positive": [
 			{
@@ -773,35 +651,7 @@
 		],
 		"negative": [
 			{
-				"prompt": "Core Web Vitals are failing, improve our LCP",
-				"owner": "performance-optimization"
-			}
-		]
-	},
-	"performance-optimization": {
-		"positive": [
-			{
-				"prompt": "The dashboard takes eight seconds to load, profile it and fix the bottleneck"
-			},
-			{
 				"prompt": "Core Web Vitals are failing, improve our LCP"
-			},
-			{
-				"prompt": "Our JS bundle is too large and the page renders slowly"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Draft the deprecation notice for the v1 API",
-				"owner": "deprecation-and-migration"
-			},
-			{
-				"prompt": "Design the public interface for the billing module",
-				"owner": "api-and-interface-design"
-			},
-			{
-				"prompt": "This SQL query is slow, profile it against a baseline",
-				"owner": "perf-issue"
 			}
 		]
 	},
@@ -1051,28 +901,6 @@
 			}
 		]
 	},
-	"source-driven-development": {
-		"positive": [
-			{
-				"prompt": "Verify against the official Next.js docs before implementing this"
-			},
-			{
-				"prompt": "I want source-cited code for the new Stripe integration"
-			},
-			{
-				"prompt": "Ground every framework decision in the official documentation"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Fix the flaky test in CI",
-				"owner": "ci-cd-and-automation"
-			},
-			{
-				"prompt": "Break the spec into ordered tasks"
-			}
-		]
-	},
 	"tdd": {
 		"positive": [
 			{
@@ -1151,8 +979,7 @@
 		],
 		"negative": [
 			{
-				"prompt": "Make this page responsive and accessible",
-				"owner": "frontend-ui-engineering"
+				"prompt": "Make this page responsive and accessible"
 			}
 		]
 	},

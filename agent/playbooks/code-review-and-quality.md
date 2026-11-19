@@ -75,7 +75,7 @@ For detailed security guidance, see `playbooks/security-and-hardening.md`. Does 
 
 ### 5. Performance
 
-For detailed profiling and optimization, see `playbooks/performance-optimization.md`. Does the change introduce performance problems?
+Does the change introduce performance problems?
 
 - Any N+1 query patterns?
 - Any unbounded loops or unconstrained data fetching?
