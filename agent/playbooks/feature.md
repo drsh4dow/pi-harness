@@ -6,19 +6,20 @@ when: "New or changed behavior, built from a named data shape: add or change a f
 
 **You own the design. Plan, review, verify.** Delegate implementation. Stay in the lead.
 
-1. Trace the affected subsystem.
-2. `architect` for parallel design exploration, unless your brief names a sketch to build to.
-3. Write the throughput checkpoint as four items in your reply. A dimension that genuinely does not apply (single file, no fan-out) keeps its item with `n/a: <reason>` rather than being dropped:
+1. Name the acceptance criteria you build to, from the ticket, the spec, `STATE.md`, or the task message. When you cannot write them without guessing a product call, a root runs `playbooks/align.md` first, and a delegate stops and reports what is missing.
+2. Trace the affected subsystem.
+3. `architect` for parallel design exploration, unless your brief names a sketch to build to.
+4. Write the throughput checkpoint as four items in your reply. A dimension that genuinely does not apply (single file, no fan-out) keeps its item with `n/a: <reason>` rather than being dropped:
    - **Blocking first steps.** Gates run before fan-out.
    - **Independent workstreams.** Disjoint files, services, or layers parallelize. Shared writes serialize.
    - **Shared mutable state.** Default to splitting the target (**principle-separate-before-serializing-shared-state**). Serialize only for real invariants.
    - **Smallest safe decomposition.** If one worker is best, name why.
-4. Hand code-writing to a delegate with a specific scope (file paths, named data shape and its organizing structure per **principle-model-the-domain**, a state machine over scattered booleans, a table/registry over branching, a typed model over repeated shape assumptions, chosen before the delegate writes logic, and success criteria). Pick each delegate's model alias and role for the job. When the implementation admits multiple valid shapes (error handling, abstraction layer, test structure), delegate via the **arena** skill instead so the runners surface the alternatives and the cross-judge guards the pick. Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it (the gain is review separation, not lines saved). No "standing by" reply that waits on a nested agent. Comments per the comments rule in the system prompt. Surgical edits, re-ground against the source for upstream-derived files. Port shared-primitive improvements to all consumers and verify each. Commit liberally. The step is done when the pull request body links the sketch the brief names, or the arena synthesis note.
-5. Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass. Flag it.
-6. Run one pass of `playbooks/code-simplification.md` over the whole diff that deletes what no acceptance criterion needs, and put `git diff --shortstat <base>...HEAD` from before and after it in the PR. Then rebase into small, ordered commits.
+5. Hand code-writing to a delegate with a specific scope (file paths, named data shape and its organizing structure per **principle-model-the-domain**, a state machine over scattered booleans, a table/registry over branching, a typed model over repeated shape assumptions, chosen before the delegate writes logic, and success criteria). Pick each delegate's model alias and role for the job. When the implementation admits multiple valid shapes (error handling, abstraction layer, test structure), delegate via the **arena** skill instead so the runners surface the alternatives and the cross-judge guards the pick. Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it (the gain is review separation, not lines saved). No "standing by" reply that waits on a nested agent. Comments per the comments rule in the system prompt. Surgical edits, re-ground against the source for upstream-derived files. Port shared-primitive improvements to all consumers and verify each. Commit liberally. The step is done when the pull request body links the sketch the brief names, or the arena synthesis note.
+6. Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass. Flag it.
+7. Run one pass of `playbooks/code-simplification.md` over the whole diff that deletes what no acceptance criterion needs, and put `git diff --shortstat <base>...HEAD` from before and after it in the PR. Then rebase into small, ordered commits.
    Use **principle-sequence-verifiable-units**, building, verifying, and committing each small unit before the next.
-7. If the design is contested, `interrogate` before shipping.
-8. Run **Opening a PR**.
+8. If the design is contested, `interrogate` before shipping.
+9. Run **Opening a PR**.
 
 Code-coupled work (one feature, one migration) goes to a single owner with the checkpoint inline. That owner fans out internally after the blocking phase. Parent-level fan-out is for slices that produce independent artifacts (audits, cross-subsystem investigations, competing experiments). Rewrite the checkpoint at phase boundaries. Spawn a fresh owner rather than chaining interrupts.
 
