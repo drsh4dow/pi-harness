@@ -26,9 +26,9 @@ Only include these when they add genuine value. Most ADRs won't need them.
 
 Scan `docs/adr/` for the highest existing number and increment by one.
 
-## When to offer an ADR
+## When a decision gets an ADR
 
-All three of these must be true:
+This is the one ADR bar. All three of these must be true:
 
 1. **Hard to reverse**: the cost of changing your mind later is meaningful
 2. **Surprising without context**: a future reader will look at the code and wonder "why on earth did they do it this way?"

@@ -25,12 +25,7 @@ ADRs capture the reasoning behind significant technical decisions. They're the h
 
 ### When to Write an ADR
 
-- Choosing a framework, library, or major dependency
-- Designing a data model or database schema
-- Selecting an authentication strategy
-- Deciding on an API architecture (REST vs. GraphQL vs. tRPC)
-- Choosing between build tools, hosting platforms, or infrastructure
-- Any decision that would be expensive to reverse
+Write one for a decision that passes the bar in `~/.pi/agent/skills/domain-modeling/ADR-FORMAT.md`, and only then.
 
 ### Match the existing convention first
 
@@ -253,7 +248,7 @@ After checking the technical content, review the prose for the people who will u
 
 After documenting:
 
-- [ ] Each decision that is hard to reverse, surprising without context, and a real trade-off has an ADR
+- [ ] Each decision that passes the ADR bar has an ADR
 - [ ] README covers quick start, commands, and architecture overview
 - [ ] API functions have parameter and return type documentation
 - [ ] Known gotchas are documented inline where they matter

@@ -45,7 +45,7 @@ The depth behind these items lives in `playbooks/code-review-and-quality.md` (th
 ### Documentation
 
 - [ ] Public interfaces, APIs, and user-facing behavior are documented
-- [ ] Architectural decisions worth preserving are recorded (see `playbooks/documentation-and-adrs.md`)
+- [ ] Each decision that passes the bar in `~/.pi/agent/skills/domain-modeling/ADR-FORMAT.md` has an ADR (see `playbooks/documentation-and-adrs.md`)
 - [ ] Documentation describes the current state in timeless language, not the change history
 
 ### Ship-readiness
