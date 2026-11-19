@@ -73,8 +73,7 @@ const stateFolder = (run: Run) =>
 		yield* fs.writeFileString(`${state}/owner.md`, `${ownerRule}\nSecond owner rule line.\n`);
 	});
 
-/** Makes the root's project folder a git repo that holds the three shared documents, and returns the `<work>` lines they and `STATE.md` give. */
-const sharedDocuments = (run: Run) =>
+const plantSharedDocuments = (run: Run) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const { output } = yield* run.exec(["pwd", "-P"]);
@@ -162,7 +161,7 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			yield* stateFolder(run);
-			const workLines = yield* sharedDocuments(run);
+			const workLines = yield* plantSharedDocuments(run);
 			yield* run.root.prompt(request);
 			yield* Effect.flatMap(settled(run, "brief owner"), (owner) => checkOwner(run, owner, workLines));
 			yield* Effect.flatMap(settled(run, "brief leaf"), (leaf) => checkLeaf(run, leaf, workLines));

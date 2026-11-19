@@ -5,8 +5,7 @@ import * as Option from "effect/Option";
 import { BriefSources } from "#src/client/brief-sources/index.ts";
 import { BadDelegate } from "./work.ts";
 
-/** A repo's shared documents by the names each may have at its root, the first that exists standing for it. */
-const sharedDocumentNames = [["GLOSSARY.md", "GLOSSARY-MAP.md"], ["CODING_STANDARDS.md"], ["docs/adr/"]];
+const sharedDocumentAliases = [["GLOSSARY.md", "GLOSSARY-MAP.md"], ["CODING_STANDARDS.md"], ["docs/adr/"]];
 
 /** The files a delegate's `<work>` names: the state folder's `STATE.md`, and the shared documents at the root of the git repo that holds `folder`, as far as they exist. */
 export const workFilesOf = Effect.fn("workFilesOf")(
@@ -17,7 +16,7 @@ export const workFilesOf = Effect.fn("workFilesOf")(
 
 		const documents = Option.match(root, {
 			onNone: () => [],
-			onSome: (top) => Arr.map(sharedDocumentNames, (names) => Arr.map(names, (name) => `${top}/${name}`)),
+			onSome: (top) => Arr.map(sharedDocumentAliases, (names) => Arr.map(names, (name) => `${top}/${name}`)),
 		});
 
 		const stateFile = state.pipe(
