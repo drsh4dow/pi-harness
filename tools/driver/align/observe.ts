@@ -1,7 +1,3 @@
-/**
- * What a root did with one request from the human, read from the run's sessions and its project's git. The scenarios
- * in this folder share it, and each holds its own judging rule as the claims of its checks.
- */
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import type * as Duration from "effect/Duration";
@@ -17,13 +13,11 @@ import * as Str from "effect/String";
 import { entryKind } from "#src/features/owned-work/index.ts";
 import type { Run, Session, Sessions } from "#tools/driver/index.ts";
 
-/** The root of every run here: the model the human runs as root, with the thinking level of their settings. */
-export const model = "ultra-a/claude-opus-5-5";
+export const rootModel = "ultra-a/claude-opus-5-5";
 
 /**
  * The run borrows the human's gh login. This default host, unreachable, keeps an agent that tries `gh repo create` or
- * `gh api` off GitHub: set it as `GH_HOST` in the scenario's `env`. The planted remote is a bare repository inside the
- * run folder, so no push leaves it.
+ * `gh api` off GitHub: set it as `GH_HOST` in the scenario's `env`.
  */
 export const offGitHub = "github.invalid";
 
@@ -60,10 +54,6 @@ const everyone = (sessions: Sessions) => [sessions.root, ...sessions.delegates];
 export const turnEnds = (root: Session): ReadonlyArray<string> =>
 	Arr.map(Arr.getSomes(Arr.map(root.entries, (entry) => Option.filter(assistantOf(entry), endsTurn))), textOf);
 
-/**
- * The root's last reply once it is idle and holds no work: every job it started has settled, and a turn ended after
- * the last of them did, so no wake is still on its way.
- */
 const settledReply = (root: Session): Option.Option<string> => {
 	const work = Arr.getSomes(
 		Arr.map(root.entries, (entry, index) => Option.map(decodeWork(entry), ({ data }) => ({ ...data, index }))),
@@ -72,20 +62,18 @@ const settledReply = (root: Session): Option.Option<string> => {
 	const settled = new Set(Arr.flatMap(work, ({ type, handle }) => (type === "job-settled" ? [handle] : [])));
 	const lastWork = Arr.reduce(work, -1, (last, { index }) => Math.max(last, index));
 	const lastEnd = Arr.findLastIndex(root.entries, (entry) => Option.exists(assistantOf(entry), endsTurn));
-	const idle = (index: number) => index > lastWork && Arr.every(work, ({ handle }) => settled.has(handle));
 
-	return Option.flatMap(Option.filter(lastEnd, idle), (index) =>
+	const afterEveryJobSettled = (index: number) =>
+		index > lastWork && Arr.every(work, ({ handle }) => settled.has(handle));
+
+	return Option.flatMap(Option.filter(lastEnd, afterEveryJobSettled), (index) =>
 		Option.map(Option.flatMap(Arr.get(root.entries, index), assistantOf), textOf),
 	);
 };
 
 const byLength = Order.mapInput(Order.Number, Str.length);
 
-/**
- * The guide's longest line past its front matter. A session read the guide when one of its payloads holds the line,
- * however the agent opened the file: the read tool, a shell command, or a script.
- */
-const fingerprint = (text: string) => {
+const longestBodyLine = (text: string) => {
 	const body = Str.replace(/^---\n[\s\S]*?\n---\n/u, "")(text);
 
 	return Arr.max(Str.split(body, "\n"), byLength);
@@ -107,10 +95,9 @@ export const read = ({
 		const fs = yield* FileSystem.FileSystem;
 		const text = yield* fs.readFileString(`${run.agentDir}/${guide}`);
 
-		return Arr.some(everyone(sessions), (session) => holds(session, fingerprint(text)));
+		return Arr.some(everyone(sessions), (session) => holds(session, longestBodyLine(text)));
 	});
 
-/** Every skill and playbook in the agent folder, by path inside it, with its fingerprint. */
 const guides = (run: Run) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -125,7 +112,7 @@ const guides = (run: Run) =>
 		const files = yield* Effect.filter(named, (guide) => fs.exists(`${run.agentDir}/${guide}`));
 
 		return yield* Effect.forEach(files, (guide) =>
-			Effect.map(fs.readFileString(`${run.agentDir}/${guide}`), (text) => ({ guide, line: fingerprint(text) })),
+			Effect.map(fs.readFileString(`${run.agentDir}/${guide}`), (text) => ({ guide, line: longestBodyLine(text) })),
 		);
 	});
 
@@ -137,11 +124,7 @@ const sh = (run: Run, script: string) =>
 const eachWorktree = (command: string) =>
 	`git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r tree; do ${command}; done`;
 
-/**
- * Every file, by path inside the project, that a commit after `base` on any branch touched, or that is changed or new
- * in any worktree of the project. Empty when the agent changed nothing in git.
- */
-const edited = ({ run, base }: { readonly run: Run; readonly base: string }) =>
+const filesChangedSince = ({ run, base }: { readonly run: Run; readonly base: string }) =>
 	Effect.map(
 		sh(
 			run,
@@ -161,7 +144,7 @@ export const patches = ({ run, base }: { readonly run: Run; readonly base: strin
 
 /**
  * Writes the user's history into the root's project folder, one commit each, nine hours apart and the last nine hours ago, pushes `main` to `origin.git` beside the
- * project, and returns the last commit, so `edited` and `patches` see only what came after.
+ * project, and returns the last commit, so `filesChangedSince` and `patches` see only what came after.
  */
 export const plant = ({ run, history }: { readonly run: Run; readonly history: ReadonlyArray<Commit> }) =>
 	Effect.gen(function* () {
@@ -251,7 +234,7 @@ export const observe = ({
 	readonly stopAt?: (file: string) => boolean;
 }) =>
 	Effect.gen(function* () {
-		const files = edited({ run, base });
+		const files = filesChangedSince({ run, base });
 		const settled = run.waitFor("the root settled idle", within, ({ root }) => settledReply(root));
 
 		const editing =

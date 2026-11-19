@@ -1,12 +1,8 @@
-/**
- * A fully specified small edit runs with no question: by the time the root settles from the one message, the line it
- * names is changed in a commit or a worktree of the project.
- */
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, model, observe, offGitHub, patches, plant } from "./observe.ts";
+import { type Commit, observe, offGitHub, patches, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -45,7 +41,7 @@ const request = 'In weatherline/config.py, change DEFAULT_UNITS from "imperial" 
 
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
-	model,
+	model: rootModel,
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });

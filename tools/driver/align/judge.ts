@@ -1,7 +1,3 @@
-/**
- * How the align cases judge a run: the words a reply uses to hand a call to the human or to give its own pick, and the
- * report of every rule a case holds.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -9,11 +5,6 @@ import * as Str from "effect/String";
 
 import type { Run } from "#tools/driver/index.ts";
 
-/**
- * Wording that hands a decision to the human: the reply makes its next step wait on their answer, or asks them to
- * choose. It matches words, not question marks, which a reply may put mid-line or leave out. An offer such as
- * "want me to fix it" or a request for permission to start is not a decision and does not match.
- */
 const handBack = [
 	/\b(?:before|until) i (?:build|start|write|code|change|touch)\b/iu,
 	/\b(?:after|once|when) you(?:'ve)? (?:answer|reply|confirm|decide|choose|pick)\b/iu,
@@ -38,7 +29,6 @@ export const pickIn = (text: string): Option.Option<string> =>
 		([found]) => found,
 	);
 
-/** One judging rule of a case: whether it held in this run, and the claim it makes, as a check states it. */
 type Rule = readonly [held: boolean, claim: string];
 
 /** Prints each rule as `held <claim>` or `broke <claim>`, then fails naming every rule that broke, not only the first. */

@@ -1,13 +1,9 @@
-/**
- * A report request runs with no question: the root's settled reply from the one message names at least two of the
- * three pieces of work the user's recent commits did. A root that asks first settles on its question.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, model, observe, offGitHub, plant } from "./observe.ts";
+import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -89,7 +85,7 @@ const work = [/cach/iu, /local time|time ?zone|gmt/iu, /monterey/iu];
 
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
-	model,
+	model: rootModel,
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });

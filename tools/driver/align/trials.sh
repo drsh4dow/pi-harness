@@ -2,12 +2,6 @@
 # Runs each case of the alignment contract N times (default 3), one round of the six cases in parallel at a time,
 # and prints one line per run: its verdict (a failure names every rule that broke), any info, its spend and its
 # evidence folder. Every run costs real model calls.
-#   1 vague build asks first      pantry
-#   2 audit runs with no question invoicer
-#   2 report runs with no question tidepool
-#   2 specified edit runs         weatherline
-#   3 settled build, no question shortlinks
-#   3 settled build designs first cyclefare
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
 trials=${1:-3}
