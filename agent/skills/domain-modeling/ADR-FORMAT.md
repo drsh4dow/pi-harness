@@ -1,6 +1,6 @@
 # ADR Format
 
-ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
+A repo's existing ADR convention (its directory, numbering, file names, and headings) wins over this format. Without one, ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
 
 Create the `docs/adr/` directory lazily: only when the first ADR is needed.
 
