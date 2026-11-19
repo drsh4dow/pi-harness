@@ -50,7 +50,6 @@ const repoWith = (name: string, files: ReadonlyArray<string>) =>
 		return repo;
 	});
 
-/** The `<work>` block of the prompt a delegate started by `call` reads, from the brief its parent staged. */
 const workBlockOf = (call: Static<DelegateParams>, id: string) =>
 	Effect.gen(function* () {
 		const pi = yield* PiCli;
