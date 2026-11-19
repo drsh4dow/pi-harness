@@ -43,6 +43,7 @@ const fakeGhWithLocalOrigin = Layer.effect(
 			const program = command.command === "gh" ? `${scratch}/gh` : command.command;
 
 			const env = {
+				...command.options.env,
 				GIT_CONFIG_COUNT: "1",
 				GIT_CONFIG_KEY_0: `url.file://${origin}.insteadOf`,
 				GIT_CONFIG_VALUE_0: "https://github.com/o/r.git",

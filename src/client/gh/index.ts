@@ -7,6 +7,7 @@ import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
 import * as ChildProcess from "effect/process/ChildProcess";
 import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
+import * as Rec from "effect/Record";
 import type * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
@@ -39,12 +40,12 @@ export class Gh extends Context.Service<
 
 const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
 
-const output = (command: string, args: ReadonlyArray<string>, input = "") =>
+const output = (command: string, args: ReadonlyArray<string>, input = "", env?: Record<string, undefined>) =>
 	Effect.flatMap(ChildProcessSpawner.ChildProcessSpawner, (spawner) => {
 		const failed = (why: string) => GhError.make({ args: [command, ...args], why });
 		const stdin = Stream.make(new TextEncoder().encode(input));
 
-		return spawner.spawn(ChildProcess.make(command, args, { stdin })).pipe(
+		return spawner.spawn(ChildProcess.make(command, args, { stdin, env, extendEnv: true })).pipe(
 			Effect.flatMap((handle) =>
 				Effect.all(
 					{ code: handle.exitCode, stdout: text(handle.stdout), stderr: text(handle.stderr) },
@@ -134,7 +135,11 @@ const fetchedDiff = (pr: string) =>
 			),
 		);
 
-		const git = (args: ReadonlyArray<string>) => output("git", ["-C", dir, ...args]);
+		const withoutCallerRepository = yield* Effect.map(output("git", ["rev-parse", "--local-env-vars"]), (names) =>
+			Rec.fromIterableWith(Str.split(Str.trim(names), "\n"), (name): [string, undefined] => [name, undefined]),
+		);
+
+		const git = (args: ReadonlyArray<string>) => output("git", ["-C", dir, ...args], "", withoutCallerRepository);
 
 		yield* git(["init", "-q", "--bare"]);
 		yield* git([...auth, "fetch", "-q", "--depth=1", "--no-tags", remote, mergeBase, head]);
