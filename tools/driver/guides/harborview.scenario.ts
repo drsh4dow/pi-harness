@@ -41,11 +41,9 @@ const history: ReadonlyArray<Commit> = [
 const request =
 	"harborview's tide page is a wall of numbers. For the week ahead I keep going back and forth between a compact table and a small line chart per day, and I can't decide. Go with whichever actually reads better on a phone, and build that.";
 
-/** Whether `call` may write a file that is neither markdown nor in the agent's state folder. */
 const writesCode = (call: Call) =>
 	writesFile(call) && !Str.includes("/.local/state/")(call.text) && !Option.exists(call.path, Str.endsWith(".md"));
 
-/** The first file of code, a sketch's or the build's: the fork is settled once code exists. */
 const firstCode = (timeline: Timeline) => Option.map(firstStep({ timeline, matches: writesCode }), before);
 
 scenario({

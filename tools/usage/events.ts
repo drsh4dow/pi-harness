@@ -1,10 +1,6 @@
 import * as Arr from "effect/Array";
 import * as Str from "effect/String";
 
-/**
- * What an agent can be seen doing, as a pattern over a tool call's arguments or over the path an edit or a write names,
- * or as one group of delegates it started.
- */
 type Trigger =
 	| { readonly kind: "call"; readonly pattern: RegExp }
 	| { readonly kind: "edit"; readonly pattern: RegExp }
@@ -57,7 +53,6 @@ export const guideEvents: ReadonlyArray<GuideEvent> = [
 	},
 ];
 
-/** Calls whose arguments can show a command or a document being written. */
 const callTools = new Set(["bash", "codemode", "watch", "serve", "write"]);
 
 const codemodeEdit = /tools\.(?:edit|write)\(\{\s*\\?"?path\\?"?:\s*[\\"'`]+(?<path>[^"'`\\]+)/gu;

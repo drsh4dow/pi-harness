@@ -44,10 +44,6 @@ const markersOf = (run: Run) =>
 		);
 	});
 
-/**
- * Stands in for GitHub as `acme/<project>`: logs every call to `gh.log` in the run folder, answers what filing an
- * issue or opening a PR needs, and fails the rest as an unreachable host would.
- */
 const ghShim = ({ folder, project }: { readonly folder: string; readonly project: string }) => {
 	const repo = `acme/${project}`;
 
@@ -67,7 +63,6 @@ esac
 `;
 };
 
-/** Checks every guide the scenario measures exists, puts the `gh` stand-in first on the run's PATH, and plants. */
 const stage = ({
 	run,
 	guides,

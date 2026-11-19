@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs each guide scenario beside this script N times (default 3): the six scenarios in parallel, the trials of one
+# Runs each guide scenario beside this script N times (default 3): the scenarios in parallel, the trials of one
 # scenario one after another. Prints one markdown table of events reached and hits per scenario, then how many runs
 # had the root read each principle, and saves both as table.md in the logs folder. A run that printed no verdict line
 # (exit 1 or 2, or killed after 60 minutes) counts as broken. Every run costs real model calls.

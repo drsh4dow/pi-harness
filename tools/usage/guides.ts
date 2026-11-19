@@ -14,8 +14,7 @@ export interface Guide {
 	readonly hidden: boolean;
 }
 
-/** A guide's file as it reads now. */
-export interface GuideText {
+interface GuideText {
 	readonly kind: GuideKind;
 	readonly name: string;
 	readonly text: string;
@@ -27,13 +26,11 @@ export interface Library {
 	readonly owner: ReadonlyMap<string, Guide>;
 }
 
-/** Shorter lines, such as `## Overview`, mark no guide. */
-const minLineLength = 20;
+const minMarkerLength = 20;
 const fence = "---";
 const hiddenFlag = "disable-model-invocation: true";
 const frontmatterSpan = 600;
 
-/** The text after the second `---` when the file opens with one. */
 const bodyOf = (text: string) => {
 	const close = Str.indexOf(fence)(Str.slice(fence.length)(text));
 
@@ -43,10 +40,9 @@ const bodyOf = (text: string) => {
 const markLines = (text: string) => {
 	const lines = Arr.map(Str.split(bodyOf(text), "\n"), (line) => Str.trim(line));
 
-	return Arr.filter(lines, (line) => line.length >= minLineLength);
+	return Arr.filter(lines, (line) => line.length >= minMarkerLength);
 };
 
-/** Each body line, to the names of the guides that have held it. */
 const holdersOf = (texts: ReadonlyArray<Pick<GuideText, "name" | "text">>) => {
 	const holders = new Map<string, Set<string>>();
 
@@ -59,7 +55,6 @@ const holdersOf = (texts: ReadonlyArray<Pick<GuideText, "name" | "text">>) => {
 	return holders;
 };
 
-/** Each line only one guide has held, to that guide when it is on disk. */
 const ownerOf = (holders: ReadonlyMap<string, ReadonlySet<string>>, guides: ReadonlyArray<Guide>) => {
 	const byName = new Map(Arr.map(guides, (guide) => [guide.name, guide]));
 	const owner = new Map<string, Guide>();

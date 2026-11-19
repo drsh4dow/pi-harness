@@ -19,7 +19,6 @@ const small = linesOf("small", 3);
 const shared = linesOf("shared", 8);
 const retired = linesOf("retired", 6);
 
-/** `big` holds 8 lines alone and `small` 3. A past version of `small` held the first 5 lines of `shared`. */
 const library = libraryOf({
 	today: [
 		{ kind: "skill", name: "big", text: file("big", big) },
@@ -66,8 +65,7 @@ const calls = (...uses: ReadonlyArray<ToolUse>) => ({
 	},
 });
 
-/** What pi records on a codemode result for the calls its script made. */
-const script = (...made: ReadonlyArray<ToolUse>) => ({
+const codemodeResult = (...made: ReadonlyArray<ToolUse>) => ({
 	type: "message",
 	message: {
 		role: "toolResult",
@@ -90,7 +88,7 @@ type Entry =
 	| typeof prompt
 	| ReturnType<typeof shown>
 	| ReturnType<typeof calls>
-	| ReturnType<typeof script>;
+	| ReturnType<typeof codemodeResult>;
 
 const encodeJson = Schema.encodeUnknownOption(Schema.fromJsonString(Schema.Unknown));
 const jsonLine = (value: Entry | { readonly text: string }) => Option.getOrElse(encodeJson(value), () => "");
@@ -177,7 +175,7 @@ const cases = [
 		entries: [
 			shown(joined(big)),
 			calls(["codemode", { code: "await tools.write({ path: target, content })" }]),
-			script(["write", { path: bigPath, content: "new" }]),
+			codemodeResult(["write", { path: bigPath, content: "new" }]),
 		],
 		loaded: [],
 	},
@@ -223,7 +221,7 @@ test("a continuation is not a new delegate", () => {
 
 test("delegates a codemode script started count as delegate calls and fire the swarm event", () => {
 	const facts = Option.getOrThrow(
-		factsFor([calls(["codemode", { code: "fan out" }]), script(started, started, started)]),
+		factsFor([calls(["codemode", { code: "fan out" }]), codemodeResult(started, started, started)]),
 	);
 
 	expect([facts.delegateCalls.length, Arr.map([...facts.events], ({ name }) => name)]).toEqual([

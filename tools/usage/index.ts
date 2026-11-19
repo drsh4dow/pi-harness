@@ -83,7 +83,6 @@ const git = Effect.fn("git")(function* (args: ReadonlyArray<string>) {
 	return code === 0 ? Option.some(text) : Option.none();
 }, Effect.scoped);
 
-/** Each guide file a commit touched, as `<commit>:<path>`, from `git log --format=@%H --name-only`. */
 const touched = (log: string) => {
 	let commit = "";
 
@@ -99,7 +98,6 @@ const touched = (log: string) => {
 	});
 };
 
-/** Every version of every guide file in this checkout's git history, named by its folder or file. */
 const pastGuides = Effect.gen(function* () {
 	const log = yield* git(["log", "--format=@%H", "--name-only", "--", ...guideFolders]);
 
@@ -123,7 +121,6 @@ const skillFilesIn = Effect.fn("skillFilesIn")(function* (dir: string) {
 	return Arr.map(names, (name): GuideFile => ({ kind: "skill", name, path: `${dir}/${name}/SKILL.md` }));
 });
 
-/** The guide files on disk. A folder without a `SKILL.md`, such as source code beside the web skills, is left out. */
 const todayGuides = Effect.gen(function* () {
 	const skills = yield* Effect.forEach([`${root}/agent/skills`, `${root}/src/features/web`], skillFilesIn);
 	const principles = yield* guideFilesIn("principle", `${root}/agent/principles`);

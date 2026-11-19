@@ -64,7 +64,6 @@ else:
 const request =
 	"Clients keep querying our invoices because tallyclock rounds every entry up to the next 15 minutes. Change it to round each entry to the nearest 6 minutes, a tenth of an hour, and make sure `python -m tallyclock report` still adds up right.";
 
-/** The root's final reply, once a session ran tallyclock itself to see what it does. */
 const handVerified = (timeline: Timeline) => {
 	const ran = firstStep({
 		timeline,

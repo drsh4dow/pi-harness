@@ -49,10 +49,6 @@ const request =
 
 const statechart = "skills/statechart/SKILL.md";
 
-/**
- * Opens when the statechart skill is read, once its command checked a model after that read, and closes at the root's
- * final reply. Without the read, the check or the reply there is no event.
- */
 const handoff = ({ reads, steps, finalReply }: Timeline): Option.Option<Window> =>
 	Option.flatMap(
 		Arr.findFirst(reads, ({ guide }) => guide === statechart),

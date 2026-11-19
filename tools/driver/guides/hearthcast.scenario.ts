@@ -50,7 +50,6 @@ const secret = "CLOUDFLARE_API_TOKEN";
 
 const byTime = Order.mapInput(Order.String, ({ at }: { readonly at: string }) => at);
 
-/** The first of: an action item for the human that names the secret, or a final reply that names it. */
 const handBack = (timeline: Timeline) => {
 	const item = firstStep({
 		timeline,

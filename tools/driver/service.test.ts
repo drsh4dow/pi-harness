@@ -29,7 +29,6 @@ const goneWithin = (pids: ReadonlyArray<number>, bound: Duration.Input) =>
 /** A run that prints the pids of a child in a session of its own and of an orphan, then exits 7 once its stdin ends. */
 const run = ["sh", "-c", "setsid sleep 600 & echo $!; sh -c 'sleep 600 & echo $!'; cat >/dev/null; exit 7"];
 
-/** The driver, run as a scenario's first process with `home` as its HOME, starting `argv` as the run's service. */
 const driverOf = ({ argv, home }: { readonly argv: ReadonlyArray<string>; readonly home: string | undefined }) =>
 	Bun.spawn(
 		[
@@ -98,7 +97,6 @@ test("a scenario where systemd-run cannot start a service exits 2 and says so", 
 		}),
 	));
 
-/** Whether each of `files`, by path from a fresh home holding `folders`, exists after a run that touches them all. */
 const touchedIn = ({
 	folders,
 	files,

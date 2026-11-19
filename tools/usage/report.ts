@@ -23,11 +23,10 @@ const section = (parts: ReadonlyArray<string>) => Arr.join(parts, "\n\n");
 
 const count = <Item>(items: ReadonlyArray<Item>, keep: (item: Item) => boolean) => Arr.length(Arr.filter(items, keep));
 
-/** Per guide: the real sessions that listed it, loaded it, and loaded it where listed, and the trials that loaded it. */
 interface Usage {
 	readonly listed: number;
 	readonly loaded: number;
-	readonly hit: number;
+	readonly loadedWhereListed: number;
 	readonly byScope: Readonly<Record<Scope, number>>;
 	readonly pathOnly: number;
 }
@@ -38,7 +37,7 @@ const usageOf = (guide: Guide, real: ReadonlyArray<SessionFacts>, trials: Readon
 	return {
 		listed: count(real, (session) => session.listed.has(guide.name)),
 		loaded: loading.length,
-		hit: count(loading, (session) => session.listed.has(guide.name)),
+		loadedWhereListed: count(loading, (session) => session.listed.has(guide.name)),
 		byScope: {
 			product: count(loading, (session) => session.scope === "product"),
 			harness: count(loading, (session) => session.scope === "harness"),
@@ -54,13 +53,12 @@ const guideRow = (guide: Guide, usage: Usage, total: number) =>
 		usage.listed,
 		usage.loaded,
 		total === 0 ? "0.0%" : `${((100 * usage.loaded) / total).toFixed(1)}%`,
-		usage.hit,
-		percent(usage.hit, usage.listed),
+		usage.loadedWhereListed,
+		percent(usage.loadedWhereListed, usage.listed),
 		`${usage.byScope.product} / ${usage.byScope.harness}`,
 		usage.byScope.trial,
 	]);
 
-/** Most loads first, then by name. */
 const byLoads = Order.combine(
 	Order.mapInput(Order.Number, ([, { loaded }]: readonly [Guide, Usage]) => -loaded),
 	Order.mapInput(Order.String, ([{ name }]: readonly [Guide, Usage]) => name),
@@ -133,7 +131,6 @@ const eventSection = (real: ReadonlyArray<SessionFacts>) => {
 	]);
 };
 
-/** An alias, `provider/id` for a spelled model, or `none`. */
 const modelOf = (model: string | undefined) => {
 	if (model === undefined) {
 		return "none";
