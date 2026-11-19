@@ -2,6 +2,7 @@ import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
+import { handsNothingBack, judge } from "./judge.ts";
 import { type Commit, observe, offGitHub, patches, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
@@ -46,13 +47,18 @@ scenario({
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
 
-			yield* observe({ run, base, request, within: "15 minutes" });
-
+			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
 			const patch = yield* patches({ run, base });
 
-			yield* run.check(
-				Str.includes('+DEFAULT_UNITS = "metric"')(patch),
-				"a fully specified edit runs with no question: a commit or worktree of the project sets DEFAULT_UNITS to metric",
-			);
+			yield* judge({
+				run,
+				rules: [
+					[
+						Str.includes('+DEFAULT_UNITS = "metric"')(patch),
+						"a fully specified edit gets made: a commit or worktree of the project sets DEFAULT_UNITS to metric",
+					],
+					handsNothingBack(reply),
+				],
+			});
 		}),
 });

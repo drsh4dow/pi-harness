@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
+import { handsNothingBack, judge } from "./judge.ts";
 import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
@@ -92,9 +93,15 @@ scenario({
 			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
 			const named = Arr.filter(work, (piece) => Option.exists(reply, (text) => piece.test(text)));
 
-			yield* run.check(
-				named.length >= 2,
-				`a report request runs with no question: the root's settled reply names at least 2 of the caching, local time and Monterey work (it names ${String(named.length)})`,
-			);
+			yield* judge({
+				run,
+				rules: [
+					[
+						named.length >= 2,
+						`a report request gets the report: the root's settled reply names at least 2 of the caching, local time and Monterey work (it names ${String(named.length)})`,
+					],
+					handsNothingBack(reply),
+				],
+			});
 		}),
 });

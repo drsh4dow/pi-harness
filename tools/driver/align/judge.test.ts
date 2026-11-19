@@ -3,7 +3,7 @@ import { expect, test } from "bun:test";
 import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 
-import { handsBack, pickIn } from "./judge.ts";
+import { handsBack, handsNothingBack, pickIn } from "./judge.ts";
 
 test("a reply that makes the build wait on the human's answer hands the call back, wherever its question mark sits", () => {
 	const replies = [
@@ -35,4 +35,15 @@ test("a pick is the root's own, never one it waits to hear from the human", () =
 	];
 
 	expect(Arr.map(replies, (reply) => Option.isSome(pickIn(reply)))).toEqual([false, false, true, true]);
+});
+
+test("an audit, a report or an edit that ends waiting on the human breaks the rule they share", () => {
+	const replies = [
+		Option.some("Do you prefer SQL injection or path traversal as the audit focus? I'll start after you confirm."),
+		Option.some("Do you prefer caching and Monterey as the focus? I'll write the update after you confirm."),
+		Option.some("1. SQL injection in find_customers. 2. Path traversal in read_export."),
+		Option.none(),
+	];
+
+	expect(Arr.map(replies, (reply) => handsNothingBack(reply)[0])).toEqual([false, false, true, false]);
 });
