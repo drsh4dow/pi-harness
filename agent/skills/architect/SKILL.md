@@ -20,13 +20,13 @@ List the phases in your reply before starting.
 
 ## Phase A: Ground the problem
 
-Build a real mental model of every system the new code touches. Trace the relevant subsystems. Naming a file isn't grounding. Write an architectural explanation of each. If the design redefines ownership or layering, also run the **why** skill on the existing shape so the rationale becomes a constraint, not a guess.
+Build a real mental model of every system the new code touches. Read the glossary entries and the ADRs that cover the area, then trace the relevant subsystems. Naming a file isn't grounding. Write an architectural explanation of each. If the design redefines ownership or layering, also run the **why** skill on the existing shape so the rationale becomes a constraint, not a guess.
 
 Skip Phase A only when the work is genuinely greenfield with no surrounding system to integrate.
 
 ## Phase B: Sketch
 
-Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Pass `references/runner-prompt.md` as each runner's prompt.
+Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts, the area's glossary terms among them. Types and functions take the glossary's terms. Pass `references/runner-prompt.md` as each runner's prompt.
 
 Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. When arena's candidates converge, rerun one runner with that shape ruled out. This is principle-exhaust-the-design-space made concrete. Whole-shape alternatives, not point fixes inside one shape.
 
