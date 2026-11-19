@@ -2,8 +2,9 @@
 
 A scenario proves one fact about the pi that agents run on. It runs the real `pi` on your PATH (never this checkout's
 dev copy) on this worktree's own `agent/` folder, with your credentials, and with scratch HOME, agent, session and state
-folders and a private terminal core, in a systemd user service of its own. A run that writes under your sessions or
-state folders fails. It costs real model calls, so nothing runs it for you.
+folders and a private terminal core, in a systemd user service of its own. Your sessions and state folders are
+read-only to every process of the run, so a write there fails inside the run. It costs real model calls, so nothing
+runs it for you.
 
 ## Run one
 
@@ -59,10 +60,13 @@ link to your `systemd/`. Both are safe to delete: removing a link leaves what it
 
 Isolation is by construction. Every pi of the run starts through the run's `pi` wrapper, which refuses to start in
 any working folder outside the run folder, so every folder pi names for its working folder holds the run's id. After
-every run, the driver exits 2 naming each folder the wrapper refused, and a tripwire exits 2 listing each name under
-your `~/.pi/agent/sessions/` or `~/.local/state/` that holds the run's id or its core's session, which every folder the
-run names carries, so a broken redirect fails the run and another session writing meanwhile never does. It is not a sandbox: a hostile process,
-a write the run undoes, and a write that leaves no new name, such as an edit to an existing file, are out of its scope.
+every run, the driver exits 2 naming each folder the wrapper refused. The run's service mounts your
+`~/.pi/agent/sessions/` and `~/.local/state/` read-only, so a process of the run, a delegate included, that writes
+there by absolute path gets a read-only error, and the run goes on. Your `auth.json` and the rest of `~/.pi/agent/`
+stay writable. A folder that does not exist when the run starts is left unmounted, so a fresh home still runs, and the
+run could create it. For that case a tripwire exits 2 after the run, listing each name under those two folders that
+holds the run's id or its core's session. It is not a sandbox: a hostile process, such as one that starts a
+`systemd-run --user` service of its own outside the run's, is out of its scope.
 
 ## Write one
 
