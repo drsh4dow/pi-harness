@@ -9,7 +9,7 @@ import * as Effect from "effect/Effect";
 import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, model, observe, offGitHub, plant, questionsIn, read, turnEnds } from "./observe.ts";
+import { type Commit, judge, model, observe, offGitHub, plant, questionsIn, read, turnEnds } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -91,14 +91,19 @@ scenario({
 			const architect = yield* read({ run, sessions, guide: "skills/architect/SKILL.md" });
 			const asked = Arr.filter(turnEnds(sessions.root), (text) => Arr.isReadonlyArrayNonEmpty(questionsIn(text)));
 
-			yield* run.check(
-				Arr.some(files, building),
-				`with the destination settled, the root goes on to build: a file under shortlinks/ changes before the root settles idle (edited: ${Arr.join(files, ", ") || "none"})`,
-			);
-			yield* run.check(architect, "the root or a delegate read the architect skill by the time the build started");
-			yield* run.check(
-				!Arr.isReadonlyArrayNonEmpty(asked),
-				`no turn of the root ended on a question before the build started (asked: ${Arr.join(asked, " | ")})`,
-			);
+			yield* judge({
+				run,
+				rules: [
+					[
+						Arr.some(files, building),
+						`with the destination settled, the root goes on to build: a file under shortlinks/ changes before the root settles idle (edited: ${Arr.join(files, ", ") || "none"})`,
+					],
+					[architect, "the root or a delegate read the architect skill by the time the build started"],
+					[
+						!Arr.isReadonlyArrayNonEmpty(asked),
+						`no turn of the root ended on a question before the build started (asked: ${Arr.join(asked, " | ")})`,
+					],
+				],
+			});
 		}),
 });

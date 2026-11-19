@@ -1,6 +1,7 @@
 #!/bin/sh
 # Runs each case of the alignment contract N times (default 3), one round of the five cases in parallel at a time,
-# and prints each run's verdict and evidence folder. Every run costs real model calls.
+# and prints one line per run: its verdict (a failure names every rule that broke), any info, its spend and its
+# evidence folder. Every run costs real model calls.
 #   1 vague build asks first      pantry
 #   2 audit runs with no question invoicer
 #   2 report runs with no question tidepool
@@ -17,7 +18,7 @@ for trial in $(seq "$trials"); do
 	wait
 done
 for log in "$logs"/*.log; do
-	grep -E '^(pass|fail|broken|interrupted) |^evidence |^spent ' "$log" | tr '\n' ' '
+	grep -E '^(pass|fail|broken|interrupted) |^info |^evidence |^spent ' "$log" | tr '\n' ' '
 	echo
 done
 echo "logs $logs"
