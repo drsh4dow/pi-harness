@@ -499,12 +499,7 @@
 				"prompt": "grill me"
 			}
 		],
-		"negative": [
-			{
-				"prompt": "Refine my rough idea into something concrete",
-				"owner": "idea-refine"
-			}
-		]
+		"negative": []
 	},
 	"hillclimb": {
 		"positive": [
@@ -519,33 +514,6 @@
 			{
 				"prompt": "This endpoint got slow last week, find out why and fix it",
 				"owner": "perf-issue"
-			}
-		]
-	},
-	"idea-refine": {
-		"positive": [
-			{
-				"prompt": "I have a rough idea for a habit tracker, help me refine it"
-			},
-			{
-				"prompt": "Stress-test my plan for the new onboarding flow"
-			},
-			{
-				"prompt": "Ideate on ways to improve developer retention in the product"
-			}
-		],
-		"negative": [
-			{
-				"prompt": "Fix the failing CI pipeline",
-				"owner": "ci-cd-and-automation"
-			},
-			{
-				"prompt": "Audit the upload endpoint for vulnerabilities",
-				"owner": "security-and-hardening"
-			},
-			{
-				"prompt": "Grill me on this plan",
-				"owner": "grilling"
 			}
 		]
 	},
@@ -659,8 +627,7 @@
 				"owner": "grilling"
 			},
 			{
-				"prompt": "Refine my rough idea for the onboarding flow",
-				"owner": "idea-refine"
+				"prompt": "Refine my rough idea for the onboarding flow"
 			}
 		]
 	},
@@ -1023,8 +990,7 @@
 		],
 		"negative": [
 			{
-				"prompt": "Refine my rough product idea into something concrete",
-				"owner": "idea-refine"
+				"prompt": "Refine my rough product idea into something concrete"
 			},
 			{
 				"prompt": "Why is this function so slow on large inputs?"
