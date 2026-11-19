@@ -50,7 +50,8 @@ const briefOf = (world: World, act: Data.TaggedEnum.Value<Act, "Start">) => {
 	const message = act.messageKiB === undefined ? "Review it." : Str.repeat(act.messageKiB * 1024)("x");
 	const text = act.instructionsKiB === undefined ? "Review." : Str.repeat(act.instructionsKiB * 1024)("p");
 	const fixed = { name, role: "leaf", model: "a/b", goal: "Cap the retries.", readOnly: false } as const;
-	const unset = { thinking: Option.none(), state: Option.none(), facts: Option.none() };
+	const none = Option.none();
+	const unset = { thinking: none, state: none, facts: none, destinationFile: none, sharedDocuments: [] };
 
 	return { ...fixed, ...unset, ...act.verifies, message, instructions: Option.some({ file: "/r.md", text }) };
 };

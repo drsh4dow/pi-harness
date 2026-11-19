@@ -15,6 +15,8 @@ const briefFields = {
 	goal: Schema.String,
 	state: Schema.OptionFromOptionalKey(Schema.String),
 	facts: Schema.OptionFromOptionalKey(Schema.String),
+	destinationFile: Schema.OptionFromOptionalKey(Schema.String),
+	sharedDocuments: Schema.Array(Schema.String).pipe(Schema.withDecodingDefaultKey(Effect.succeed([]))),
 	instructions: Schema.OptionFromOptionalKey(Schema.String),
 };
 

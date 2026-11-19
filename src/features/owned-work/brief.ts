@@ -14,6 +14,7 @@ import type { Brief, ChildRole } from "./child.ts";
 import { type ModelCaller, modelChoices, modelDescription, modelNameOf, modelOf, type ModelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
 import { reviewsParam } from "./review.ts";
+import { workFilesOf } from "./work-files.ts";
 import { BadDelegate } from "./work.ts";
 
 export const roleUses =
@@ -180,6 +181,7 @@ type Inherited = Option.Option<Pick<StagedBrief, "goal" | "state">>;
 
 const workOf = Effect.fn("workOf")(function* (
 	ctx: Caller,
+	cwd: Option.Option<string>,
 	inherited: Inherited,
 	call: Static<DelegateParams>,
 	role: ChildRole,
@@ -200,9 +202,11 @@ const workOf = Effect.fn("workOf")(function* (
 		),
 	);
 
+	const workFolder = Option.getOrElse(cwd, () => ctx.cwd);
+	const files = yield* workFilesOf(workFolder, state);
 	const roleFields = yield* roleFieldsFor(ctx.cwd, state, role, Option.fromUndefinedOr(call.design));
 
-	return { goal, state, ...roleFields };
+	return { goal, state, ...files, ...roleFields };
 });
 
 const roleOf = (named: Option.Option<ChildRole>, roles: ReadonlyArray<ChildRole>) =>
@@ -246,7 +250,7 @@ export const parseCall = Effect.fn("parseCall")(function* (
 	);
 
 	const { model, substitution } = yield* modelOf(ctx, table, wanted);
-	const work = yield* workOf(ctx, inherited, call, role);
+	const work = yield* workOf(ctx, cwd, inherited, call, role);
 
 	const brief: Brief = {
 		name: call.name,
