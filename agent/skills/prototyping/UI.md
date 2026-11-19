@@ -97,12 +97,12 @@ When the human picks, surface the URL (and the `?variant=` keys) and let them fl
 
 ### 6. Capture the answer and clean up
 
-Once a variant has won, capture the answer (which variant and why), then capture the prototype the way the [SKILL](SKILL.md) describes. Fold the winner into the real code when the task covers it, and move the rest onto the throwaway branch, not into main:
+Once a variant has won, capture the answer (which variant and why, with a screenshot of each) the way the [SKILL](SKILL.md) describes. Fold the winner into the real code when the task covers it, and keep the rest out of main:
 
 - **Sub-shape A**: fold the winner into the existing page; drop the losing variants and the switcher from main.
 - **Sub-shape B**: promote the winning variant to a real route; drop the throwaway route and the switcher from main.
 
-The full set of variants is the primary source, so it lands on the throwaway branch, not the bin, since variant components and the switcher left in the main branch rot fast and confuse the next reader.
+The losing variants and the switcher go when the work ends, with the scratch folder or throwaway branch they live on, since left in the main branch they rot fast and confuse the next reader.
 
 ## Anti-patterns
 

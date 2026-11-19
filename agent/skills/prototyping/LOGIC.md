@@ -53,9 +53,9 @@ Keep it beautiful but restrained: clean typography, generous spacing, one accent
 
 When the human picks, send them the file, or open it for them. They'll click through the walkthroughs and free-play whenever they get to it; the interesting moments are when they say "wait, that shouldn't be possible" or "huh, I assumed X would be different"; those are the bugs in the _idea_, which is the whole point. If they want new actions or a new scenario, add them. Prototypes evolve. When you pick, run each walkthrough yourself and report each moment like that.
 
-### 5. Capture the answer and the prototype
+### 5. Capture the answer
 
-Once the prototype has answered its question, capture the answer, then capture the prototype the way the [SKILL](SKILL.md) describes. The logic-specific mapping: the validated reducer / machine / function set lifts into the real module when the task covers it (the decision, absorbed); the HTML shell rides along to the throwaway branch that keeps the prototype as a primary source, and being one self-contained file, it stays trivially re-runnable there.
+Once the prototype has answered its question, capture the answer, with the walkthrough output that showed it, the way the [SKILL](SKILL.md) describes. The validated reducer / machine / function set lifts into the real module when the task covers it, and the HTML file goes with the rest of the prototype when the work ends.
 
 ## Anti-patterns
 
