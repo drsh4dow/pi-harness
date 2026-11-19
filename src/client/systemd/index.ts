@@ -15,6 +15,7 @@ export class Slices extends Context.Service<
 	Slices,
 	{
 		readonly wrap: (spec: RunSpec) => RunSpec;
+		/** Stops the job's slice, which ends every process in it, even one that left its process group. */
 		readonly stop: (ref: string) => Effect.Effect<void>;
 		/** Stops every job the root started. A reload skips it, so the work outlives the extension and the next load takes it over. */
 		readonly stopAll: Effect.Effect<void>;

@@ -27,7 +27,7 @@ const bullets = (lines: ReadonlyArray<string>) =>
 /** Built-in tools whose guidelines restate their own schema description, or `<codemode>` in `SYSTEM.md`. */
 const restating = ["edit", "codemode"];
 
-/** The `<rules>` section pi builds for its default prompt, without the rules pi hardcodes. */
+/** The `<rules>` section pi builds for its default prompt, without the rules pi hardcodes, since `SYSTEM.md` sets its own style. */
 const rulesSection = (options: NormalizedBuildSystemPromptOptions) => {
 	const declared = Arr.difference(options.selectedTools, options.hiddenTools);
 	const guided = Arr.difference(declared, restating);

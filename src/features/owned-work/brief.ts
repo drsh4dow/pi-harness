@@ -95,6 +95,7 @@ const absoluteOf = Effect.fn("absoluteOf")(function* (cwd: string, file: string)
 	return path.resolve(cwd, Str.replace(/^~(?=\/)/u, home)(file));
 });
 
+/** Reads the instructions file once, at the call. The brief keeps a copy of its body, so a later edit to the file never reaches a running delegate. */
 const instructionsOf = Effect.fn("instructionsOf")(function* (cwd: string, file: string) {
 	const sources = yield* BriefSources;
 	const absolute = yield* absoluteOf(cwd, file);
@@ -149,7 +150,7 @@ const designOf = Effect.fn("designOf")(function* (cwd: string, named: string) {
 		: yield* BadDelegate.make({ why: `design sketch ${named} holds no \`${sketchHeading}\`: name ${designChoice}` });
 });
 
-/** What a brief holds by role: project facts for every delegate, and the owner rules and a design for an owner only. */
+/** What a brief holds by role: project facts for every delegate, and the owner rules and a design for an owner only. Each call reads them from the state folder, so no task message has to repeat them. */
 export const roleFieldsFor = Effect.fn("roleFieldsFor")(function* (
 	cwd: string,
 	state: Option.Option<string>,
@@ -173,6 +174,7 @@ export const roleFieldsFor = Effect.fn("roleFieldsFor")(function* (
 	return { role, facts, ownerRules, design: yield* designOf(cwd, named) };
 });
 
+/** Every delegate below a root inherits its goal, so no task message has to restate it. */
 const goalMissing = BadDelegate.make({
 	why: "name a `goal`: the user's goal in one sentence. A root's call must name it, and every delegate below inherits it",
 });
