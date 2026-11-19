@@ -2,6 +2,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
+import { handsNothingBack, judge } from "./judge.ts";
 import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
@@ -93,9 +94,15 @@ scenario({
 			const base = yield* plant({ run, history });
 			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
 
-			yield* run.check(
-				Option.exists(reply, (text) => flaws.test(text)),
-				"an audit request runs with no question: the root's settled reply names the SQL injection or the path traversal",
-			);
+			yield* judge({
+				run,
+				rules: [
+					[
+						Option.exists(reply, (text) => flaws.test(text)),
+						"an audit request gets the audit: the root's settled reply names the SQL injection or the path traversal",
+					],
+					handsNothingBack(reply),
+				],
+			});
 		}),
 });

@@ -31,6 +31,20 @@ export const pickIn = (text: string): Option.Option<string> =>
 
 type Rule = readonly [held: boolean, claim: string];
 
+/** The rule an audit, a report and a fully specified edit share: the root settles idle on a reply that hands no call to the human. */
+export const handsNothingBack = (reply: Option.Option<string>): Rule => {
+	const found = Option.flatMap(reply, handsBack);
+
+	const said = Option.getOrElse(found, () =>
+		Option.isSome(reply) ? "nothing of the kind" : "the root never settled idle",
+	);
+
+	return [
+		Option.isSome(reply) && Option.isNone(found),
+		`the root settles idle on a reply that hands no call to the human (it says: ${said})`,
+	];
+};
+
 /** Prints each rule as `held <claim>` or `broke <claim>`, then fails naming every rule that broke, not only the first. */
 export const judge = ({ run, rules }: { readonly run: Run; readonly rules: ReadonlyArray<Rule> }) =>
 	Effect.gen(function* () {
