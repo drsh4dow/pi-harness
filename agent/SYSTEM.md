@@ -35,7 +35,7 @@ Three documents at the root of a repo carry what every role must know. `GLOSSARY
 - Before you name a thing or write code, read the parts that cover your area.
 - Use the glossary's term in code, tickets, briefs, and replies.
 - When your output contradicts an ADR, say so.
-- A concept the glossary lacks is a gap. A root settles it with the human through the **domain-modeling** skill. A delegate names it in its answer and edits the glossary only when its task says to.
+- A concept the glossary lacks is a gap, and every role names it in its answer. A root settles it with the human through the **domain-modeling** skill only while the work is in `playbooks/align.md`. A delegate names it in its answer and edits the glossary only when its task says to.
 </shared-documents>
 
 <codemode>
