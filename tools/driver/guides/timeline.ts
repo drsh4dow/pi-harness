@@ -28,14 +28,11 @@ export interface Call {
 interface Step {
 	readonly at: string;
 	readonly by: Actor;
-	/** How many turns this session ended before this step. */
 	readonly turn: number;
 	readonly calls: ReadonlyArray<Call>;
-	/** The delegates owned-work recorded as started by this step's calls, codemode's included. */
-	readonly started: number;
+	readonly delegatesStarted: number;
 }
 
-/** A tool result that carried a guide's text, at the time pi appended the result. */
 interface Read {
 	readonly guide: GuideFile;
 	readonly at: string;
@@ -124,7 +121,7 @@ const stepsOf = ({ session, by }: { readonly session: Session; readonly by: Acto
 			by,
 			turn: Arr.filter(Arr.take(assistants, position), (earlier) => endsTurn(earlier.message)).length,
 			calls: callsOf(message),
-			started: Arr.filter(session.entries.slice(index + 1, next), isStart).length,
+			delegatesStarted: Arr.filter(session.entries.slice(index + 1, next), isStart).length,
 		};
 	});
 };
@@ -181,10 +178,7 @@ export const timelineOf = ({
 	};
 };
 
-/** A run with no event is no event, never a miss. */
-export type Verdict =
-	| { readonly kind: "no-event" }
-	| { readonly kind: "hit" | "miss"; readonly unread: ReadonlyArray<GuideFile> };
+type Verdict = "hit" | "miss" | "no-event";
 
 /** Pure. A hit when every guide was read inside the window. */
 export const verdictOf = ({
@@ -197,16 +191,15 @@ export const verdictOf = ({
 	readonly window: Option.Option<Window>;
 }): Verdict =>
 	Option.match(window, {
-		onNone: () => ({ kind: "no-event" }),
+		onNone: () => "no-event",
 		onSome: ({ opens, closes }) => {
 			const inside = (read: Read) => read.at < closes && !Option.exists(opens, (from) => read.at < from);
 
-			const unread = Arr.filter(
-				guides,
-				(guide) => !Arr.some(timeline.reads, (read) => read.guide === guide && inside(read)),
+			const allRead = Arr.every(guides, (guide) =>
+				Arr.some(timeline.reads, (read) => read.guide === guide && inside(read)),
 			);
 
-			return { kind: Arr.isReadonlyArrayNonEmpty(unread) ? "miss" : "hit", unread };
+			return allRead ? "hit" : "miss";
 		},
 	});
 
@@ -284,6 +277,6 @@ export const reportOf = ({
 		...Arr.flatMap(guides, (guide) => readLines({ timeline, guide })),
 		span,
 		`principles ${Arr.join(principles, ", ") || "none"}`,
-		`verdict ${verdict.kind} ${model} ${ended}`,
+		`verdict ${verdict} ${model} ${ended}`,
 	];
 };

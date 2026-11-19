@@ -43,7 +43,6 @@ const started = (second: number) => ({
 
 const json = Schema.encodeUnknownOption(Schema.fromJsonString(Schema.Unknown));
 
-/** One line of a planted session file. */
 type Line =
 	| ReturnType<typeof assistant>
 	| ReturnType<typeof guideResult>
@@ -63,11 +62,11 @@ const timelineFrom = (entries: ReadonlyArray<Line>): Timeline => {
 
 const fanOut = (timeline: Timeline) =>
 	Option.map(
-		Arr.findFirst(timeline.steps, (step) => step.started >= 3),
+		Arr.findFirst(timeline.steps, (step) => step.delegatesStarted >= 3),
 		before,
 	);
 
-const kindOf = (timeline: Timeline) => verdictOf({ timeline, guides: [marker.guide], window: fanOut(timeline) }).kind;
+const kindOf = (timeline: Timeline) => verdictOf({ timeline, guides: [marker.guide], window: fanOut(timeline) });
 
 test("a guide read in an earlier message than the delegate starts is a hit", () => {
 	const timeline = timelineFrom([

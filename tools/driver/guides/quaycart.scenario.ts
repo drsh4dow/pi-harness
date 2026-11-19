@@ -35,8 +35,7 @@ const screenshot = "checkout-overflow.png";
 
 const request = `On a small phone the Pay button on quaycart's checkout page runs off the right edge of the screen. I grabbed a screenshot: ~/Pictures/${screenshot}. Please file a GitHub issue for it with the screenshot in the issue, so whoever picks it up sees what I saw. Just the issue for now, don't fix it.`;
 
-/** A phone-sized picture of the page with the button cut off at the right edge, in the human's Pictures folder. */
-const shoot = (run: Run) =>
+const plantScreenshot = (run: Run) =>
 	Effect.andThen(
 		run.exec(["mkdir", "-p", `${run.home}/Pictures`]),
 		run.exec([
@@ -59,7 +58,6 @@ const shoot = (run: Run) =>
 		]),
 	);
 
-/** The first issue body: a file written that names the screenshot, wherever it lives, or the call that files the issue. */
 const filing = (timeline: Timeline) =>
 	Option.map(
 		firstStep({
@@ -75,7 +73,7 @@ scenario({
 	model: rootModel,
 	play: (run) =>
 		Effect.andThen(
-			shoot(run),
+			plantScreenshot(run),
 			measure({ run, guides: ["skills/dumpfile/SKILL.md"], history, request, within: "20 minutes", event: filing }),
 		),
 });

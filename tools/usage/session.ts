@@ -13,7 +13,6 @@ import { noOffer, type Offer, offerOf, type Role } from "./offer.ts";
 /** Trial work runs under `/tmp`. Harness work runs in this repo, its state folders or the PHI router. */
 export type Scope = "product" | "harness" | "trial";
 
-/** How a load showed: the guide's own lines in text the model was shown, or only a read that named its file. */
 type LoadedBy = "lines" | "path";
 
 interface DelegateCall {
@@ -35,13 +34,11 @@ export interface SessionFacts {
 	readonly delegateCalls: ReadonlyArray<DelegateCall>;
 }
 
-/** What a session's tool calls did to a guide's file: named it in a read, or edited it. */
 interface Named {
 	read: boolean;
 	edited: boolean;
 }
 
-/** What a session's entries have shown so far, in one pass over its file. */
 interface Scan {
 	readonly byKey: ReadonlyMap<string, Guide>;
 	readonly owner: ReadonlyMap<string, Guide>;
@@ -54,20 +51,13 @@ interface Scan {
 	turns: number;
 }
 
-/** Five of the guide's own lines, or nine in ten of them when it has fewer than six. */
 const isMarked = (seen: number, own: number) => seen >= 5 || (own < 6 && seen > 0 && seen >= 0.9 * own);
 
-/** Text that holds a session entry's `parentId` is another session's log, which loads nothing. */
 const foreignLog = '"parentId"';
 
-/** Tools whose naming of a guide's file reads it. A bash call that names one was `wc`, `grep` or `git` when sampled. */
 const reads = new Set(["read", "codemode"]);
 const writes = new Set(["edit", "write"]);
 
-/**
- * The calls a codemode script made that count as if the model made them, read from the record pi keeps on the script's
- * result. Its commands need no record, since the script's own text names them.
- */
 const nestedTools = new Set([...writes, "delegate"]);
 
 const guideFile =
@@ -102,7 +92,6 @@ const shownByMessage = (message: AgentMessage) => {
 	return message.role === "branchSummary" || message.role === "compactionSummary" ? message.summary : "";
 };
 
-/** The text an entry shows the model. The model's own replies load nothing. */
 const shownBy = (entry: FileEntry) => {
 	if (entry.type === "custom_message") {
 		return contentText(entry.content);
@@ -115,14 +104,12 @@ const shownBy = (entry: FileEntry) => {
 	return entry.type === "message" ? shownByMessage(entry.message) : "";
 };
 
-/** A script that returns a file inside JSON shows its lines with escaped newlines and quotes. */
 const unescaped = (text: string) =>
 	Str.replaceAll(
 		String.raw`\"`,
 		'"',
 	)(Str.replaceAll(String.raw`\t`, "\t")(Str.replaceAll(String.raw`\n`, "\n")(text)));
 
-/** The lines a text shows, and the lines it shows once unescaped when it holds a file's JSON. */
 const linesOf = (shown: string) => {
 	const lines = Str.split(shown, "\n");
 
@@ -177,7 +164,6 @@ const mark = (scan: Scan, guide: Guide, { read, edited }: Named) => {
 	scan.named.set(guide, slot);
 };
 
-/** Records each guide file a call names, as a read or as an edit, and each one a codemode script writes. */
 const nameGuides = (scan: Scan, each: Call) => {
 	for (const guide of guidesNamedIn(scan, each.args)) {
 		mark(scan, guide, { read: reads.has(each.tool), edited: writes.has(each.tool) });
@@ -204,7 +190,6 @@ const call = (scan: Scan, tool: string, args: ToolCall["arguments"]) => {
 
 type ToolUse = readonly [tool: string, args: ToolCall["arguments"]];
 
-/** The model's own tool calls, or the edits and delegates a script made, from the record pi keeps on its result. */
 const callsIn = (message: AgentMessage): ReadonlyArray<ToolUse> => {
 	if (message.role === "assistant") {
 		return Arr.flatMap(message.content, (block): Array<ToolUse> =>
@@ -241,7 +226,6 @@ const step = (scan: Scan, entry: FileEntry) => {
 	}
 };
 
-/** A guide loads when its own lines showed or a read named its file, unless the session edited the file. */
 const loadedOf = ({ seen, named }: Scan) => {
 	const loaded = new Map<Guide, LoadedBy>();
 
@@ -257,7 +241,6 @@ const loadedOf = ({ seen, named }: Scan) => {
 	return loaded;
 };
 
-/** The groups that new delegates joined. A continuation is not a new delegate. */
 const startedGroups = (calls: ReadonlyArray<DelegateCall>) =>
 	Arr.flatMap(calls, ({ group, continues }) => (continues || group === undefined || group === "" ? [] : [group]));
 

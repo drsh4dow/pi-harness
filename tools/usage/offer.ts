@@ -24,20 +24,18 @@ const namesIn = (text: string) =>
 		return name === undefined ? [] : [name];
 	});
 
-/** The skills section, or in older prompts the skill lists inside the preamble. */
 const skillsBlock = (preamble: string, skills: string | null | undefined) => {
 	if (skills === null || skills === undefined || skills === "") {
-		const lists = Arr.map([...Str.matchAll(skillsList)(preamble)], ([list]) => list);
+		const olderPromptLists = Arr.map([...Str.matchAll(skillsList)(preamble)], ([list]) => list);
 
-		return Arr.join(lists, "");
+		return Arr.join(olderPromptLists, "");
 	}
 
 	return skills;
 };
 
-/** The opening words of the role section, after `<role>` and its newline, name the role. */
 const roleOf = (block: string): Role => {
-	const opening = Str.slice(7, 40)(block);
+	const opening = Str.slice("<role>\n".length, 40)(block);
 
 	if (Str.startsWith("You work for")(opening)) {
 		return "root";

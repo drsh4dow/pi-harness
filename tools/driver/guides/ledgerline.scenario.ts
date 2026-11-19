@@ -56,15 +56,14 @@ else:
 const request =
 	"I'm tagging ledgerline 1.0 tomorrow. Before that I want four separate reviews, none of which depends on another: the money math in ledgerline/money.py, the SQLite storage in ledgerline/store.py, the command line handling in ledgerline/__main__.py, and the README against what the code really does. Don't change any code. Give me one list of findings, most serious first.";
 
-/** Three or more delegates the root started in one turn; the window closes at the first of them. */
 const fanOut = ({ steps }: Timeline) => {
-	const starts = Arr.filter(steps, (step) => step.by === "root" && step.started > 0);
+	const starts = Arr.filter(steps, (step) => step.by === "root" && step.delegatesStarted > 0);
 
 	const startedIn = (turn: number) =>
 		Arr.reduce(
 			Arr.filter(starts, (step) => step.turn === turn),
 			0,
-			(sum, step) => sum + step.started,
+			(sum, step) => sum + step.delegatesStarted,
 		);
 
 	return Option.map(
