@@ -58,6 +58,8 @@ Publish the tickets per your role's publishing rule. **How** depends on the trac
 - **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first), with the title as its `# <NN>: <title>` line above the body. Its `## Context` section opens with a `Blocked by <NN>: <title>` line per blocker, and a ticket with none starts immediately. One ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking relationship where it has one; otherwise open its `## Context` section with a `Blocked by #<n>` line per blocker. If the source was an existing issue, make each ticket its sub-issue (tracker doc's operation). Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.
 
+Under a ticket template with no `## Context` section, the `Blocked by` lines go where the **writing-good-tickets** skill puts what fits no section.
+
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
 Do NOT close or modify any parent issue.
