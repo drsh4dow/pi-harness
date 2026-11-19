@@ -22,7 +22,7 @@ const Frontmatter = Schema.Struct({ "user-invocable": Schema.optional(Schema.Boo
 
 const frontmatterOf = Option.liftThrowable((skillFile: string) => parseFrontmatter(skillFile).frontmatter);
 
-/** Pi reads no `user-invocable` key, so a skill that sets it to false still loads, and still runs when typed in full. */
+/** Pi reads no `user-invocable` key, so a skill that sets it to false still loads, the model still sees it, and it still runs when typed in full. */
 export const hidesFromMenu = (skillFile: string) =>
 	frontmatterOf(skillFile).pipe(
 		Option.flatMap(Schema.decodeOption(Frontmatter)),
