@@ -11,7 +11,7 @@
 		"fmt": "oxfmt",
 		"lint": "oxlint src tools agent/extensions agent/bin",
 		"typecheck": "tsc -p .",
-		"test": "bun test --parallel",
+		"test": "unset $(git rev-parse --local-env-vars) && bun test --parallel",
 		"prompts": "bun tools/prompts/index.ts",
 		"check": "oxfmt --check && bun run --parallel lint typecheck boundaries sg knip test",
 		"boundaries": "depcruise src tools agent/extensions agent/bin --output-type err",

@@ -25,6 +25,7 @@
 | Relative imports end in `.ts`                                                                           | `tools/ast-grep/rules/relative-import-extension.yml`                                         |
 | No unused file, export or dependency                                                                    | `bun run knip`, `knip.jsonc`                                                                 |
 | Violations that predate a rule only fall                                                                | oxlint with `oxlint-suppressions.json`, `bun run sg` with `tools/gates/ast-grep-budget.json` |
+| A test's git commands never reach a repository git exported to the suite                                | the `test` script, `tools/gates/git-env.test.ts`                                             |
 | Each gate fails on a fixture that breaks it                                                             | `tools/gates/gates.test.ts`                                                                  |
 | Credentials and session history stay out of git                                                         | the allowlist `.gitignore`                                                                   |
 
