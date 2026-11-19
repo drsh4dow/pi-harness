@@ -65,8 +65,6 @@ A change a user can see gets a `| Before | After |` table of captures of the sam
 - Never draw or generate a picture of a screen you did not capture.
 - After deploy, capture the real screens while you dogfood the change and edit them into the body with `scripts/publish-pr.ts edit`.
 
-Host media through the repository's own uploads, or with the **dumpfile** skill, whose links expire after 30 days, so each caption says what the media showed. Keep PR-only media out of the repository.
-
 ### Scope
 
 One to three short items: what the PR covers, and what it deliberately leaves out, plus one line per known limit.
@@ -180,10 +178,11 @@ Its Why lists symbols instead of a story, tells how the work was produced, and n
 
 ## Check the body
 
-Write the body to a file and run both gates.
+Write the body to a file and run these steps in order.
 
-1. **Structure.** Run `scripts/check-body.ts pr <body-file> --title "<title>"`, with `--template <path>` when the repository has a PR template. Fix each printed problem and rerun until it exits 0. Exit 0 means the headings, the title, the Why length, the What changed visual, the 40 visible lines, the Evidence block, the Blast Radius door, and Verification's witness and Not checked line pass. It also fails on a path on your machine, such as one under `~/`, even inside a code block. It says nothing about the case the body makes. A `warning:` line leaves the exit code alone. It marks a sentence about how the work was produced, or a line that may leave a choice open. Rewrite a production sentence for the reader of this diff, or keep it when that reader needs it to merge or deploy. Settle an open choice before the PR is ready for review: make it when it is yours, answer it from a source, or get its owner's answer and cite it. Otherwise keep the PR a draft.
-2. **Expert read.** Start one delegate with `instructionsFile: ~/.pi/agent/instructions/cold-reader.md`, and give it only the title and the body file, with no diff, ticket, or chat. Ask it to:
+1. **Media.** Upload each screenshot, recording or other local file the body shows with the **dumpfile** skill, unless the repository hosts its own uploads, and link the URL it prints. A dumpfile link expires after 30 days, so each caption says what the media showed. Keep PR-only media out of the repository.
+2. **Structure.** Run `scripts/check-body.ts pr <body-file> --title "<title>"`, with `--template <path>` when the repository has a PR template. Fix each printed problem and rerun until it exits 0. Exit 0 means the headings, the title, the Why length, the What changed visual, the 40 visible lines, the Evidence block, the Blast Radius door, and Verification's witness and Not checked line pass. It also fails on a path on your machine, such as one under `~/`, even inside a code block. It says nothing about the case the body makes. A `warning:` line leaves the exit code alone. It marks a sentence about how the work was produced, or a line that may leave a choice open. Rewrite a production sentence for the reader of this diff, or keep it when that reader needs it to merge or deploy. Settle an open choice before the PR is ready for review: make it when it is yours, answer it from a source, or get its owner's answer and cite it. Otherwise keep the PR a draft.
+3. **Expert read.** Start one delegate with `instructionsFile: ~/.pi/agent/instructions/cold-reader.md`, and give it only the title and the body file, with no diff, ticket, or chat. Ask it to:
    1. Retell the problem as one story, and why this fix rather than the alternative.
    2. As an expert in this domain who must own the change, list every question it would need answered to trust the proof. For each, quote the line that answers it, or write `unanswered`.
    3. State the blast radius and the door, or write `unclear`.
@@ -191,7 +190,7 @@ Write the body to a file and run both gates.
 
    Run the read once. Answer every `unanswered` and `unclear` it reports with a witness in Verification or Evidence, or list it under Not checked. Rewrite every quoted sentence as a fact about this PR's change. Then move on without a second read.
 
-Publish the same file with `scripts/publish-pr.ts create <body-file> --title "<title>"` or `scripts/publish-pr.ts edit <number> <body-file> --title "<title>"`, never with a bare `gh pr create --body-file` or `gh pr edit --body-file`. Both verbs take `--repo` and `--template`, `create` also takes `--base`, `--head`, and `--draft`, and `edit` also takes `--replace`. Pass `--draft` when step 1 says to keep the PR a draft. Keep the title out of the body file.
+Publish the same file with `scripts/publish-pr.ts create <body-file> --title "<title>"` or `scripts/publish-pr.ts edit <number> <body-file> --title "<title>"`, never with a bare `gh pr create --body-file` or `gh pr edit --body-file`. Both verbs take `--repo` and `--template`, `create` also takes `--base`, `--head`, and `--draft`, and `edit` also takes `--replace`. Pass `--draft` when step 2 says to keep the PR a draft. Keep the title out of the body file.
 
 - It reruns check-body with the PR's changed files, for `create` the branch diff against the base, and publishes only after it exits 0. A body that changes a UI file, such as `.tsx` or `.css`, fails without a `| Before | After |` table or a `**Not checked:**` line that names the missing screenshots.
 - On `edit`, it keeps each `## ` section that the live body has and the file lacks, such as a plan a bot appended, after the section it followed in the live body, and prints `publish-pr: kept "## <heading>" from the live body` for each. To delete such a section on purpose, pass `--replace`, so the file replaces the live body whole, and say so in your report.

@@ -14,7 +14,7 @@ A green suite proves the code against its tests and fakes. Most bugs live where 
 
 When two fixes fail the same drive, or a third bug turns up at the same boundary, stop fixing. The design of that boundary is the suspect premise. Before the next fix, write that premise down and make the observation that would come out differently if it were false. When the redesign the evidence points to would change an agreed seam, a contract other work builds on, or an ADR, report the evidence to the owner of the work and stop there.
 
-When the project has no verification skill, drive the real thing by hand. Run the real CLI, drive a web UI with the `agent-browser` skill, and send real requests to a running service. Then recommend the `create-verification-skill` skill in your report. When a drive shows that the verification skill's steps or feature map no longer match the app, report the drift and recommend the `maintain-verification-skill` skill.
+When the project has no verification skill, drive the real thing by hand. Run the real CLI, drive a web UI with the `agent-browser` skill, and send real requests to a running service. Then, as a leaf or owner, recommend the `create-verification-skill` skill in your report. As a root, run that skill before your final reply. When a drive shows that the verification skill's steps or feature map no longer match the app, report the drift and recommend the `maintain-verification-skill` skill.
 
 ## Check every order when order decides
 

@@ -79,7 +79,7 @@ const promptGuidelines = ["Starting work returns a handle at once. To wait, end 
 const delegateGuidelines = [
 	"Decide what goes to a delegate before you start, while your context is small. Work of a handful of tool calls, or that needs context a task message cannot carry, stays with you.",
 	"Reading of more than about 1,500 lines, or of three or more areas, goes to delegates, one per area in parallel, each asked for the facts you need with file, line, and quotes. This holds when the reading serves your own plan. Context spent on reading never comes back, so read yourself only what you will edit.",
-	"Run independent parts, where no two write the same file and none needs another's result, as delegates started in one turn with one `group` name.",
+	"Run independent parts, where no two write the same file and none needs another's result, as delegates started in one turn with one `group` name, and use the **swarm** skill for three or more leaves.",
 	"Write each delegate task message as the delegate's whole world. Name the task, the inputs as file paths, what counts as done, and the shape of the answer.",
 	"Give each delegate that commits its own branch or worktree, and start it there with cwd.",
 	"A delegate's answer is a claim. Check what you will act on against the real artifact before you report it as done.",

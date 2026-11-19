@@ -14,7 +14,7 @@ The one playbook where the Laziness Protocol's "smallest change" and the verific
 
 1. Scope the decision the prototype exists to make: which layout, which interaction, which density, or for an empirical fork which behavior, timing, or approach. No decision means no prototype. Route to Feature.
 2. Gather references when the design space is open. Search for prior art and summarize a moodboard of themes, palettes, and layouts. Skip when the direction is set.
-3. Build it where it lives. For a logic or state-model question or a UI question, build it with the **prototyping** skill. For a behavioral or timing decision, write the smallest script that exercises the question. No tests, no abstractions.
+3. For a logic, state-model or UI question, read the **prototyping** skill and build the prototype where it lives with it. For a behavioral or timing decision, write the smallest script that exercises the question. No tests, no abstractions.
 4. When comparing alternatives, build them behind one switcher (buttons or a keypress), each variant labeled. This is **principle-exhaust-the-design-space** made cheap.
 5. Verify on the matching surface. For a visual decision, screenshot each variant via the verification skill and drive the interaction. For a behavioral or timing decision, observe the thing you are deciding by logging the timing, printing the output, or watching the render. The observation is the test here, not an assertion.
 6. Present alternatives, tradeoffs, and a recommendation, and settle the pick per **Who picks**. The output is the decision and its evidence, not shippable code. Hand the chosen direction to **Feature** (or `architect` for the shape) for the real build.

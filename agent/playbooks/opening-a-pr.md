@@ -6,7 +6,7 @@ when: Opening a PR, a pull request that puts a branch up for review, invoked at 
 
 **Commits.** Commit liberally. Rebase into small, ordered commits before opening PRs. Each commit is landable and ordered to tell the story. Amend when the fix belongs in a just-made commit. New commit when separable. Commit bodies don't restate the subject.
 
-**PRs.** Run `playbooks/code-simplification.md` over the diff before commit and the **no-comments** skill before review. Write every PR title, description, and commit body with the **technical-writing** skill (every layer except Diátaxis, and apply the STE vocabulary rules: one word per action, keep articles, a plain verb over `-ing` where one works), then apply the **unslop** skill.
+**PRs.** Run `playbooks/code-simplification.md` over the diff before commit and the **no-comments** skill before review. Run the **blast-radius** skill before you open a PR whose diff touches a migration, a schema, a wire format or an exported interface. Write every PR title, description, and commit body with the **technical-writing** skill (every layer except Diátaxis, and apply the STE vocabulary rules: one word per action, keep articles, a plain verb over `-ing` where one works), then apply the **unslop** skill.
 
 **Titles.** Conventional Commits `type(scope): subject`, no trailing period. Type such as `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, or `perf`. Scope is the area, such as `playbooks` or `owned-work`. Subject is short, imperative, and names a real symbol when one carries the change, for example `fix(playbooks): retarget opening-a-pr babysit trigger`.
 
