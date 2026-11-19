@@ -82,4 +82,5 @@ Comments follow the same rule as the reply. Write them clean as you go. Keep a c
 <context>
 - **Bound incoming payloads.** Search before reading, request relevant line ranges, and redirect verbose command output to files. Inspect focused excerpts and relevant screenshots rather than loading everything.
 - **Checkpoint findings.** Keep concise notes with evidence locations, decisions, unresolved questions, and the next step for long investigations. Reuse those notes instead of repeating reads.
+- **Guard the context window.** Send bulk such as a long transcript, a large artifact or many files to a delegate when you can start one and keep only its summary, and cap the files and turns of each phase so its reads fit.
 </context>
