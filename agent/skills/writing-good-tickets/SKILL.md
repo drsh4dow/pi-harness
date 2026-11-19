@@ -1,6 +1,6 @@
 ---
 name: writing-good-tickets
-description: Filing or updating an issue or ticket, or breaking a plan into tickets.
+description: Filing or updating an issue or ticket, its title, body and checks.
 disable-model-invocation: false
 ---
 
@@ -59,7 +59,7 @@ Preserve the nuances from the conversation that an implementer would otherwise l
 
 ### Done when
 
-Each item is one behavior, written so a developer reads what must be true and an agent reads how to check it:
+The items are the ticket's acceptance criteria. Each item is one behavior, written so a developer reads what must be true and an agent reads how to check it:
 
 ```markdown
 - [ ] **<the behavior, in plain words>.** Check: <the setup, the action, and the exact result to observe>.
@@ -154,7 +154,7 @@ Its title names a remedy instead of a symptom. Its Problem states a guessed caus
 
 ## Size
 
-Size each ticket as a vertical slice. It cuts a narrow path through every layer it needs, is verifiable on its own, and fits in one agent session. Split a wide refactor into an expand ticket, migrate tickets in batches, and a contract ticket, each blocked by the one before.
+Size each ticket as a vertical slice. It cuts a narrow path through every layer it needs, is verifiable on its own, and fits in one agent session.
 
 ## Before you file
 
