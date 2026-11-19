@@ -51,7 +51,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 ### Spawn owners
 
-- [ ] Spawn one owner per PR with the full lifecycle the execution playbook names, and its ticket's acceptance criteria in its task message.
+- [ ] Spawn one owner per PR with the full lifecycle the execution playbook names, and its acceptance criteria in its task message, from its ticket or else from its **You see.** boxes.
 - [ ] Follow this dependency graph. Start dependent work only after its parent merges, or base it on the parent branch when the execution playbook stacks.
    - [ ] <PR id> and <PR id> are independent and first. Both branch from `main`.
    - [ ] <PR id> after <PR id>.
