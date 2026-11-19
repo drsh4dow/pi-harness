@@ -7,7 +7,8 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
 import { scenario } from "#tools/driver/index.ts";
-import { type Commit, judge, model, observe, offGitHub, plant, questionsIn } from "./observe.ts";
+import { handsBack, judge, pickIn } from "./judge.ts";
+import { type Commit, model, observe, offGitHub, plant } from "./observe.ts";
 
 const history: ReadonlyArray<Commit> = [
 	{
@@ -92,8 +93,6 @@ main()
 const request =
 	"We keep finding stuff gone off in the fridge before anyone notices it's in pantry. Can you add reminders for things that are about to expire?";
 
-const picks = /\b(?:recommend|my pick|i'd (?:go|pick|choose|default|lean)|i would|default|suggest|propose|lean)/iu;
-
 scenario({
 	env: { ...process.env, GH_HOST: offGitHub },
 	model,
@@ -101,7 +100,8 @@ scenario({
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
 			const { reply, files } = yield* observe({ run, base, request, within: "20 minutes", stopAt: () => true });
-			const text = Option.getOrElse(reply, () => "");
+			const handBack = Option.flatMap(reply, handsBack);
+			const pick = Option.flatMap(reply, pickIn);
 
 			yield* judge({
 				run,
@@ -111,12 +111,12 @@ scenario({
 						`a vague build request leaves every file of the project as it was, on every branch and worktree (edited: ${Arr.join(files, ", ")})`,
 					],
 					[
-						Option.isSome(reply) && Arr.isReadonlyArrayNonEmpty(questionsIn(text)),
-						`the root settles idle on a reply that asks the human questions (it asks ${String(questionsIn(text).length)})`,
+						Option.isSome(handBack),
+						`the root settles idle on a reply that hands a product call to the human, in words that make the build wait on their answer (it says: ${Option.getOrElse(handBack, () => (Option.isSome(reply) ? "nothing of the kind" : "the root never settled idle"))})`,
 					],
 					[
-						picks.test(text),
-						"the root's questions come with its own picks: the reply recommends, suggests, proposes or names a default",
+						Option.isSome(pick),
+						`the reply gives the root's own pick for the call (it says: ${Option.getOrElse(pick, () => "no pick")})`,
 					],
 				],
 			});

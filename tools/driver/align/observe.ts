@@ -79,22 +79,6 @@ const settledReply = (root: Session): Option.Option<string> => {
 	);
 };
 
-/** Each line of `text` that asks something: it ends in a question mark, past any closing markup. */
-export const questionsIn = (text: string): ReadonlyArray<string> =>
-	Arr.filter(Str.split(text, "\n"), (line) => /\?[*_)"'`\s]*$/u.test(line));
-
-/** One judging rule of a case: whether it held in this run, and the claim it makes, as a check states it. */
-type Rule = readonly [held: boolean, claim: string];
-
-/** Prints each rule as `held <claim>` or `broke <claim>`, then fails naming every rule that broke, not only the first. */
-export const judge = ({ run, rules }: { readonly run: Run; readonly rules: ReadonlyArray<Rule> }) =>
-	Effect.gen(function* () {
-		const broke = Arr.flatMap(rules, ([held, claim]) => (held ? [] : [claim]));
-
-		yield* Effect.forEach(rules, ([held, claim]) => run.say(`${held ? "held" : "broke"} ${claim}`));
-		yield* run.check(!Arr.isReadonlyArrayNonEmpty(broke), Arr.join(broke, "; "));
-	});
-
 const byLength = Order.mapInput(Order.Number, Str.length);
 
 /**
