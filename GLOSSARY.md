@@ -159,10 +159,13 @@ Terms for what lets an agent merge a pull request. See ADR 0009.
 
 Terms from the root role (`agent/roles/root.md`) for the work the human hands the agent.
 
-- **Destination.** What the end product should be, settled with the human. Only the human changes it. Its document is the **PRD**, in the human's words "the shared understanding we settle in a discussion about the end product ... it settles the destination".
-- **Approach.** How the work reaches the destination. Its document is the **TRD**, which "defines the selected approach but is more malleable", because "things has to be adapted given the discoveries of unknowns". The agent adapts it and records each change in the decision trail.
-- **Spec.** The document that joins the destination and the approach. In the human's words, "the spec armonizes both".
-- **Grant.** The human's words, such as "run until done", that let the agent work without stopping for the rest of the session. It covers updates to the agent's own tickets.
+- **Destination.** What the end product should be, in the human's words "the shared understanding we settle in a discussion about the end product". It is settled once its **acceptance criteria** can be written without guessing a product call, and it lives in `STATE.md`, a ticket or a spec. Only the human changes it, and the agent runs on its own only toward a settled one.
+- **Acceptance criteria.** A task's own checks, settled with the human: each is a behavior the agent can run or observe that shows the destination is reached. A ticket holds them as its Done-when items. Never called the DoD, which names the **Definition of Done**.
+- **Definition of Done.** The standing project bar every change meets, whatever its task: tests pass, no regressions, behavior verified at runtime, docs updated. It is `agent/references/definition-of-done.md`, and it adds to a task's acceptance criteria rather than replacing them.
+- **Approach.** How the work reaches the destination. The agent owns it, and it "is more malleable", because "things has to be adapted given the discoveries of unknowns". The agent adapts it and records each change in the decision trail.
+- **Spec.** The document that joins the destination, with its acceptance criteria, and the approach, for work that spans sessions. In the human's words, "the spec armonizes both".
+- **Grant.** The human's words, such as "run until done", that let the agent work without stopping for the rest of the session. It covers updates to the agent's own tickets. It does not skip settling the destination at the start of a task. Mid-run, the agent applies its pick for a product call and logs it.
+- **Shared documents.** The three files every role reads for the area it works in: `GLOSSARY.md` for what a word means, `CODING_STANDARDS.md` for the mechanical rules, and `docs/adr/` for why the code is the way it is. Only the root, with the human, changes the glossary.
 - **Handoff PR.** A PR against trunk that the human reviews, one per piece of work unless a part must deploy or revert on its own. Not to be confused with a handoff note, which one session writes for the next.
 - **Shared branch.** In the human's words, "a branch that is used by multiple people, for example staging or prod", or main. The agent's work reaches one only through PRs.
 - **Trunk.** The shared branch a PR targets. Not to be confused with main: a PR against staging has staging as its trunk.
