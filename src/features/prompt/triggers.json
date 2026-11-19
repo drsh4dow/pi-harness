@@ -1058,6 +1058,38 @@
 			}
 		]
 	},
+	"to-spec": {
+		"positive": [
+			{
+				"prompt": "Write up what we settled as a spec before anyone builds it"
+			},
+			{
+				"prompt": "Turn this into a PRD with acceptance criteria"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "Break this spec into tickets",
+				"owner": "to-tickets"
+			}
+		]
+	},
+	"to-tickets": {
+		"positive": [
+			{
+				"prompt": "Break this spec into tickets with their blocking edges"
+			},
+			{
+				"prompt": "Slice the plan into tracer-bullet tickets, one per owner"
+			}
+		],
+		"negative": [
+			{
+				"prompt": "File a bug ticket for the crash on save",
+				"owner": "writing-good-tickets"
+			}
+		]
+	},
 	"trace-forensics": {
 		"positive": [
 			{

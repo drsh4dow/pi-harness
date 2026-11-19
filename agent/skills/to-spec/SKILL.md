@@ -1,7 +1,6 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
-disable-model-invocation: true
+description: "Write a settled destination as a spec, with its acceptance criteria, for work that spans sessions, or asked for a spec or a PRD: synthesis of what was already settled, no interview."
 for: [root]
 ---
 
@@ -15,9 +14,7 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
-Check with the user that these seams match their expectations.
-
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the template below, and keep it in the work's state folder. Publish it to the project issue tracker per your role's publishing rule, with the `ready-for-agent` triage label - no need for additional triage.
 
 <spec-template>
 
@@ -40,6 +37,10 @@ A LONG, numbered list of user stories. Each user story should be in the format o
 </user-story-example>
 
 This list of user stories should be extremely extensive and cover all aspects of the feature.
+
+## Acceptance Criteria
+
+The checks that show the destination is reached. Each is one behavior and how to run or observe it, in the user's words where they gave them.
 
 ## Implementation Decisions
 
