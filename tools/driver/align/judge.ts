@@ -6,7 +6,7 @@ import * as Str from "effect/String";
 import type { Run } from "#tools/driver/index.ts";
 
 const handBack = [
-	/\b(?:before|until) i (?:build|start|write|code|change|touch)\b/iu,
+	/\b(?:before|until) (?:i (?:build|start|write|code|change|touch|implement)|implementation|implementing)\b/iu,
 	/\b(?:after|once|when) you(?:'ve)? (?:answer|reply|confirm|decide|choose|pick)\b/iu,
 	/\b(?:after|once|when) (?:i (?:have|get) )?your (?:answers?|reply|decisions?|confirmation)\b/iu,
 	/\bneed (?:\w+ ){0,3}(?:answers?|decisions?)\b/iu,
@@ -24,7 +24,7 @@ export const handsBack = (text: string): Option.Option<string> =>
 export const pickIn = (text: string): Option.Option<string> =>
 	Option.map(
 		Str.match(
-			/\bmy picks?\b|\b(?:i|i'd|i would) (?:recommend|suggest|propose|lean|go with|pick|choose)\b|\brecommend(?:ed|ation)?\b|➡/iu,
+			/\bmy picks?\b|\b(?:i|i'd|i would) (?:recommend|suggest|propose|lean|go with|pick|choose)\b|(?<!\byou |\byour )\brecommend(?:ed|ation)?\b|➡/iu,
 		)(text),
 		([found]) => found,
 	);
