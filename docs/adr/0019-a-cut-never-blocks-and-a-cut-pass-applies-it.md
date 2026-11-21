@@ -8,7 +8,7 @@ ADR 0011 made a finding that blocks nothing a known limit with no fix, so agents
 
 So the harness separates a cut from a known limit:
 
-- A cut is a finding whose fix removes production code and keeps behavior. A diff that removes more production lines than it adds and passes the repo's check command proves it. A cut is never a known limit, never holds a slice up, and gets no ticket. The shared prompt layer says this once, beside the known-limit rule.
+- A cut is a finding whose fix removes production code and keeps behavior. A cut pass reports each cut's `diff-size` line and a green check. Its branch takes the same verdict as any slice, and that verdict confirms the behavior kept. A cut is never a known limit, never holds a slice up, and gets no ticket. The shared prompt layer says this once, beside the known-limit rule.
 - A reviewer lists each cut in its verdict, and the root hands it to the next cut pass. A cut pass is one owner, started from `agent/instructions/cut-pass.md`, that applies cuts across the combined diff of a wave. Work of three or more slices runs one after each wave lands and once before the handoff pull request, and the next wave does not wait for it.
 - A repair round adds only what its blocking finding needs. A finding that asks for code no acceptance criterion names is a known limit.
 - The copy scan lives in the codebase-design skill, and dunify and the cut pass point at it.
