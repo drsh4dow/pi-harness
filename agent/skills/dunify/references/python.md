@@ -23,9 +23,9 @@ flake8-type-checking.strict = true
 typeCheckingMode = "all"
 ```
 
-- Put this in `pyproject.toml` and pin every tool exactly in the `dev` dependency group, since `ALL` gains rules on each ruff upgrade. `ALL` holds every plugin ruff implements, framework groups such as `DJ`, `FAST` and `PD` included. Leave `preview` and `pydocstyle.convention` unset, since a convention turns off every `D` rule outside it.
+- Put this in `pyproject.toml` and pin every tool exactly in the `dev` dependency group, since `ALL` gains rules on each ruff upgrade. `ALL` holds every plugin ruff implements, framework groups such as `DJ`, `FAST` and `PD` included. Leave `preview` unset.
 - List ruff's rules with `uv run ruff rule --all --output-format json` and keep the entries whose `status` key is `Stable`, because `"preview": false` also matches removed rules. `uv run ruff check --show-settings` prints the resolved set under `linter.rules.enabled`.
-- basedpyright has no command that lists rules. `all` sets every rule in the table on its configuration docs page to error, except the ones that table marks discouraged. It also ignores `# type: ignore`, so only `# pyright: ignore[rule]` suppresses.
+- basedpyright has no command that lists rules. `all` sets every rule in the table on its configuration docs page to error, except the ones that table marks discouraged.
 - `CPY001` is stable and wants a `# Copyright <year> <owner>` line atop every file, empty `__init__.py` included. An SPDX line alone fails it.
 
 ## Known collisions
@@ -108,15 +108,17 @@ rule:
    any:
       - kind: comment
         not:
-           all:
-              - regex: "^#.*(Copyright|SPDX-License-Identifier)"
-              - inside: { kind: module }
-              - not: { follows: { not: { kind: comment }, stopBy: end } }
+           any:
+              - all: [regex: "^#!", nthChild: 1, inside: { kind: module }]
+              - all:
+                   - regex: "^#.*(Copyright|SPDX-License-Identifier)"
+                   - inside: { kind: module }
+                   - not: { follows: { not: { kind: comment }, stopBy: end } }
       - kind: expression_statement
         has: { any: [kind: string, kind: concatenated_string] }
 ```
 
-Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement, so the second branch rejects it with every other bare string. Directives such as `# noqa` and `# type: ignore` are comments, so the check rejects them.
+Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement, so the second branch rejects it with every other bare string. Directives such as `# noqa` and `# type: ignore` are comments, so the check rejects them. A `#!` line passes only as the first line of the file.
 
 Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned version.
 
