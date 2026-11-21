@@ -30,7 +30,7 @@ Terms from the prompt feature, which builds every agent's system prompt. The roo
 
 ## Owned work
 
-Terms from the owned-work feature. See ADRs 0002, 0006 and 0008.
+Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 
 - **Owned work.** Every delegate, serve, watch and group a pi process started. It survives a reload, and stops when the process quits or leaves its session.
 - **Handover.** What a reload passes from one load of the owned-work extension to the next in the same process, so the work keeps running.
@@ -50,7 +50,7 @@ Terms from the owned-work feature. See ADRs 0002, 0006 and 0008.
 - **Claude account.** One Claude login as its own provider, with Anthropic's models and its own credential: the personal subscriptions ultra-a and ultra-b, and ent, the **BAA account**.
 - **Role.** What an agent is for: root, owner or leaf. The root is the pi at the human's terminal, and a delegate's parent names its role.
 - **Owner.** A delegate handed one slice and its **design**, to build, verify, commit and report on. It can hand parts of its slice to delegates of its own.
-- **Design.** Who settled the shape of an owner's slice: a sketch made before the hand-off, which the owner builds to, or the owner's own choice before it builds.
+- **Design.** Who settled the shape of an owner's slice: a sketch made before the hand-off, which the owner builds to, or the owner itself as it builds.
 - **Leaf.** A delegate handed one bounded task, such as a search, a review, a verification lane or a scoped edit, that starts no delegates.
 - **Read-only delegate.** A delegate started without the edit and write tools. Read-only is apart from the **role**: a leaf can edit what its task scopes.
 - **Level.** How deep an agent sits: the root is level 1, its delegates level 2, and so on down.
@@ -158,7 +158,7 @@ Terms for what lets an agent merge a pull request. See ADR 0009.
 
 ## Work
 
-Terms from the root role for the work the human hands the agent. See ADRs 0011, 0018 and 0019.
+Terms from the root role for the work the human hands the agent. See ADRs 0011, 0018, 0019 and 0020.
 
 - **Destination.** What the end product should be, in the human's words "the shared understanding we settle in a discussion about the end product". It is settled once its **acceptance criteria** can be written without guessing a product call.
 - **Acceptance criteria.** A task's own checks, settled with the human: each is a behavior the agent can run or observe that shows the destination is reached.
