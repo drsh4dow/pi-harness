@@ -4,7 +4,7 @@ The dunify reference for Python, used in steps 3 to 5 of [`../SKILL.md`](../SKIL
 
 ## Source root and edge file
 
-The source root is `src/<package>/` and a feature's edge file is its `__init__.py`. A runtime directory is a subpackage, such as `src/app/server/`. Runtimes that deploy apart become uv workspace members at `packages/<runtime>/src/<runtime>/`, with the contract as one more member. Re-export a feature's names from its edge file through `__all__`, which ruff and basedpyright both accept, and import those names. Inside a feature, a client module or `primitives/`, name every module and package but the edge file with a leading underscore, such as `_summary.py` or `_totals/`, at every depth. `from app.server.features.billing import total` records an import of `billing.total` when `total` is a module, and the boundary gate rejects it.
+The source root is `src/<package>/` and a feature's edge file is its `__init__.py`. A runtime directory is a subpackage, such as `src/app/server/`. Runtimes that deploy apart become uv workspace members at `packages/<runtime>/src/<runtime>/`, with the contract as one more member. Re-export a feature's names from its edge file through `__all__`, which ruff and basedpyright both accept, and import those names. Inside a feature, a client module or a module of `primitives/`, name every module and package but the edge file with a leading underscore, such as `_summary.py` or `_totals/`, at every depth. `from app.server.features.billing import total` records an import of `billing.total` when `total` is a module, and the boundary gate rejects it.
 
 ## Ceiling
 
@@ -74,7 +74,13 @@ contracts = [
 
 - `uv run lint-imports` exits 1 when a contract breaks. It counts imports under `if TYPE_CHECKING:`, so runtimes stay apart for types too.
 - Parentheses mark a layer optional, so a runtime may lack one. For a runtime that holds its owned folders directly, keep it out of the layers contract. For a single runtime, the container is `app` and the first contract goes.
-- `private_modules` lets only a module's parent package and that package's descendants import a module whose name starts with `_`, which holds every edge file at every depth. A feature, a client module and a contract keep plain names, so the other contracts judge those imports.
+- `private_modules` lets only a module's parent package and that package's descendants import a module whose name starts with `_`, which holds every edge file at every depth. A feature, a client module, a module of `primitives/` and a contract keep plain names, so the other contracts judge those imports.
+- Nothing in import-linter checks the names, so the check runs this naming gate, which fails on every plain name below those:
+
+   ```sh
+   find src -name __pycache__ -prune -o \( -path '*/features/*/*' -o -path '*/client/*/*' -o -path '*/primitives/*/*' \) \( -type d -o -name '*.py' \) ! -name '_*' -print | awk '{ print $0 " is importable past its edge file. Rename it with a leading underscore." } END { exit NR > 0 }'
+   ```
+
 - In a uv workspace, list every member in `root_packages` in place of `root_package`, and run `lint-imports` from the workspace root.
 
 ## Bans
@@ -129,4 +135,4 @@ Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned versi
 
 ## Check command
 
-`uv check` runs ty, not this stack. Where the repo has no task runner, add a `Makefile` whose `check` target runs, in order: `uv run ruff format --check .`, `uv run ruff check .`, `uv run basedpyright`, `uv run lint-imports`, `uv run ast-grep scan --rule no-comments.yml src tests`, the file cap command, `sh tools/width.sh width-exempt.txt src`, and `uv run pytest -q`. Keep gate fixtures in a top-level `gate_fixtures/`, listed in ruff's `extend-exclude` and basedpyright's `exclude`. Each gate test runs its tool on the fixture by path, such as `ruff check --select TID251 gate_fixtures/ban.py`. import-linter reads only the installed package, so the boundary test copies its fixture into `src/` and deletes it afterward.
+`uv check` runs ty, not this stack. Where the repo has no task runner, add a `Makefile` whose `check` target runs, in order: `uv run ruff format --check .`, `uv run ruff check .`, `uv run basedpyright`, `uv run lint-imports`, the naming gate, `uv run ast-grep scan --rule no-comments.yml src tests`, the file cap command, `sh tools/width.sh size-limits.txt src`, and `uv run pytest -q`. Keep gate fixtures in a top-level `gate_fixtures/`, listed in ruff's `extend-exclude` and basedpyright's `exclude`. Each gate test runs its tool on the fixture by path, such as `ruff check --select TID251 gate_fixtures/ban.py`. import-linter reads only the installed package, so the boundary test copies its fixture into `src/` and deletes it afterward.
