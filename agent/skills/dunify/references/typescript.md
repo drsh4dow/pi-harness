@@ -152,7 +152,7 @@ Seed these bans for a React stack:
 
 ## Comment check
 
-Write the rule file as two YAML documents split by `---`. The first is the rule in step 5 of [`../SKILL.md`](../SKILL.md). The second repeats its body with its own `id` and `language: Tsx`, since each language scans only its own extensions and an anchor does not cross documents. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node.
+Write the rule file as two YAML documents split by `---`. The first is the rule in step 3 of [`../SKILL.md`](../SKILL.md). The second repeats its body with its own `id` and `language: Tsx`, since each language scans only its own extensions and an anchor does not cross documents. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node.
 
 A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead.
 

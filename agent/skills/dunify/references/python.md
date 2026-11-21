@@ -1,6 +1,6 @@
 # Python
 
-The dunify reference for Python, used in steps 3 to 7 of [`../SKILL.md`](../SKILL.md). Checked on ruff 0.17.5, basedpyright 1.40.2, import-linter 2.16, ast-grep 0.51.3 and uv 0.13.8.
+The dunify reference for Python, used in steps 3 to 5 of [`../SKILL.md`](../SKILL.md). Checked on ruff 0.17.5, basedpyright 1.40.2, import-linter 2.16, ast-grep 0.51.3 and uv 0.13.8.
 
 ## Source root and edge file
 
