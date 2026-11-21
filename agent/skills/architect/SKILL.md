@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Sketch types, signatures and module structure before code. Use when code crosses a function boundary, when asked to architect a change, or when coding first would lock in the wrong shape.
+description: Sketch types, signatures and module structure before code. Use for a one-way-door shape (a schema, a wire format, or an interface another slice builds on), or when asked to architect a change.
 for: [root, owner]
 ---
 

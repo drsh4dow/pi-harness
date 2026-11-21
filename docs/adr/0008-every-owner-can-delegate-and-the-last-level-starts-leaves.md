@@ -4,6 +4,8 @@ status: proposed
 
 # Every owner can delegate, and an owner at the last level starts leaves only
 
+Amended in part by ADR 0020, which has an owner handed its design settle the shape as it builds.
+
 ADR 0006 made the role decide whether an agent delegates, with one exception: "An owner has the `delegate` tool unless it sits at the last level; a leaf never has it." Two 24-hour sessions of 2026-11, with 507 delegates between them, showed what that exception costs. 383 level-3 sessions could not delegate, and in one of the two, 129 of 149 code-editing sessions ran there. `architect`, `arena` and `interrogate` ran 0 times in 93 code-and-PR sessions. One stack's last-level owners launched reviewers at least 16 times as untracked `pi -p` subprocesses, so their cost and results never reached the ledger.
 
 So every owner has the `delegate` tool. Level 3 stays the last level an owner can hold. An owner there may start leaves only, and they run at level 4. A leaf never delegates, so no chain grows past level 4. Role is capability again, and the existing `for` filter shows delegate-only skills to exactly the agents that can use them.
