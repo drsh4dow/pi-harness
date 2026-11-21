@@ -118,7 +118,7 @@ rule:
         has: { any: [kind: string, kind: concatenated_string] }
 ```
 
-Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement, so the second branch rejects it with every other bare string. Directives such as `# noqa` and `# type: ignore` are comments, so the check rejects them. A `#!` line passes only as the first line of the file.
+Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement, so the second branch rejects it with every other bare string. Directives such as `# noqa` and `# type: ignore` are comments, so the check rejects them. A `#!` line passes only as the first line of the file. The rule cannot see blank lines, so ruff `EXE004` rejects a `#!` line after one.
 
 Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned version.
 
