@@ -24,6 +24,8 @@ type Arguments = {
 
 type PullRequest = { title: string; body: string };
 
+type Range = { base: string; head: string };
+
 class Failure {
   readonly message: string;
 
@@ -129,18 +131,24 @@ function run(command: "gh" | "git", args: readonly string[]): string | Failure {
   return result.stdout;
 }
 
-function changedPaths(target: Target, repo: string | undefined): string | Failure {
+function rangeOf(target: Target, repo: string | undefined): Range | Failure {
   if (target.kind === "edit") {
-    return run("gh", [
+    const refs = run("gh", [
       "pr",
       "view",
       target.number,
       "--json",
-      "files",
+      "baseRefName,headRefOid",
       "--jq",
-      ".files[].path",
+      '.baseRefName + " " + .headRefOid',
       ...flag("--repo", repo),
     ]);
+
+    if (refs instanceof Failure) return refs;
+
+    const [base, head = ""] = refs.trim().split(" ");
+
+    return { base: `origin/${base}`, head };
   }
 
   let base = target.base;
@@ -160,7 +168,56 @@ function changedPaths(target: Target, repo: string | undefined): string | Failur
 
   if (fetched instanceof Failure) return fetched;
 
-  return run("git", ["diff", "--name-only", `origin/${base}...${target.head ?? "HEAD"}`]);
+  return { base: `origin/${base}`, head: target.head ?? "HEAD" };
+}
+
+function changedPaths(target: Target, range: Range | Failure, repo: string | undefined): string | Failure {
+  if (target.kind === "edit") {
+    return run("gh", [
+      "pr",
+      "view",
+      target.number,
+      "--json",
+      "files",
+      "--jq",
+      ".files[].path",
+      ...flag("--repo", repo),
+    ]);
+  }
+
+  if (range instanceof Failure) return range;
+
+  return run("git", ["diff", "--name-only", `${range.base}...${range.head}`]);
+}
+
+function sizeOf(range: Range | Failure): string | Failure {
+  if (range instanceof Failure) return range;
+
+  const result = spawnSync("diff-size", [range.base, range.head], { encoding: "utf8" });
+
+  if (result.status !== 0) return new Failure(result.error?.message ?? result.stderr.trim());
+
+  return result.stdout.trim();
+}
+
+const sizeLines = /^size: production \+\d+ -\d+, .*\n/gm;
+
+const scopeHeading = /^## +Scope[ \t]*\r?\n/im;
+
+function withSize(draft: string, size: string | Failure): { body: string; missing: Failure | undefined } {
+  const body = draft.replace(sizeLines, "");
+
+  if (size instanceof Failure) return { body, missing: size };
+
+  const scope = body.match(scopeHeading);
+
+  if (scope?.index === undefined) {
+    return { body, missing: new Failure("the body has no ## Scope heading") };
+  }
+
+  const end = scope.index + scope[0].length;
+
+  return { body: `${body.slice(0, end)}${size}\n${body.slice(end)}`, missing: undefined };
 }
 
 function viewPullRequest(pr: string, repo: string | undefined): PullRequest | Failure {
@@ -339,16 +396,21 @@ function readbackFindings(title: string, body: string, pr: PullRequest): string[
   return findings;
 }
 
-function publish(args: Arguments, draft: string, dir: string): number {
+function publish(args: Arguments, draft: string, size: string | Failure, dir: string): number {
   const { target } = args;
-  let body = draft;
+  const sized = withSize(draft, size);
+  let body = sized.body;
+
+  if (sized.missing !== undefined) {
+    console.error(`publish-pr: warning: publishing without the size line: ${sized.missing.message}`);
+  }
 
   if (target.kind === "edit" && !target.replace) {
     const live = viewPullRequest(target.number, args.repo);
 
     if (live instanceof Failure) return ghFailed(live);
 
-    const merged = keepLiveSections(draft, live.body);
+    const merged = keepLiveSections(body, live.body);
 
     for (const heading of merged.kept)
       console.log(`publish-pr: kept "## ${heading}" from the live body`);
@@ -413,7 +475,8 @@ function main(): number {
     return 64;
   }
 
-  const paths = changedPaths(args.target, args.repo);
+  const range = rangeOf(args.target, args.repo);
+  const paths = changedPaths(args.target, range, args.repo);
 
   if (paths instanceof Failure) return ghFailed(paths);
 
@@ -446,7 +509,7 @@ function main(): number {
       return 64;
     }
 
-    return publish(args, draft, dir);
+    return publish(args, draft, sizeOf(range), dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
