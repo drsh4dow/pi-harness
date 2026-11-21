@@ -17,7 +17,7 @@ Install `oxlint`, `oxlint-tsgolint` and `oxfmt`. Turn on every stable category i
 ```json
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise", "jsdoc"],
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise"],
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",
@@ -65,7 +65,7 @@ Each pair below failed on a file at the versions above. Treat the list as a star
 
 `anti-slop/require-safety-comment-for-type-assertion` and the comment check together reject every `as`. That is a ban and no collision, so both stay on unless the user says otherwise.
 
-No oxlint rule demands a doc comment. The `jsdoc` rules check only blocks that exist, so they stay on.
+No oxlint rule demands a doc comment. The `jsdoc` rules check only blocks that the comment check rejects, so leave the `jsdoc` plugin out.
 
 Keep both sides of these pairs on, since one file passes both: `eslint/no-ternary` and `unicorn/prefer-ternary` with an early return, `unicorn/no-nested-ternary` and oxfmt, which keeps the parentheses, `eslint/sort-imports` and oxfmt without `sortImports`, and `typescript/dot-notation` and `noPropertyAccessFromIndexSignature`. `eslint/no-duplicate-imports` and `import/consistent-type-specifier-style` pass together once the first has `{ "allowSeparateTypeImports": true }`.
 
@@ -152,25 +152,9 @@ Seed these bans for a React stack:
 
 ## Comment check
 
-Write the rule file as two YAML documents split by `---`, the first with `language: TypeScript` and the second with its own `id` and `language: Tsx`. Each language scans only its own extensions, and an anchor does not cross documents, so repeat the rule body. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node. Use these exclusions:
+Write the rule file as two YAML documents split by `---`. The first is the rule in step 5 of [`../SKILL.md`](../SKILL.md). The second repeats its body with its own `id` and `language: Tsx`, since each language scans only its own extensions and an anchor does not cross documents. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node.
 
-```yaml
-- all:
-     - regex: '^/\*\*[^*]'
-     - not: { inside: { kind: statement_block } }
-     - precedes: { not: { any: [kind: expression_statement, kind: comment] }, stopBy: neighbor }
-     - not:
-          all:
-             - inside: { kind: program }
-             - precedes: { regex: '^(if|for|while|do|try|switch|throw)\b|^[{;]', stopBy: neighbor }
-- regex: '^(//|/\*)\s*(oxlint|oxfmt)-'
-- regex: '^//\s*@ts-expect-error'
-- regex: '^///\s*<reference '
-- all:
-     - regex: '^(//|/\*)[\s\S]*(Copyright|SPDX-License-Identifier)'
-     - inside: { kind: program }
-     - not: { follows: { not: { any: [kind: comment, kind: hash_bang_line] }, stopBy: end } }
-```
+A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead.
 
 ## Baseline
 

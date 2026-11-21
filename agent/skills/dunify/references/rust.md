@@ -13,6 +13,7 @@ List the rules from the installed tools with `rustc -W help` and `clippy-driver 
 ```toml
 [workspace.lints.rust]
 dead_code_pub_in_binary = "allow" # collides with each library's test target
+missing_docs = "allow" # collides with the comment check
 unused_crate_dependencies = "allow" # collides with tests/ targets, cargo machete covers it
 
 [workspace.lints.clippy]
@@ -32,12 +33,12 @@ separated_literal_suffix = "allow" # collides with unseparated_literal_suffix
 Set every level to `warn`. The check turns warnings into errors with `-D warnings`, while `cargo build`, `cargo test` and a release image still pass on a baselined violation. Keep groups at priority -1 so a single-lint line at the default 0 overrides them, since clippy `lint_groups_priority` rejects a tie. Leaving `nursery` out keeps it at allow. Append rustc's allow-by-default lints to `[workspace.lints.rust]` with this command, then delete each line `cargo clippy` reports as `unknown lint`, since the list includes unstable lints:
 
 ```sh
-rustc -W help | awk '$2 == "allow" && $1 !~ /^(dead-code-pub-in-binary|unused-crate-dependencies)$/ { gsub("-", "_", $1); print $1 " = \"warn\"" }'
+rustc -W help | awk '$2 == "allow" && $1 !~ /^(dead-code-pub-in-binary|missing-docs|unused-crate-dependencies)$/ { gsub("-", "_", $1); print $1 " = \"warn\"" }'
 ```
 
 ## Known collisions
 
-The ledger lines above are the collisions found so far. Treat them as a starting list. To prove a line, set its lint to `warn`, write each spelling of the construct, and keep the line only when every spelling fails a side. `pattern_type_mismatch` and `ref_patterns`, for one, collide on a `match` over a borrowed enum that holds a `String`. `question_mark_used` and `question_mark` look like a pair, but clippy silences `question_mark` while `question_mark_used` is on, so `question_mark_used` goes to the user's list.
+The ledger lines above are the collisions found so far. Treat them as a starting list. To prove a line, set its lint to `warn`, write each spelling of the construct, and keep the line only when every spelling fails a side. `pattern_type_mismatch` and `ref_patterns`, for one, collide on a `match` over a borrowed enum that holds a `String`. `question_mark_used` and `question_mark` look like a pair, but clippy silences `question_mark` while `question_mark_used` is on, so `question_mark_used` goes to the user's list. rustc `missing_docs` wants a doc comment on every crate, which the comment check rejects. With the comment check, clippy `missing_errors_doc`, `missing_panics_doc` and `missing_safety_doc` forbid a public function that returns `Result`, can panic or is `unsafe`, and `undocumented_unsafe_blocks` forbids an `unsafe` block. Those four are bans, so they go to the user's list.
 
 ## Boundaries
 
@@ -92,20 +93,22 @@ Clippy config has no path scope. Exempt the owner with `#![expect(clippy::disall
 
 ## Comment check
 
-Set `language: Rust`. The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. A doc comment is one of those two kinds with a `doc_comment` child, so the rule lets `///`, `//!`, `/** */` and `/*! */` pass. rustc's `unused_doc_comments` rejects a doc comment on a statement or an expression. Rust tools take directives as attributes, so the only other exclusion is the license header at the top of the file:
+The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. The two kinds cover the doc comments `///`, `//!`, `/** */` and `/*! */` too. Rust tools take directives as attributes, so the only exclusion is the license header at the top of the file:
 
 ```yaml
+id: no-comments
+language: Rust
+severity: error
+message: Delete this comment. Say it with a name, a type, a test, an issue or an ADR.
 rule:
    any:
       - kind: line_comment
       - kind: block_comment
    not:
-      any:
-         - has: { kind: doc_comment }
-         - all:
-              - regex: '^(//|/\*)[\s\S]*(Copyright|SPDX-License-Identifier)'
-              - inside: { kind: source_file }
-              - not: { follows: { not: { any: [kind: line_comment, kind: block_comment] }, stopBy: end } }
+      all:
+         - regex: '^(//|/\*)[\s\S]*(Copyright|SPDX-License-Identifier)'
+         - inside: { kind: source_file }
+         - not: { follows: { not: { any: [kind: line_comment, kind: block_comment] }, stopBy: end } }
 ```
 
 ## Baseline

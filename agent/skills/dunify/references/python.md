@@ -13,8 +13,7 @@ The source root is `src/<package>/` and a feature's edge file is its `__init__.p
 select = ["ALL"]
 ignore = [
 	"COM812", # collision: ruff format writes code COM812 rejects
-	"D203", # collision: D211
-	"D213", # collision: D212
+	"D", # collision: the comment check rejects every docstring
 ]
 flake8-bandit.check-typed-exception = true
 flake8-implicit-str-concat.allow-multiline = false
@@ -34,8 +33,8 @@ typeCheckingMode = "all"
 This is a starting list. Prove each one with a file before you turn a side off.
 
 - `COM812` and the formatter. Format a file holding a call too long for one line, then run `ruff check --select COM812` on it. The formatter's output fails.
-- `D203` and `D211`, and `D212` and `D213`. Each pair demands the opposite layout. Ruff drops `D203` and `D213` itself and warns on every run until the ledger names them.
-- `ruff format --check` warns about each lint rule that conflicts with the current `[tool.ruff.format]` settings. At the defaults it names only `COM812`. Tabs add `W191` and `D206`, and single quotes add `Q000` and `Q003`.
+- `D` and the comment check. `D100` wants a docstring in every module, and the comment check rejects every docstring.
+- `ruff format --check` warns about each lint rule that conflicts with the current `[tool.ruff.format]` settings. At the defaults it names only `COM812`. Tabs add `W191`, and single quotes add `Q000` and `Q003`.
 
 ## Boundaries
 
@@ -104,36 +103,20 @@ A key matches imports and attribute access, so `os.environ.get(...)` and `dateti
 id: no-comments
 language: Python
 severity: error
-message: Delete this comment. Say it with a type, a test, or a lint rule.
+message: Delete this comment. Say it with a name, a type, a test, an issue or an ADR.
 rule:
-   kind: comment
-   not:
-      any:
-         - regex: '^#\s*(noqa|ruff:|type:|pyright:|fmt:)'
-         - regex: '^#(!|\s*(-\*-\s*)?(en)?coding[:=])'
-         - all:
+   any:
+      - kind: comment
+        not:
+           all:
               - regex: "^#.*(Copyright|SPDX-License-Identifier)"
               - inside: { kind: module }
               - not: { follows: { not: { kind: comment }, stopBy: end } }
+      - kind: expression_statement
+        has: { any: [kind: string, kind: concatenated_string] }
 ```
 
-Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement and no comment node, so it passes. Add a second document after `---` that rejects a string statement anywhere else:
-
-```yaml
-id: no-string-comments
-language: Python
-severity: error
-message: Delete this string. Only the first statement of a module, class or function is a docstring.
-rule:
-   kind: expression_statement
-   has:
-      any:
-         - kind: string
-         - kind: concatenated_string
-   follows:
-      not: { kind: comment }
-      stopBy: end
-```
+Python has one comment kind, `comment`, and each `#` line is its own node, so a license header keeps only its Copyright and SPDX lines, at the top of the file. A docstring is a string statement, so the second branch rejects it with every other bare string. Directives such as `# noqa` and `# type: ignore` are comments, so the check rejects them.
 
 Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned version.
 
