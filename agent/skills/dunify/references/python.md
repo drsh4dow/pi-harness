@@ -27,7 +27,7 @@ typeCheckingMode = "all"
 - Put this in `pyproject.toml` and pin every tool exactly in the `dev` dependency group, since `ALL` gains rules on each ruff upgrade. `ALL` holds every plugin ruff implements, framework groups such as `DJ`, `FAST` and `PD` included. Leave `preview` unset.
 - List ruff's rules with `uv run ruff rule --all --output-format json` and keep the entries whose `status` key is `Stable`, because `"preview": false` also matches removed rules. `uv run ruff check --show-settings` prints the resolved set under `linter.rules.enabled`.
 - basedpyright has no command that lists rules. `all` sets every rule in the table on its configuration docs page to error, except the ones that table marks discouraged.
-- `PLR0915` is the only rule that caps a function's statements, and no rule caps its lines or a module's lines. `C901`, `PLR0912`, `PLR0913`, `PLR0917` and `PLR0911` stay on at their defaults, 10, 12, 5, 5 and 6. The nesting rule `PLR1702` is preview, so the ceiling has no nesting cap. The check holds the file cap with `find src -name '*.py' -exec awk 'FNR == 601 { print FILENAME " is over 600 lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' {} +`.
+- `PLR0915` is the only rule that caps a function's statements, and no rule caps its lines or a module's lines. `C901`, `PLR0912`, `PLR0913`, `PLR0917` and `PLR0911` stay on at their defaults, 10, 12, 5, 5 and 6. The nesting rule `PLR1702` is preview, so the ceiling has no nesting cap. The check holds the file cap with the file cap command from `SKILL.md`, with the extension `py`.
 - `CPY001` is stable and wants a `# Copyright <year> <owner>` line atop every file, empty `__init__.py` included. An SPDX line alone fails it.
 
 ## Known collisions

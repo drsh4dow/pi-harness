@@ -38,11 +38,7 @@ Set every level to `warn`. The check turns warnings into errors with `-D warning
 rustc -W help | awk '$2 == "allow" && $1 !~ /^(dead-code-pub-in-binary|missing-docs|unused-crate-dependencies)$/ { gsub("-", "_", $1); print $1 " = \"warn\"" }'
 ```
 
-No lint caps a file's lines or a function's statements, so `too_many_lines` is the only size rule off. `too_many_arguments` in `all` and `cognitive_complexity` in `restriction` stay on at their defaults, 7 and 25. `excessive_nesting` in `all` stays silent until the root `clippy.toml` sets `excessive-nesting-threshold = 5`, which rejects the fifth block nested in a function body. The check holds the file cap with this command on each member's `src`:
-
-```sh
-find app/src -name '*.rs' -exec awk 'FNR == 601 { print FILENAME " is over 600 lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' {} +
-```
+No lint caps a file's lines or a function's statements, so `too_many_lines` is the only size rule off. `too_many_arguments` in `all` and `cognitive_complexity` in `restriction` stay on at their defaults, 7 and 25. `excessive_nesting` in `all` stays silent until the root `clippy.toml` sets `excessive-nesting-threshold = 5`, which rejects the fifth block nested in a function body. The check holds the file cap with the file cap command from `SKILL.md`, run on each member's `src` with the extension `rs`.
 
 ## Known collisions
 
