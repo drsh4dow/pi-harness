@@ -52,7 +52,7 @@ src/
   shared/reports-rpc.ts
 ```
 
-A runtime's **entry file** sits at the root of its runtime directory. It starts the runtime and may import anything inside it. A noun that fits none of the three names, such as a migration or a scheduled job, enters through the layout map with a row of its own. Files outside the source root, such as tool configs, scripts and gate fixtures, are outside the map.
+A runtime's **entry file** sits at the root of its runtime directory. It starts the runtime and imports edge files like any other code. A noun that fits none of the three names, such as a migration or a scheduled job, enters through the layout map with a row of its own. Files outside the source root, such as tool configs, scripts and gate fixtures, are outside the map.
 
 ### Growth
 
