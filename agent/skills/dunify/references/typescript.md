@@ -55,7 +55,7 @@ oxlint reads `//` comments in `.oxlintrc.json`, so write each ledger reason besi
 }
 ```
 
-`eslint/complexity`, `eslint/max-depth` and `eslint/max-params` stay on at their defaults, 20, 4 and 3.
+`eslint/complexity`, `eslint/max-depth` and `eslint/max-params` stay on at their defaults, 20, 4 and 3. A file cap exception is an `overrides` entry for that one file that sets `eslint/max-lines` to its line count, with the reason.
 
 ## Known collisions
 
@@ -197,7 +197,7 @@ A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` 
 Use a package.json script. In a new repo, and in an existing one once the burn-down ends:
 
 ```json
-"check": "oxfmt --check && oxlint && depcruise src --output-type err-long && ast-grep scan --rule rules/no-comments.yml src && sh tools/width.sh width-exempt.txt src && vitest run"
+"check": "oxfmt --check && oxlint && depcruise src --output-type err-long && ast-grep scan --rule rules/no-comments.yml src && sh tools/width.sh size-limits.txt src && vitest run"
 ```
 
 During the burn-down, swap `oxlint`, the `depcruise` call and the ast-grep call for the baseline steps above. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.

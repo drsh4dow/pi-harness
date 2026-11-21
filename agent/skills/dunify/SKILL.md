@@ -65,7 +65,9 @@ A file holds at most 600 lines, and a folder holds at most 20 entries, counting 
 1. Does it know no feature and no outside system? It goes to `primitives/`.
 2. Does it write a durable value or know an outside system? It goes to `client/`.
 3. Is it a concept with its own interface? It becomes a sub-module, with its tests inside.
-4. Is the file one concept? It stays whole.
+4. Is the file one concept that the user granted an exception at the stop of step 2? It stays whole.
+
+What is left is what the callers use, and it stays in the edge file.
 
 [SHALLOW-SIGNALS.md](../codebase-design/SHALLOW-SIGNALS.md) nominates the groups. Decide each one by reading the code.
 
@@ -80,12 +82,20 @@ A rule goes off in one of two ways:
 
 The linter's config is the **ledger**. Each rule that is off carries a one-line reason beside it, which names the collision pair or the user's approval. The ledger starts with the size rules the language reference names. The file cap rule is set to 600 lines. The rules that cap a function's length or its statement count are off, with the reason "the user's standing choice". The rules for complexity, nesting depth and parameter count stay on.
 
+Where the linter has no file cap, the check runs this **file cap command** on each source root, with the language's extension. It reads `size-limits.txt`, the file the width gate reads:
+
+```sh
+find <source root> -name '*.<ext>' -exec awk 'FILENAME == ARGV[1] { max[$1] = $2; next } FNR == 1 { cap = FILENAME in max ? max[FILENAME] : 600 } FNR == cap + 1 { print FILENAME " is over " cap " lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' size-limits.txt {} +
+```
+
+An exception to the file cap exists only when the user grants it at the stop of step 2. It is a line in `size-limits.txt`, or the file's own setting in the ledger where the linter holds the cap, with the file's line count and the reason.
+
 No linter ships these four gates, so you build them:
 
 - **Boundaries** reject every import the layout map does not allow, and every import that reaches past a module's edge file, at any depth.
 - **Bans** reject an API that takes judgment to use well, such as an effect hook, a raw timer or a transport call. Each ban names one **owner**, the single file or folder allowed to use the API, and its message names the function to call instead. Write that function in the owner before you add the ban. A ban holds inside its owner's runtime directory, so its message never points across a boundary.
 - **The comment check** rejects every comment in a source file except a license header at the top of the file, a `#!` line on line 1 of a file and a `/// <reference` line. Doc comments and tool directives are comments too. Linter config files are exempt. Each `//` line is its own comment, so when you build the comment check, rewrite a license header of `//` lines as one block comment, which the rule passes whole.
-- **Width** fails when a folder under the source root holds more than 20 entries, and its message names the folder rule. Copy [`scripts/width.sh`](scripts/width.sh) into the repo, such as to `tools/width.sh`, and run it as `sh tools/width.sh width-exempt.txt <source root>...`. It skips what git ignores, such as `__pycache__`. Commit `width-exempt.txt` beside it, empty or with one line per folder of test data, its path, a space, and the reason.
+- **Width** fails when a folder under the source root holds more than 20 entries, and its message names the folder rule. Copy [`scripts/width.sh`](scripts/width.sh) into the repo, such as to `tools/width.sh`, and run it as `sh tools/width.sh size-limits.txt <source root>...`. It skips what git ignores, such as `__pycache__`, and fails with its usage when a root is missing. Commit `size-limits.txt` beside it. Each line raises the cap of one path, such as a folder of test data, and holds the path, its limit and the reason, split by spaces. A path with a space in it cannot be listed.
 
 ## Steps
 
@@ -173,7 +183,7 @@ Run every auto-fix. A fix that trips another rule is a collision, so settle it a
 - it fails when any count is above the committed one;
 - it fails when a count is below the committed one, and tells the reader to commit the lower count.
 
-The width gate's baseline is a line in `width-exempt.txt` for each folder it fails today, with the reason `baseline`.
+The width gate's baseline is a line in `size-limits.txt` for each folder it fails today, with the folder's entry count and the reason `baseline`. The script fails when the folder grows past the count. It also fails when the folder shrinks, until you lower the count to match.
 
 The baseline replaces suppression directives, which the comment check rejects. Count every existing comment in the baseline with the other violations, so it is burned down with them. Remove comments only through the **no-comments** skill, which moves what each one says to its destination.
 
@@ -212,7 +222,7 @@ Once every module has moved, run the **copy scan** once over the source root:
 
 A hit nominates. Read both sides, and give each real copy one home by the split order, with every caller pointed at it. Most real copies belong to a client, not to `primitives/`.
 
-Done when every baseline count is zero, `width-exempt.txt` holds no `baseline` line, every planned registry is replaced, and each real copy has one home.
+Done when every baseline count is zero, `size-limits.txt` holds no `baseline` line, every planned registry is replaced, each real copy has one home, and each issue filed for an excuse is fixed and closed.
 
 ### 6. Hand back
 
