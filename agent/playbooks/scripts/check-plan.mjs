@@ -7,8 +7,6 @@ const RULE =
 const LANES = /Ten lanes on `[^`<>]+` at the PR head/;
 const SUB_BLOCKS = [
 	"Depends on.",
-	"Files.",
-	"Build.",
 	"You see.",
 	"Verify, unit.",
 	"Verify, live.",
@@ -144,7 +142,7 @@ for (const pr of prSections) {
 
 	const depends = block("Depends on.");
 	if (depends && depends.rest === "") fail(depends.n, `${pr.title}: Depends on names nothing`);
-	for (const name of ["Files.", "Build.", "You see.", "Verify, unit.", "Merge."]) {
+	for (const name of ["You see.", "Verify, unit.", "Merge."]) {
 		const b = block(name);
 		if (b && boxes(b.lines).length === 0) fail(b.n, `${pr.title}: ${name} has no box`);
 	}
