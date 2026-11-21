@@ -201,12 +201,12 @@ Seed these bans for a React stack:
 
 Write the rule file as two YAML documents split by `---`. The first is the rule in step 3 of [`../SKILL.md`](../SKILL.md). The second repeats its body with its own `id` and `language: Tsx`, since each language scans only its own extensions and an anchor does not cross documents. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node.
 
-A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead, once the user approves it in step 2.
+A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead, once the user approves it in step 2 or step 5 of `SKILL.md` calls for it.
 
 ## Baseline
 
-- oxlint has a native baseline behind flags that `--help` hides. `oxlint --suppress-all` writes counts per file and rule to `oxlint-suppressions.json` in the working directory. The next run exits 1 on a new violation, and on a fall with `There are suppressions that do not occur anymore`, so the check runs plain `oxlint`. An owner who lowers a count runs `oxlint --prune-suppressions`, which writes the lower counts, and commits the file.
-- The compiler has none. `--suppress-all` skips the `typescript(TS…)` codes and still exits 0. The budget script reads `oxlint --prune-suppressions --format=json`, which lists only what the suppressions miss. It exits 1 while any compiler error remains, so judge from the JSON. Any other code there is a new violation and fails, and the TS codes count against the budget.
+- oxlint has a native baseline behind flags that `--help` hides. `oxlint --suppress-all` writes counts per file and rule to `oxlint-suppressions.json` in the working directory. The next run exits 1 on a new violation, and on a fall with `There are suppressions that do not occur anymore`, so the check runs plain `oxlint` once no compiler error is left. An owner who lowers a count runs `oxlint --prune-suppressions`, which writes the lower counts, and commits the file.
+- The compiler has none. `--suppress-all` skips the `typescript(TS…)` codes and still exits 0. The budget script reads `oxlint --prune-suppressions --format=json`, which lists only what the suppressions miss. It exits 1 while any compiler error remains, so judge from the JSON, and run the budget script in place of plain `oxlint` until the TS codes are gone. Any other code there is a new violation and fails, and the TS codes count against the budget.
 - dependency-cruiser has a native baseline. `depcruise src --baseline` writes `.dependency-cruiser-known-violations.json`, and `depcruise src --ignore-known` fails only on new edges. Put `src` first, since `--ignore-known` takes an optional file name, swallows `src`, prints help and exits 0. A fall passes silently, so the check also runs `depcruise src --baseline --baseline-mode shrink-only` and `git diff --exit-code .dependency-cruiser-known-violations.json`.
 - The comment check has none. The budget script reads `ast-grep scan --rule rules/no-comments.yml --json=stream src`, one match per line.
 - oxfmt needs none, since `oxfmt` rewrites every file.
@@ -222,4 +222,4 @@ Use a package.json script. In a new repo, and in an existing one once the burn-d
 
 Put the repo's own test command in place of `vitest run`.
 
-During the burn-down, swap the `depcruise` call and the ast-grep call for the baseline steps above, and keep `oxlint-suppressions.json` beside `oxlint`. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
+During the burn-down, swap the `depcruise` call and the ast-grep call for the baseline steps above, keep `oxlint-suppressions.json` beside `oxlint`, and run the budget script in place of `oxlint` while a compiler error is left. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
