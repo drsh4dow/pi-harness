@@ -22,7 +22,7 @@ This command is _informed_ by the project's domain model and built on a shared d
 - If the user named a direction (a module, a subsystem, a pain point), take it, and skip the inference below.
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots, the files and areas that keep coming up, and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
 
-Read the project's domain glossary (`GLOSSARY.md`) and any ADRs in the area you're touching first. Where the repo has an import graph tool, such as dependency-cruiser or import-linter, read [SHALLOW-SIGNALS.md](../codebase-design/SHALLOW-SIGNALS.md) run its signals on the area, and give their nominations to the delegate below. Where `CODING_STANDARDS.md` holds a layout map, every candidate keeps to the map's rows, and an accepted candidate updates the map in the same change.
+Read the project's domain glossary (`GLOSSARY.md`) and any ADRs in the area you're touching first. Read [SHALLOW-SIGNALS.md](../codebase-design/SHALLOW-SIGNALS.md), run its signals on the area, and give their nominations to the delegate below. Without an import graph tool, such as dependency-cruiser or import-linter, run the two that read file names. Where `CODING_STANDARDS.md` holds a layout map, every candidate keeps to the map's rows, and an accepted candidate updates the map in the same change.
 
 Then start a delegate to walk the codebase. Don't follow rigid heuristics; explore organically and note where you experience friction:
 
