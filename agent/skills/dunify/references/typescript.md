@@ -81,11 +81,25 @@ Keep both sides of these pairs on, since one file passes both: `eslint/no-ternar
 
 ## Boundaries
 
-Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScript through the compiler API of TypeScript 6 and older. Under TypeScript 7 it cruises 0 modules and exits 0 unless `parser` is `"swc"`, so confirm its summary counts your modules. Write one `forbidden` rule per layout row, with the row's Imports column in `to.pathNot`. `$1` reuses the runtime directory that `from.path` captured, which is `src/` itself for a project with one runtime, and the rule catches `import type` edges too. Run it as `depcruise src --output-type err-long`, which prints each rule's `comment` under its violation and exits with the violation count. The `client/` row in `.dependency-cruiser.json`, a format the ceiling does not lint, holds for one runtime and for several:
+Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScript through the compiler API of TypeScript 6 and older. Under TypeScript 7 it cruises 0 modules and exits 0 unless `parser` is `"swc"`, so confirm its summary counts your modules. Write one `forbidden` rule per layout row, with the row's Imports column in `to.pathNot`. `$1` reuses the runtime directory that `from.path` captured, which is `src/` itself for a project with one runtime, and the rule catches `import type` edges too. Run it as `depcruise src --output-type err-long`, which prints each rule's `comment` under its violation and exits with the violation count. The rows for a runtime directory, the contract and `client/` in `.dependency-cruiser.json`, a format the ceiling does not lint, hold for one runtime and for several:
 
 ```json
 {
 	"forbidden": [
+		{
+			"name": "runtimes-apart",
+			"severity": "error",
+			"comment": "A runtime directory imports only its own files and shared/. Cross to another runtime through a contract in shared/.",
+			"from": { "path": "^src/(?!shared/|features/|client/|primitives/)([^/]+)/" },
+			"to": { "path": "^src/", "pathNot": ["^src/$1/", "^src/shared/"] }
+		},
+		{
+			"name": "contract-imports-no-runtime",
+			"severity": "error",
+			"comment": "shared/ holds types and schemas, and imports only shared/.",
+			"from": { "path": "^src/shared/" },
+			"to": { "path": "^src/", "pathNot": ["^src/shared/"] }
+		},
 		{
 			"name": "client-imports",
 			"severity": "error",
@@ -191,7 +205,7 @@ A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` 
 
 ## Baseline
 
-- oxlint has a native baseline behind flags that `--help` hides. `oxlint --suppress-all` writes counts per file and rule to `oxlint-suppressions.json` in the working directory. A new violation fails the next run, but a fall passes silently. So the check runs `oxlint --prune-suppressions`, which writes the lower counts, then `git diff --exit-code oxlint-suppressions.json`.
+- oxlint has a native baseline behind flags that `--help` hides. `oxlint --suppress-all` writes counts per file and rule to `oxlint-suppressions.json` in the working directory. The next run exits 1 on a new violation, and on a fall with `There are suppressions that do not occur anymore`, so the check runs plain `oxlint`. An owner who lowers a count runs `oxlint --prune-suppressions`, which writes the lower counts, and commits the file.
 - The compiler has none. `--suppress-all` skips the `typescript(TS…)` codes and still exits 0. The budget script reads `oxlint --prune-suppressions --format=json`, which lists only what the suppressions miss. It exits 1 while any compiler error remains, so judge from the JSON. Any other code there is a new violation and fails, and the TS codes count against the budget.
 - dependency-cruiser has a native baseline. `depcruise src --baseline` writes `.dependency-cruiser-known-violations.json`, and `depcruise src --ignore-known` fails only on new edges. Put `src` first, since `--ignore-known` takes an optional file name, swallows `src`, prints help and exits 0. A fall passes silently, so the check also runs `depcruise src --baseline --baseline-mode shrink-only` and `git diff --exit-code .dependency-cruiser-known-violations.json`.
 - The comment check has none. The budget script reads `ast-grep scan --rule rules/no-comments.yml --json=stream src`, one match per line.
@@ -207,4 +221,4 @@ Use a package.json script. In a new repo, and in an existing one once the burn-d
 
 Put the repo's own test command in place of `vitest run`.
 
-During the burn-down, swap `oxlint`, the `depcruise` call and the ast-grep call for the baseline steps above. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
+During the burn-down, swap the `depcruise` call and the ast-grep call for the baseline steps above, and keep `oxlint-suppressions.json` beside `oxlint`. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.

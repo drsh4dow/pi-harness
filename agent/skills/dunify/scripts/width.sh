@@ -9,10 +9,13 @@ for root do
 	[ -z "$in_git" ] || { git check-ignore -q "$root" 2>/dev/null; [ $? -le 1 ]; } || { echo "$root is outside this git repo. $usage" >&2; exit 2; }
 done
 find "$@" -mindepth 1 | if [ "$in_git" ]; then git check-ignore --stdin -nv | grep '^::' | cut -f 2-; else cat; fi |
-	awk -v limits="$limits" '
+	awk -v limits="$limits" -v roots="$*" '
 		BEGIN { while ((getline line < limits) > 0) { split(line, field, " "); max[field[1]] = field[2]; baseline[field[1]] = field[3] == "baseline" } }
 		sub("/[^/]*$", "") { count[$0]++ }
 		END {
+			split(roots, root, " ")
+			for (i in root) sub("/+$", "", root[i])
+			for (path in baseline) for (i in root) if (baseline[path] && index(path "/", root[i] "/") == 1) count[path] += 0
 			for (dir in count) {
 				cap = dir in max ? max[dir] : 20
 				if (count[dir] > cap) { print dir " holds " count[dir] " entries, over " cap ". Folder rule: move each concept into a folder named for it, with its edge file inside."; bad = 1 }
