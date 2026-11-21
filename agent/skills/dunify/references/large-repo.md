@@ -4,7 +4,7 @@ The dunify reference for an existing repo that step 1 of [`../SKILL.md`](../SKIL
 
 A **slice** is one build module or package, the unit that moves on one branch. An **area** is a group of slices that one delegate can search, up to about 50,000 lines of source. A larger slice is an area of its own. Cut both along the build tool's own modules. Group slices into areas by name prefix, and keep a slice with the slices it imports most.
 
-You keep the measure, the layout map, the shared files and the one stop with the user. Delegates read the code and move it.
+You keep the measure, the layout map and the one stop with the user. Delegates read the code and move it, and in step 5 the integration owner of `SKILL.md` writes the shared files.
 
 ## Step 1. Read by area
 
@@ -30,12 +30,12 @@ Done when the user approves the map, the bans, the rules off and the slice plan.
 
 ## Step 4. Baseline the whole repo
 
-Run no auto-fix here. Record the baseline for the whole repo, and leave each slice's auto-fix to its owner.
+The formatter has no baseline, so run its fix on the whole repo here, in one commit. Run no other auto-fix. Record the baseline for the whole repo, and leave each slice's other auto-fixes to its owner.
 
 ## Step 5. Run every slice
 
-Each slice gets one owner, as step 5 of `SKILL.md` gives each module one. Add to its brief the slice's build and test command, run on the untouched slice first and after each move, and auto-fix on the slice. A slice owner draws the slice's inner rows and may give each module in it an owner of its own. It names each noun of the project's own that it finds, with the row it gave it, and you add that row to `USER_ACTION_ITEMS.md`.
+Each slice gets one owner, as step 5 of `SKILL.md` gives each module one. Add to its brief the slice's build and test command, run on the untouched slice first and after each move, and auto-fix on the slice. A slice owner draws the slice's inner rows, reports them in its answer, and may give each module in it an owner of its own. It names each noun of the project's own that it finds, with the row it gave it. The integration owner adds the inner rows to the layout map in `CODING_STANDARDS.md`, and adds each new noun's row to `USER_ACTION_ITEMS.md` as well.
 
-Run the pilot alone first. Where it shows a row of the map wrong, change the row before another slice starts, and add the change to `USER_ACTION_ITEMS.md`. Then give the remaining slices owners in the plan's order, with the pilot's rows and commits as the pattern to copy.
+Run the pilot alone first. Where it shows a row of the map wrong, have the integration owner change the row before another slice starts, and add the change to `USER_ACTION_ITEMS.md`. Then give the remaining slices owners in the plan's order, with the pilot's rows and commits as the pattern to copy.
 
-Done when `check` exits 0 on the tip that holds every slice, and every baseline count is zero.
+Done when the done line of step 5 in `SKILL.md` holds on the tip that holds every slice.

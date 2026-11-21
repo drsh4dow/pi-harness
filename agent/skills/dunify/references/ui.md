@@ -1,8 +1,8 @@
 # UI properties
 
-The dunify reference for a repo with a web UI. It adds a fourth gate, the **property run**. [Bombadil](https://github.com/antithesishq/bombadil) drives the running app with random actions and fails when a property stops holding. Checked on Bombadil 0.7.10 with a React and Vite app under the TypeScript ceiling.
+The dunify reference for a repo with a web UI. It adds a fifth gate, the **property run**. [Bombadil](https://github.com/antithesishq/bombadil) drives the running app with random actions and fails when a property stops holding. Checked on Bombadil 0.7.10 with a React and Vite app under the TypeScript ceiling.
 
-Bombadil's `terminal` driver is marked experimental. For a terminal UI, ask the user before you build on it.
+Bombadil's `terminal` driver is marked experimental. For a terminal UI, put building on it in the questions of step 2.
 
 ## Step 2. List the properties
 
