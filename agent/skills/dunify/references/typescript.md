@@ -1,10 +1,10 @@
 # TypeScript
 
-The dunify reference for TypeScript. Checked on TypeScript 7.0.2, oxlint 1.94.0, oxlint-tsgolint 7.0.2007, oxfmt 0.79.0, dependency-cruiser 18.7.2, ast-grep 0.51.3 and Vite 8.3.8.
+The dunify reference for TypeScript. Checked on TypeScript 7.0.2, oxlint 1.94.0, oxlint-tsgolint 7.0.2007, oxfmt 0.79.0, dependency-cruiser 18.8.0, ast-grep 0.51.3 and Vite 8.3.8.
 
 ## Source root and edge file
 
-The source root is `src/`. A folder's edge file is `index.ts`, or `index.tsx` when it holds JSX. The ceiling's `import/no-relative-parent-imports` rejects every `../` import, so cross folders with package.json subpath imports, one entry for `shared` and one per runtime directory, such as `"imports": { "#shared/*": "./src/shared/*", "#web/*": "./src/web/*" }`. Write the extension in each import, and set `allowImportingTsExtensions` with `noEmit` in the tsconfig. The compiler, oxlint, dependency-cruiser and Vite all resolve them.
+The source root is `src/`. A folder's edge file is `index.ts`, or `index.tsx` when it holds JSX, at every depth inside a feature, a client or `primitives/`. The ceiling's `import/no-relative-parent-imports` rejects every `../` import, so cross folders with package.json subpath imports, one entry for `shared` and one per runtime directory, such as `"imports": { "#shared/*": "./src/shared/*", "#web/*": "./src/web/*" }`. Write the extension in each import, and set `allowImportingTsExtensions` with `noEmit` in the tsconfig. The compiler, oxlint, dependency-cruiser and Vite all resolve them.
 
 For a hot spot, replace the registry with Vite's `import.meta.glob("./features/*/index.tsx", { eager: true })`, a path relative to the calling file, and add `"types": ["vite/client"]` to the tsconfig so the compiler knows `glob`.
 
@@ -45,7 +45,17 @@ TypeScript 7 already defaults `strict`, `noUncheckedSideEffectImports` and `forc
 "verbatimModuleSyntax": true, "isolatedModules": true, "erasableSyntaxOnly": true
 ```
 
-oxlint reads `//` comments in `.oxlintrc.json`, so write each ledger reason beside its rule, as in `"oxc/no-async-await": "off", // collides with promise/prefer-await-to-then`.
+oxlint reads `//` comments in `.oxlintrc.json`, so write each ledger reason beside its rule, as in `"oxc/no-async-await": "off", // collides with promise/prefer-await-to-then`. The ledger starts with the size rules:
+
+```jsonc
+"rules": {
+	"eslint/max-lines": ["error", { "max": 600 }],
+	"eslint/max-lines-per-function": "off", // the user's standing choice
+	"eslint/max-statements": "off", // the user's standing choice
+}
+```
+
+`eslint/complexity`, `eslint/max-depth` and `eslint/max-params` stay on at their defaults, 20, 4 and 3.
 
 ## Known collisions
 
@@ -89,6 +99,24 @@ Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScri
 		"tsPreCompilationDeps": true,
 		"tsConfig": { "fileName": "tsconfig.json" },
 		"doNotFollow": { "path": "node_modules" }
+	}
+}
+```
+
+Add one rule that holds the edge file at every depth. `from.path` captures the importer's folders, one per group. The first `pathNot` entry allows a file directly in one of those folders, or the `index.ts` of a folder directly in one of them. The second allows a file directly in `features/`, `client/`, `primitives/` or `shared/`, or the edge file of a folder there, since the row rules judge those imports. Six folder levels below `src/` get a group each, and an import from deeper fails closed. dependency-cruiser refuses a quantifier inside a quantified group as an unsafe regex, so each optional part is written `(x|)`.
+
+```json
+{
+	"name": "edge-file",
+	"severity": "error",
+	"comment": "Import a folder from outside it only through its edge file, index.ts.",
+	"from": { "path": "^(src/)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)(.*/|)[^/]+$" },
+	"to": {
+		"path": "^src/",
+		"pathNot": [
+			"^$1(?:$2(?:$3(?:$4(?:$5(?:$6(?:$7(?:$8|)|)|)|)|)|)|)[^/]+(?:/index\\.tsx|/index\\.ts|)$",
+			"^src/(?:[^/]+/|)(?:features|client|primitives|shared)/[^/]+(?:/index\\.tsx|/index\\.ts|)$"
+		]
 	}
 }
 ```
@@ -166,10 +194,10 @@ A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` 
 
 ## Check command
 
-Use a package.json script. In a new repo:
+Use a package.json script. In a new repo, and in an existing one once the burn-down ends:
 
 ```json
-"check": "oxfmt --check && oxlint && depcruise src --output-type err-long && ast-grep scan --rule rules/no-comments.yml src && vitest run"
+"check": "oxfmt --check && oxlint && depcruise src --output-type err-long && ast-grep scan --rule rules/no-comments.yml src && sh tools/width.sh width-exempt.txt src && vitest run"
 ```
 
-In an existing repo, swap `oxlint`, the `depcruise` call and the ast-grep call for the baseline steps above. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
+During the burn-down, swap `oxlint`, the `depcruise` call and the ast-grep call for the baseline steps above. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
