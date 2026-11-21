@@ -30,7 +30,7 @@ Use the linter's banned-API setting when it carries a custom message. Otherwise 
 
 ## Comment check
 
-Set `language` in the rule from `SKILL.md`. To find what the grammar calls a comment, give ast-grep a comment as the pattern: `ast-grep run --pattern '// x' --lang <language> --debug-query=cst .` prints the node kind. Repeat it for each comment form the language has, since some grammars use one kind for line comments and another for block comments. Add a `regex` exclusion for each tool directive the stack uses. Let the language's doc comment form pass where its doc tool reads it, and reject that form anywhere else.
+Set `language` in the rule from `SKILL.md`. To find what the grammar calls a comment, give ast-grep a comment as the pattern: `ast-grep run --pattern '// x' --lang <language> --debug-query=cst .` prints the node kind. Repeat it for each comment form the language has, since some grammars use one kind for line comments and another for block comments. Reject the language's doc comment form as well, even where the grammar gives it a kind of its own, the way Python's grammar makes a docstring a string statement.
 
 ## Baseline
 

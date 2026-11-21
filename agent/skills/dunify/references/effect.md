@@ -102,7 +102,7 @@ The `effecttsgo` rules `global-*`, `process-env*`, `node-builtin-import` and `ne
 
 ## Comment check
 
-`typescript.md` applies. Write every Effect suppression as `// oxlint-disable-next-line effecttsgo/<rule>`, which its oxlint pattern allows. Leave `@effect-diagnostics` out of the patterns, so the check flags it. Oxlint obeys that directive, but its unused-directive report never sees it.
+`typescript.md` applies, and it rejects both Effect directives, `// oxlint-disable-next-line effecttsgo/<rule>` and `@effect-diagnostics`. Exempt an owner with its override, as in Bans.
 
 ## Baseline
 
