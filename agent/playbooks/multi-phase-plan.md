@@ -86,16 +86,6 @@ Each live lane runs in its own git worktree at the PR head. Drive through the pr
 
 **Depends on.** <PR id, or None.>
 
-**Files.**
-
-- [ ] Edit `<path>`.
-- [ ] Create `<path>`.
-- [ ] Delete `<path>`.
-
-**Build.**
-
-- [ ] <One change. Name the symbol and the file.>
-
 **You see.**
 
 - [ ] <One observable result, with the exact log line or screen state.>
