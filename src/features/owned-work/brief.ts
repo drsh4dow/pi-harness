@@ -26,7 +26,7 @@ const words = (description: string) => Type.Optional(Type.String({ pattern: Stri
 
 const sketchHeading = "## Synthesis decision";
 
-export const designChoice = `the path of a sketch file that holds \`${sketchHeading}\`, which the owner builds to, or \`yours\`, which has the owner run \`architect\` first`;
+export const designChoice = `the path of a sketch file that holds \`${sketchHeading}\`, which the owner builds to, or \`yours\`, which leaves the shape to the owner`;
 
 const designParam = Type.String({
 	pattern: String.raw`\S`,

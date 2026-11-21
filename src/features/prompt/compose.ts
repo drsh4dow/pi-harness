@@ -58,8 +58,9 @@ const block = (tag: string, body: string) => `<${tag}>\n${Str.trim(body)}\n</${t
 
 const designLine = Design.match({
 	Sketch: ({ path }) =>
-		`Your design is settled: build to the sketch ${path}. Where the code needs what it did not foresee, say in your answer whether the sketch was wrong, a requirement was missed, or the code overreaches.`,
-	Yours: () => "Your design is yours to settle: run the `architect` skill before you write code.",
+		`Build to the sketch ${path}. Where the code shows a smaller shape that meets the same acceptance criteria, build that, and say in your answer what the sketch got wrong.`,
+	Yours: () =>
+		"Your design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.",
 });
 
 const reviewText = (pr: string, head: string) =>

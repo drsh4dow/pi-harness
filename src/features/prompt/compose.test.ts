@@ -73,7 +73,7 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 			playbooks: Option.some("<playbooks>\n…\n</playbooks>"),
 			skills: [],
 		},
-		expect: `you are a coding agent.\n\n<role>\nowner\n</role>\n\n<work>\nThe user's goal: Cap the retries.\nThe work's state folder: /state/work\nYour design is settled: build to the sketch /state/work/sketch.md. Where the code needs what it did not foresee, say in your answer whether the sketch was wrong, a requirement was missed, or the code overreaches.\n</work>\n\n<project-facts>\nBuild with make.\n</project-facts>\n\n<owner-rules>\nPush only to work branches.\n</owner-rules>\n\n<instructions>\nReview one diff.\n</instructions>\n\n<principles>\n…\n</principles>\n\n${playbooksWorkflow}\n\n<playbooks>\n…\n</playbooks>`,
+		expect: `you are a coding agent.\n\n<role>\nowner\n</role>\n\n<work>\nThe user's goal: Cap the retries.\nThe work's state folder: /state/work\nBuild to the sketch /state/work/sketch.md. Where the code shows a smaller shape that meets the same acceptance criteria, build that, and say in your answer what the sketch got wrong.\n</work>\n\n<project-facts>\nBuild with make.\n</project-facts>\n\n<owner-rules>\nPush only to work branches.\n</owner-rules>\n\n<instructions>\nReview one diff.\n</instructions>\n\n<principles>\n…\n</principles>\n\n${playbooksWorkflow}\n\n<playbooks>\n…\n</playbooks>`,
 	},
 	{
 		name: "a leaf with project facts and no state folder reads its goal and the facts, and no owner rules",
@@ -128,7 +128,7 @@ test.each(preambleRows)("$name", (row) => {
 	expect(composed(options({ customPrompt: row.shared }), row.layers).customPrompt).toBe(row.expect);
 });
 
-test("an owner handed its own design reads that it runs architect first", () => {
+test("an owner handed its own design reads that it settles the shape, with architect only for a one-way door", () => {
 	const brief = {
 		role: "owner",
 		goal: "Cap the retries.",
@@ -142,7 +142,7 @@ test("an owner handed its own design reads that it runs architect first", () => 
 	} as const;
 
 	expect(briefBlocks(brief)).toBe(
-		"<work>\nThe user's goal: Cap the retries.\nYour design is yours to settle: run the `architect` skill before you write code.\n</work>",
+		"<work>\nThe user's goal: Cap the retries.\nYour design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.\n</work>",
 	);
 });
 

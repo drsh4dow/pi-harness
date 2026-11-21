@@ -68,8 +68,8 @@ const runnerTask = "Run the bash command `echo $PI_OWNED_WORK_LEVEL`, then reply
 
 const levelThreeTask = Arr.join(
 	[
-		"You are starting the first runner of an arena for your own design. Do not read the arena skill: start the runner this message names and nothing else.",
-		ownerTask("arena runner", "leaf", "", runnerTask),
+		"Read no skill: start the runner this message names and nothing else.",
+		ownerTask("runner", "leaf", "", runnerTask),
 	],
 	"\n",
 );
@@ -112,12 +112,12 @@ scenario({
 			yield* run.root.prompt(request(sketch));
 
 			const { levelTwo, levelThree, wake } = yield* run.waitFor(
-				"the level-3 owner's wake from its arena runner",
+				"the level-3 owner's wake from its runner",
 				"10 minutes",
 				({ root, delegates }) =>
 					Option.flatMap(childOf(root, "level two", delegates), (two) =>
 						Option.flatMap(childOf(two, "level three", delegates), (three) =>
-							Option.map(wakeOf(three, "arena runner"), (found) => ({
+							Option.map(wakeOf(three, "runner"), (found) => ({
 								levelTwo: two,
 								levelThree: three,
 								wake: found,
@@ -130,16 +130,19 @@ scenario({
 
 			yield* run.say(wake.details);
 			yield* run.check(
-				sentAll(levelTwo, `Your design is settled: build to the sketch ${sketch}.`),
+				sentAll(levelTwo, `Build to the sketch ${sketch}.`),
 				`every request of the level-2 owner says to build to the sketch ${sketch}`,
 			);
 			yield* run.check(
-				sentAll(levelThree, "Your design is yours to settle: run the `architect` skill before you write code."),
-				"every request of the level-3 owner says its design is its own and to run architect first",
+				sentAll(
+					levelThree,
+					"Your design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.",
+				),
+				"every request of the level-3 owner says its design is its own, with architect only for a one-way door",
 			);
 			yield* run.check(
 				wake.details.outcome.status === "done" && answer === "4",
-				`the level-3 owner's wake records its arena runner done at level 4 (it settled ${wake.details.outcome.status} with ${answer})`,
+				`the level-3 owner's wake records its runner done at level 4 (it settled ${wake.details.outcome.status} with ${answer})`,
 			);
 		}),
 });
