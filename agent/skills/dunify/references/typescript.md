@@ -210,6 +210,7 @@ A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` 
 - dependency-cruiser has a native baseline. `depcruise src --baseline` writes `.dependency-cruiser-known-violations.json`, and `depcruise src --ignore-known` fails only on new edges. Put `src` first, since `--ignore-known` takes an optional file name, swallows `src`, prints help and exits 0. A fall passes silently, so the check also runs `depcruise src --baseline --baseline-mode shrink-only` and `git diff --exit-code .dependency-cruiser-known-violations.json`.
 - The comment check has none. The budget script reads `ast-grep scan --rule rules/no-comments.yml --json=stream src`, one match per line.
 - oxfmt needs none, since `oxfmt` rewrites every file.
+- `oxlint-suppressions.json` and the budget script's counts key each entry by file path, and `.dependency-cruiser-known-violations.json` by the paths of both ends of an edge, so a move renames the file in all three.
 
 ## Check command
 
