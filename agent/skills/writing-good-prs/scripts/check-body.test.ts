@@ -207,6 +207,16 @@ test.each([
     ),
   },
   {
+    name: "a PR of 40 lines outside <details> plus the size line publish-pr writes",
+    body: prBody(
+      diff,
+      `<details><summary>Log</summary>\n\nOutput.\n\n</details>\n${lines(16, "Context line")}`,
+    ).replace(
+      "## Scope\n",
+      "## Scope\nsize: production +4 -1, tests +3 -0, docs +1 -0, other +0 -0 (base 9c1e2a0)\n",
+    ),
+  },
+  {
     name: "a PR changing a .tsx file with a Before | After table",
     body: prBody(
       diff,

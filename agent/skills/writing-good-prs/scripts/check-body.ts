@@ -362,7 +362,7 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
   }
 
   const hidden = insideDetails(body.lines);
-  const visible = body.lines.filter((_, index) => !hidden[index]);
+  const visible = body.lines.filter((line, index) => !hidden[index] && !sizeLine.test(line.text));
   const length = visible.findLastIndex((line) => line.text.trim() !== "") + 1;
 
   if (length > visibleLineCap) {
@@ -393,6 +393,8 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
 const notChecked = /^\s*\*\*Not checked:\*\*/;
 
 const visual = /^\s*(```|~~~)|!\[[^\]]*\]\([^)]*\)|<img/i;
+
+const sizeLine = /^size: production \+\d+ -\d+, /;
 
 // The "Closes #N", "Part of #N", and "Depends on #N" lines that end a Why.
 const ticketLine = /^\s*(Closes|Fixes|Resolves|Part of|Depends on|Refs:?)\s/i;
