@@ -143,9 +143,10 @@ Under the map, list:
 - **The hot spots**, one per registry. Where the stack discovers files in one line, such as a glob import, plan to replace the registry with it. A registry stays when the compiler rejects a missing entry, or when the stack has no such discovery, and is named here.
 - **The five rules**, each with the row or gate that upholds it. A rule with none is a gap, and you say so.
 - **The rules off.** List the rules from the installed tool, since any list written down is already stale. Settle each collision yourself with files that prove it, kept outside the repo, before any auto-fix runs, since a fix settles a collision by deleting code. Then list every other rule you want off with its count from step 1, what it flags here and your pick, and each file over the cap that is one concept as an exception, with its line count. End with the step 1 count of every rule that stays on. The burn-down fixes those, and the boundary and ban violations the baseline finds in step 4.
+- **The value changes.** Each rule whose fix would change a value the program stores or sends, such as a rule that bans `null` where stored JSON holds `null`, with your pick.
 - **The questions** each language reference asks the user, with your pick.
 
-Show all of it to the user in one message and stop. Done when the user approves the map, the bans, the rules off and the questions. No later step stops for the user.
+Show all of it to the user in one message and stop. Done when the user approves the map and every list under it. No later step stops for the user.
 
 ### 3. Raise the ceiling and build the gates
 
@@ -215,7 +216,7 @@ The ledger, the gate rules, the `check` command and `CODING_STANDARDS.md` are yo
 
 An owner's answer is a claim. Read its diff and run `check` on its branch before you accept it, and rebase each accepted branch onto the one before it. Replace each registry the map plans to replace. An issue the **no-comments** skill files for an excuse joins the queue, and an owner fixes it like a baseline entry.
 
-Settle a collision you prove at any time, as the ceiling says, with its proof files, its ledger line and a line in `USER_ACTION_ITEMS.md`. Every other rule stays as the user approved it: no suppression, no rule turned off, no cap raised and no new exception. A file over the cap without an exception gets the folder rule. For any other question that comes up after the stop, pick the answer that keeps every rule on, carry it out, and record the question and your pick in `USER_ACTION_ITEMS.md` for the user to review.
+Settle a collision you prove at any time, as the ceiling says, with its proof files, its ledger line and a line in `USER_ACTION_ITEMS.md`. A fix keeps what the program stores, sends and prints. When no fix that keeps them satisfies a rule, turn that rule off for the one file, with a ledger line that names the value it keeps, and add a line to `USER_ACTION_ITEMS.md`. Every other rule stays as the user approved it, with no suppression, no cap raised and no new exception. A file over the cap without an exception gets the folder rule. Any other question after the stop gets the pick that keeps every rule on, carried out and recorded in `USER_ACTION_ITEMS.md` the same way.
 
 Once every module has moved, run the **copy scan** once over the source root:
 
@@ -232,4 +233,4 @@ Delete the baseline files and the budget script, and make `check` run each tool 
 
 Done when `check` exits 0 on a clean checkout and the work is committed.
 
-**Reply:** the layout map as built, the ledger with each reason, for an existing repo each rule's count at step 1 and each gate's count at step 4 beside its count now, each real copy with its home, the registries that stay, and what `USER_ACTION_ITEMS.md` holds. Name the next skills: **correct** whenever the user corrects an agent, and **create-verification-skill** to prove behavior at runtime.
+**Reply:** the layout map as built, the ledger with each reason, for an existing repo each rule's count at step 1 and each gate's count at step 4 beside its count now, every change a user or another system can see, each real copy with its home, the registries that stay, and what `USER_ACTION_ITEMS.md` holds. Name the next skills: **correct** whenever the user corrects an agent, and **create-verification-skill** to prove behavior at runtime.
