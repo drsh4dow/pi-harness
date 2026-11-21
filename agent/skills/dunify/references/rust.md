@@ -1,10 +1,10 @@
 # Rust
 
-The dunify reference for Rust. Checked on stable Rust 1.99.1 with clippy and rustfmt 1.10.0, cargo-deny 0.20.2, cargo-machete 0.9.2 and ast-grep 0.51.3. Lint lists differ by toolchain, so run every command here on the toolchain the repo pins.
+The dunify reference for Rust. Checked on stable Rust 1.99.1 with clippy and rustfmt 1.10.0, cargo-deny 0.20.2, cargo-machete 0.9.2 and ast-grep 0.51.3, and the size rules and the edge-file rule on nightly 1.101 with clippy 0.1.101. Lint lists differ by toolchain, so run every command here on the toolchain the repo pins.
 
 ## Source root and edge file
 
-The source root is the crate's `src/`. With two runtimes, make a Cargo workspace. Each runtime directory is a binary crate at the workspace root, and `shared` is a library crate both depend on. A binary crate cannot be a dependency, so an import between runtimes fails with `E0432`. In `shared/src/lib.rs`, declare each contract with `pub mod`, since clippy `pub_use` rejects `pub use`. Inside a crate, `features/`, `client/` and `primitives/` are modules, and each folder's `mod.rs` is its edge file. A feature's `mod.rs` declares its inner modules with plain `mod summary;` and re-exports with `pub(crate) use summary::summarize;`. Mark items in inner files `pub(crate)`. A plain `mod` is private to its parent, so another feature reaching `reports::summary::summarize` fails with `E0603`. clippy `definition_in_module_root` keeps every `mod.rs` down to `mod` lines and re-exports.
+The source root is the crate's `src/`. With two runtimes, make a Cargo workspace. Each runtime directory is a binary crate at the workspace root, and `shared` is a library crate both depend on. A binary crate cannot be a dependency, so an import between runtimes fails with `E0432`. In `shared/src/lib.rs`, declare each contract with `pub mod`, since clippy `pub_use` rejects `pub use`. Inside a crate, `features/`, `client/` and `primitives/` are modules, and each folder's `mod.rs` is its edge file. Their own `mod.rs` files declare each child with `pub(crate) mod`. Every folder below them, at any depth, declares its inner modules with plain `mod summary;` and re-exports with `pub(crate) use summary::summarize;`. Mark items in inner files `pub(crate)`. A plain `mod` is private to its parent, so another feature reaching `reports::summary::summarize`, or a sibling reaching `summary::totals::sum`, fails with `E0603`. clippy `definition_in_module_root` keeps every `mod.rs` down to `mod` lines and re-exports.
 
 ## Ceiling
 
@@ -23,11 +23,13 @@ cargo = { level = "warn", priority = -1 }
 restriction = { level = "warn", priority = -1 }
 blanket_clippy_restriction_lints = "allow" # collides with the restriction group
 implicit_return = "allow" # collides with needless_return
+missing_docs_in_private_items = "allow" # collides with the comment check
 mod_module_files = "allow" # collides with self_named_module_files, mod.rs is the edge file
 pattern_type_mismatch = "allow" # collides with ref_patterns
 pub_with_shorthand = "allow" # collides with pub_without_shorthand
 semicolon_outside_block = "allow" # collides with semicolon_inside_block
 separated_literal_suffix = "allow" # collides with unseparated_literal_suffix
+too_many_lines = "allow" # the user's standing choice
 ```
 
 Set every level to `warn`. The check turns warnings into errors with `-D warnings`, while `cargo build`, `cargo test` and a release image still pass on a baselined violation. Keep groups at priority -1 so a single-lint line at the default 0 overrides them, since clippy `lint_groups_priority` rejects a tie. Leaving `nursery` out keeps it at allow. Append rustc's allow-by-default lints to `[workspace.lints.rust]` with this command, then delete each line `cargo clippy` reports as `unknown lint`, since the list includes unstable lints:
@@ -36,13 +38,19 @@ Set every level to `warn`. The check turns warnings into errors with `-D warning
 rustc -W help | awk '$2 == "allow" && $1 !~ /^(dead-code-pub-in-binary|missing-docs|unused-crate-dependencies)$/ { gsub("-", "_", $1); print $1 " = \"warn\"" }'
 ```
 
+No lint caps a file's lines or a function's statements, so `too_many_lines` is the only size rule off. `too_many_arguments` in `all` and `cognitive_complexity` in `restriction` stay on at their defaults, 7 and 25. `excessive_nesting` in `all` stays silent until the root `clippy.toml` sets `excessive-nesting-threshold = 5`, which rejects the fifth block nested in a function body. The check holds the file cap with this command on each member's `src`:
+
+```sh
+find app/src -name '*.rs' -exec awk 'FNR == 601 { print FILENAME " is over 600 lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' {} +
+```
+
 ## Known collisions
 
-The ledger lines above are the collisions found so far. Treat them as a starting list. To prove a line, set its lint to `warn`, write each spelling of the construct, and keep the line only when every spelling fails a side. `pattern_type_mismatch` and `ref_patterns`, for one, collide on a `match` over a borrowed enum that holds a `String`. `question_mark_used` and `question_mark` look like a pair, but clippy silences `question_mark` while `question_mark_used` is on, so `question_mark_used` goes to the user's list. rustc `missing_docs` wants a doc comment on every crate, which the comment check rejects. With the comment check, clippy `missing_errors_doc`, `missing_panics_doc` and `missing_safety_doc` forbid a public function that returns `Result`, can panic or is `unsafe`, and `undocumented_unsafe_blocks` forbids an `unsafe` block. Those four are bans, so they go to the user's list.
+The ledger lines above are the collisions found so far. Treat them as a starting list. To prove a line, set its lint to `warn`, write each spelling of the construct, and keep the line only when every spelling fails a side. `pattern_type_mismatch` and `ref_patterns`, for one, collide on a `match` over a borrowed enum that holds a `String`. `question_mark_used` and `question_mark` look like a pair, but clippy silences `question_mark` while `question_mark_used` is on, so `question_mark_used` goes to the user's list. rustc `missing_docs` wants a doc comment on every crate, which the comment check rejects. With the comment check, clippy `missing_errors_doc`, `missing_panics_doc` and `missing_safety_doc` forbid a public function that returns `Result`, can panic or is `unsafe`, and `undocumented_unsafe_blocks` forbids an `unsafe` block. Those four are bans, so they go to the user's list. `single_call_fn` flags every helper a module keeps behind its interface, so it goes to the user's list too.
 
 ## Boundaries
 
-Cargo enforces the runtime boundary, and visibility enforces each feature's inner modules. Write `boundaries.yml` for the rest. Run every ast-grep rule from the workspace root, since `files` and `ignores` match paths relative to the working directory, and scan the member folders by name, so the gate fixtures stay out of the scan.
+Cargo enforces the runtime boundary, and visibility enforces each module's edge file at every depth. Write `boundaries.yml` for the rest. Run every ast-grep rule from the workspace root, since `files` and `ignores` match paths relative to the working directory, and scan the member folders by name, so the gate fixtures stay out of the scan.
 
 ```yaml
 id: primitives-import-nothing-from-the-app
@@ -59,11 +67,12 @@ message: client/ never calls a feature. Return the value and let the feature cal
 files: ["**/src/client/**"]
 rule: { any: [kind: use_declaration, kind: scoped_identifier], regex: '\bfeatures\b' }
 ---
-id: feature-inner-modules-stay-private
+id: inner-modules-stay-private
 language: Rust
 severity: error
-message: Declare a feature's inner modules with plain `mod` and re-export them from mod.rs.
-files: ["**/src/features/*/mod.rs"]
+message: Declare an inner module with plain `mod` and re-export what callers need from its mod.rs.
+files: ["**/src/features/**", "**/src/client/**", "**/src/primitives/**"]
+ignores: ["**/src/features/mod.rs", "**/src/client/mod.rs", "**/src/primitives/mod.rs"]
 rule: { kind: mod_item, has: { kind: visibility_modifier } }
 ---
 id: lint-levels-live-in-cargo-toml
@@ -114,8 +123,8 @@ rule:
 
 ## Baseline
 
-Clippy, rustc and ast-grep have no baseline. Write the budget script as a binary in an `xtask` workspace crate, which sits under the ceiling like any member. Add it to every build file that lists the members, such as a Dockerfile. It reads `cargo clippy --workspace --all-targets --message-format=json`, where every lint arrives as a warning and the exit code is 0. Read the lines whose `reason` is `compiler-message`. Fail on any message at `error` level, which is a compile error or a rustc lint that denies by default, and fix it. Count each `warning` once per `message.code.code` and per `file_name`, line and column of the span with `is_primary`, since `--all-targets` reports a lint once per target. Count comments by `ruleId` and `file` from `ast-grep scan --rule no-comments.yml --json=stream` on the member folders. The budget script replaces the clippy step and the comment scan in the check.
+Clippy, rustc and ast-grep have no baseline. Write the budget script as a binary in an `xtask` workspace crate, which sits under the ceiling like any member. Add it to every build file that lists the members, such as a Dockerfile. It reads `cargo clippy --workspace --all-targets --message-format=json`, where every lint arrives as a warning and the exit code is 0. Read the lines whose `reason` is `compiler-message`. Fail on any message at `error` level, which is a compile error or a rustc lint that denies by default, and fix it. Count each `warning` once per `message.code.code` and per `file_name`, line and column of the span with `is_primary`, since `--all-targets` reports a lint once per target. Count comments by `ruleId` and `file` from `ast-grep scan --rule no-comments.yml --json=stream` on the member folders, and each line of the file cap command as one violation of its file. Until the burn-down ends, the budget script replaces the clippy step, the comment scan and the file cap command in the check.
 
 ## Check command
 
-Cargo ignores an alias named `check`, because the built-in command wins. Where the repo has no runner, write a `justfile` whose `check` recipe runs `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `ast-grep scan --rule no-comments.yml` and `ast-grep scan --rule boundaries.yml` on the member folders, `cargo deny check`, `cargo machete` and `cargo test --workspace`. `cargo fmt --check` and `cargo machete` exit 1 on a diff or an unused dependency. `cargo deny check` rejects the workspace's own crates under licenses until `deny.toml` sets `ignore = true` under `[licenses.private]`. Put each advisory it reports in the user's list from step 2, and upgrade no dependency on your own.
+Cargo ignores an alias named `check`, because the built-in command wins. Where the repo has no runner, write a `justfile` whose `check` recipe runs `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `ast-grep scan --rule no-comments.yml` and `ast-grep scan --rule boundaries.yml` on the member folders, the file cap command, `sh tools/width.sh width-exempt.txt` on each member's `src`, `cargo deny check`, `cargo machete` and `cargo test --workspace`. `cargo fmt --check` and `cargo machete` exit 1 on a diff or an unused dependency. `cargo deny check` rejects the workspace's own crates under licenses until `deny.toml` sets `ignore = true` under `[licenses.private]`. Put each advisory it reports in the user's list from step 2, and upgrade no dependency on your own.
