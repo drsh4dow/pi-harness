@@ -8,7 +8,7 @@ Bombadil's `terminal` driver is marked experimental. For a terminal UI, ask the 
 
 Under the layout map, list one **property** per durable value the UI shows. A property is a sentence that holds in every state, such as "a note the list has shown stays shown". The user approves the properties with the map.
 
-## Step 5. Build the property run
+## Step 3. Build the property run
 
 Install `@antithesishq/bombadil` as a dev dependency. Write one specification per UI runtime at `properties/<runtime>.ts`, and add `properties` to the tsconfig `include` so the ceiling covers it:
 
@@ -56,10 +56,8 @@ The fixture is a static page that breaks one property, since Bombadil takes a `f
 
 Done when the run exits 0 on the app and 2 on the fixture.
 
-## Step 6. Existing repos
+## Step 4. Baseline and check
 
-Run the default properties on the untouched app. Where one fails, replace the `export *` line with `defaultActions` from `@antithesishq/bombadil/browser/defaults` and the names that hold from `@antithesishq/bombadil/browser/defaults/properties`. Put each property that fails on the cleanup plan with its trace.
-
-## Step 7. Add it to the check
+Run the default properties on the untouched app. Where one fails, replace the `export *` line with `defaultActions` from `@antithesishq/bombadil/browser/defaults` and the names that hold from `@antithesishq/bombadil/browser/defaults/properties`. Each property that fails joins the burn-down queue with its trace, and goes back into the specification once the app holds it.
 
 The `check` command starts the app on empty data, waits for the origin to answer, runs the property run, and stops what it started.
