@@ -3,10 +3,12 @@ usage='usage: width.sh <limits file> <source root>...'
 [ $# -ge 2 ] && [ -f "$1" ] || { echo "$usage" >&2; exit 2; }
 limits=$1
 shift
+git rev-parse 2>/dev/null && in_git=1
 for root do
 	[ -d "$root" ] || { echo "$root is not a folder. $usage" >&2; exit 2; }
+	[ -z "$in_git" ] || { git check-ignore -q "$root" 2>/dev/null; [ $? -le 1 ]; } || { echo "$root is outside this git repo. $usage" >&2; exit 2; }
 done
-find "$@" -mindepth 1 | if git rev-parse 2>/dev/null; then git check-ignore --stdin -nv | grep '^::' | cut -f 2-; else cat; fi |
+find "$@" -mindepth 1 | if [ "$in_git" ]; then git check-ignore --stdin -nv | grep '^::' | cut -f 2-; else cat; fi |
 	awk -v limits="$limits" '
 		BEGIN { while ((getline line < limits) > 0) { split(line, field, " "); max[field[1]] = field[2]; baseline[field[1]] = field[3] == "baseline" } }
 		sub("/[^/]*$", "") { count[$0]++ }
