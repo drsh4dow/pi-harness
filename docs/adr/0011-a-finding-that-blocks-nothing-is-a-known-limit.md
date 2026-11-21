@@ -4,6 +4,8 @@ status: proposed
 
 # A finding that blocks nothing is a known limit, and a pull request gets two repair rounds
 
+Amended in part by ADR 0019, which takes a cut out of the first rule and moves the size report of the fourth to a tool.
+
 Agents finishing a task kept finding edge cases, and each fix or ticket made more work, so the task never reached its goal. In the human's words, "there will always be edge cases and your nature is to try fix them all, but some edge cases are just not worth it". The playbooks caused it. pstack, the upstream they come from, bounds review to one full swarm and blocks a pull request only for a bug a user would hit, a failed gate, or a wrong shipped doc. But its autopilot sends "everything else" to a follow-up, and its autonomous run makes "orphaned follow-ups" the agent's own work. The Definition of Done asked for every edge case handled. In one six-round review of a harness change, a narrower blocking bar would have saved no whole round. Four of the rounds repaired the same boundary, and a redesign in the fifth ended them.
 
 So the harness chose four rules:

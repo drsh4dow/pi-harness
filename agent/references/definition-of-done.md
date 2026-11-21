@@ -29,7 +29,7 @@ Apply this to every change before declaring it done.
 ### Quality
 
 - [ ] Code reveals intent through naming and structure; no comments needed to explain _what_ it does
-- [ ] No duplicated business logic
+- [ ] No duplicated business logic. A copy a reviewer finds is a cut, which never blocks
 - [ ] No dead code, debug output, or commented-out blocks left behind
 - [ ] Behavior changes stay in scope, and the diff deletes what it can
 - [ ] Linting and formatting pass

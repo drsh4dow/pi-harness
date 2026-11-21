@@ -158,7 +158,7 @@ Terms for what lets an agent merge a pull request. See ADR 0009.
 
 ## Work
 
-Terms from the root role for the work the human hands the agent. See ADRs 0011 and 0018.
+Terms from the root role for the work the human hands the agent. See ADRs 0011, 0018 and 0019.
 
 - **Destination.** What the end product should be, in the human's words "the shared understanding we settle in a discussion about the end product". It is settled once its **acceptance criteria** can be written without guessing a product call.
 - **Acceptance criteria.** A task's own checks, settled with the human: each is a behavior the agent can run or observe that shows the destination is reached.
@@ -176,7 +176,10 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011 a
 - **Todo list.** The root's checklist for one piece of work: one line per step of each playbook it runs, plus its own items. The first open line is the current step.
 - **State label.** The hc label on a root agent's own terminal that names the state folder its session last wrote to.
 - **Trace and Actions panels.** herdr-app panels that draw the todo list and decision trail, or the action items, of the focused agent's root.
-- **Known limit.** A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith.
+- **Known limit.** A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith. Not a **cut**.
+- **Cut.** A finding whose fix removes code and keeps behavior: a copy of logic that exists elsewhere, a module that fails the deletion test, a guard for a case that cannot occur, code nothing reads, an option nobody asked for. A diff that removes more production lines than it adds and passes the repo's check command proves it.
+- **Cut pass.** One owner that applies cuts across the combined diff of a **wave**. Subtraction is its whole task.
+- **Wave.** The slices that were on the frontier together and have landed.
 - **Non-goal.** Something a ticket says its closing PR leaves out.
 - **Repair round.** A fix pushed after a PR's full review, and the check that judges it.
 - **Decision trail.** The record of each decision the agent made, with its why, evidence, and result.
