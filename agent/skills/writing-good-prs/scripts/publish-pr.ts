@@ -131,7 +131,7 @@ function run(command: "gh" | "git", args: readonly string[]): string | Failure {
   return result.stdout;
 }
 
-function rangeOf(target: Target, repo: string | undefined): Range | Failure {
+function branchesOf(target: Target, repo: string | undefined): Range | Failure {
   if (target.kind === "edit") {
     const refs = run("gh", [
       "pr",
@@ -146,29 +146,35 @@ function rangeOf(target: Target, repo: string | undefined): Range | Failure {
 
     if (refs instanceof Failure) return refs;
 
-    const [base, head = ""] = refs.trim().split(" ");
+    const [base = "", head = ""] = refs.trim().split(" ");
 
-    return { base: `origin/${base}`, head };
+    return { base, head };
   }
 
-  let base = target.base;
+  const head = target.head ?? "HEAD";
 
-  if (base === undefined) {
-    // gh repo view takes the repo as an argument, not as --repo.
-    const query = ["--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"];
-    const name = run("gh", ["repo", "view", ...(repo === undefined ? [] : [repo]), ...query]);
+  if (target.base !== undefined) return { base: target.base, head };
 
-    if (name instanceof Failure) return name;
+  // gh repo view takes the repo as an argument, not as --repo.
+  const query = ["--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"];
+  const name = run("gh", ["repo", "view", ...(repo === undefined ? [] : [repo]), ...query]);
 
-    base = name.trim();
-  }
+  if (name instanceof Failure) return name;
+
+  return { base: name.trim(), head };
+}
+
+function rangeOf(target: Target, repo: string | undefined): Range | Failure {
+  const branches = branchesOf(target, repo);
+
+  if (branches instanceof Failure) return branches;
 
   // A stale origin/<base> would count the base's newer commits as the PR's.
-  const fetched = run("git", ["fetch", "--quiet", "origin", base]);
+  const fetched = run("git", ["fetch", "--quiet", "origin", branches.base]);
 
   if (fetched instanceof Failure) return fetched;
 
-  return { base: `origin/${base}`, head: target.head ?? "HEAD" };
+  return { base: `origin/${branches.base}`, head: branches.head };
 }
 
 function changedPaths(target: Target, range: Range | Failure, repo: string | undefined): string | Failure {

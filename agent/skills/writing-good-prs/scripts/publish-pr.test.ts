@@ -64,11 +64,12 @@ if (json === "files") {
 `;
 
 const fakeGit = (files: string) => `#!/usr/bin/env node
+if (process.argv[2] === "fetch") require("node:fs").writeFileSync(\`\${__dirname}/fetched\`, "");
 if (process.argv[2] === "diff") process.stdout.write(${JSON.stringify(files)});
 `;
 
 const fakeDiffSize = {
-  prints: `#!/bin/sh\necho "${sizeFor("$1 $2")}"\n`,
+  prints: `#!/bin/sh\ntest -f "$(dirname "$0")/fetched" || { echo "diff-size: $1 was never fetched" >&2; exit 2; }\necho "${sizeFor("$1 $2")}"\n`,
   fails: `#!/bin/sh\necho "diff-size: git merge-base origin/main 9c1e2a0 failed: fatal: Not a valid object name 9c1e2a0" >&2\nexit 2\n`,
 };
 
