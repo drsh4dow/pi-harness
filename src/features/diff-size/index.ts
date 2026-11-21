@@ -62,7 +62,7 @@ export const diffSize = Effect.fn("diffSize")(function* (base: string, head: str
 	const changes = changesOf(numstat);
 
 	const checkAttr = yield* runGit({
-		args: ["check-attr", "-z", "--stdin", generated, documentation],
+		args: ["check-attr", "-z", "--stdin", "--source", head, generated, documentation],
 		input: Arr.join(
 			Arr.map(changes, ({ path }) => `${path}\0`),
 			"",
