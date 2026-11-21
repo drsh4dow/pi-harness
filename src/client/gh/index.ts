@@ -75,6 +75,9 @@ export const ghPassthrough = ({
 		return Effect.scoped(Effect.flatMap(spawner.spawn(command), (handle) => handle.exitCode));
 	});
 
+export const runGit = ({ args, input = "" }: { readonly args: ReadonlyArray<string>; readonly input?: string }) =>
+	output("git", args, input);
+
 /**
  * `git patch-id --verbatim` over a diff with its context lines. It is strict on purpose: whitespace counts, and a base
  * that changed a line next to the patch changes the id too, so a verdict carries only across a rebase that left the
