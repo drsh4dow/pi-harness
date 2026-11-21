@@ -69,7 +69,7 @@ const onInstructionsFile = Effect.fn("onInstructionsFile")(function* (file: stri
 		name: Str.replace(/\.md$/u, "")(file),
 		role,
 		level: 2,
-		design: Option.none(),
+		design: role === "owner" ? Option.some("yours") : Option.none(),
 		model: stagedModel(model),
 		thinking: profile.thinking,
 		readOnly: profile.readOnly,
