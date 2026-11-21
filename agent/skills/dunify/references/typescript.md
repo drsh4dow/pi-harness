@@ -8,7 +8,7 @@ The source root is `src/`. A folder's edge file is `index.ts`, or `index.tsx` wh
 
 For a hot spot, replace the registry with Vite's `import.meta.glob("./features/*/index.tsx", { eager: true })`, a path relative to the calling file, and add `"types": ["vite/client"]` to the tsconfig so the compiler knows `glob`.
 
-A contract's schemas need a schema library, since anti-slop's `no-runtime-typeof` rejects a hand-written type guard. Where the repo has none, ask the user to pick one before you draw the layout map.
+A contract's schemas need a schema library, since anti-slop's `no-runtime-typeof` rejects a hand-written type guard. Where the repo has none, put the pick of one in the questions of step 2.
 
 ## Ceiling
 
@@ -187,7 +187,7 @@ Seed these bans for a React stack:
 
 Write the rule file as two YAML documents split by `---`. The first is the rule in step 3 of [`../SKILL.md`](../SKILL.md). The second repeats its body with its own `id` and `language: Tsx`, since each language scans only its own extensions and an anchor does not cross documents. Both grammars name every comment `comment`, JSX `{/* */}` included, and a shebang is no comment node.
 
-A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead.
+A directive is a comment, so the check rejects `@ts-expect-error`, `@ts-ignore` and every `oxlint-` and `oxfmt-` directive. Turn a rule off for some files with an `overrides` entry in the ledger instead, once the user approves it in step 2.
 
 ## Baseline
 
@@ -204,5 +204,7 @@ Use a package.json script. In a new repo, and in an existing one once the burn-d
 ```json
 "check": "oxfmt --check && oxlint && depcruise src --output-type err-long && ast-grep scan --rule rules/no-comments.yml src && sh tools/width.sh size-limits.txt src && vitest run"
 ```
+
+Put the repo's own test command in place of `vitest run`.
 
 During the burn-down, swap `oxlint`, the `depcruise` call and the ast-grep call for the baseline steps above. `@swc/core` and `@ast-grep/cli` fetch their binaries in postinstall scripts, so allow both where the package manager asks, as bun does with `trustedDependencies`.
