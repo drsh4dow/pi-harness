@@ -179,7 +179,9 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011, 
 - **Known limit.** A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith. Not a **cut**.
 - **Cut.** A finding whose fix removes code and keeps behavior: a copy of logic that exists elsewhere, a module that fails the deletion test, a guard for a case that cannot occur, code nothing reads, an option nobody asked for. A diff that removes more production lines than it adds and passes the repo's check command proves it.
 - **Cut pass.** One owner that applies cuts across the combined diff of a **wave**. Subtraction is its whole task.
+- **Frontier.** The tickets whose blockers are all done.
 - **Wave.** The slices that were on the frontier together and have landed.
+- **One-way door.** A shape that is costly to undo once other work builds on it: a schema, a wire format, or an interface another slice builds on.
 - **Non-goal.** Something a ticket says its closing PR leaves out.
 - **Repair round.** A fix pushed after a PR's full review, and the check that judges it.
 - **Decision trail.** The record of each decision the agent made, with its why, evidence, and result.
