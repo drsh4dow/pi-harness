@@ -78,7 +78,7 @@ The **ceiling** is every stable lint group at error, every plugin that fits the 
 A rule goes off in one of two ways:
 
 - A **collision** is two rules, or a rule and the formatter or compiler, that no spelling of a construct can satisfy together. Write each spelling, run the tools on them, and when every one fails a side, turn one side off yourself, or narrow it with the one option that ends the collision. A pair that only forbids the construct is a ban, so it goes to the user.
-- Every other rule you want off goes to the user in one list, with what it flags here and your pick. It stays on until they answer. Outside a collision, an option that narrows a rule and a setting that turns a rule off for some files are each a rule turned off, so they go in the same list.
+- Every other rule you want off goes to the user in one list, with what it flags here and your pick. It stays on until they answer, except a rule that step 5 turns off for one file to keep a value. Outside a collision, an option that narrows a rule and a setting that turns a rule off for some files are each a rule turned off, so they go in the same list.
 
 The linter's config is the **ledger**. Each rule that is off carries a one-line reason beside it, which names the collision pair or the user's approval. The ledger starts with the size rules the language reference names. The file cap rule is set to 600 lines. The rules that cap a function's length or its statement count are off, with the reason "the user's standing choice". The rules for complexity, nesting depth and parameter count stay on.
 
