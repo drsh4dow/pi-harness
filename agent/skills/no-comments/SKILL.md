@@ -6,9 +6,7 @@ for: [root, owner]
 
 # No comments
 
-Spawn Comment Sicko. Act on accepted findings.
-
-Defer to Comment Sicko's fresh perspective.
+Spawn Comment Sicko, check its verdicts, and move each comment it leaves to its destination.
 
 ## Scope
 
@@ -17,8 +15,13 @@ Use the caller's files or diff. Otherwise use the current diff against the base 
 ## Steps
 
 1. Spawn a delegate with `instructionsFile: ~/.pi/agent/instructions/comment-sicko.md`. Pass the scope. Do not restate its rules.
-2. Inspect its report and diff. Reject application-code edits, scope escapes, exception-protected deletions, misstated `MUST KILL` reasons, and flags that treat kept intentional code as guilty. Reshape flags on our-code surprises stay actionable. Do not restore those comments. A keep survives only with proof it is about something we cannot change. Audit missed scoped lint and TypeScript suppressions. Correctness or safety suppressions stay actionable `MUST KILL`s. Restore deletions only with exact exceptions and scoped proof. Before accepting thin `IMPORTANT` or `do not remove` kills or keeps, trace their symbol or run the **why** skill on it. If a kill is ambiguous, do not restore. If a keep is refuted or still ambiguous, delete it. Revert and rerun one rejected report with the failure named. Reject a second, report it open, and fail the **no-comments** skill.
-3. Fix trivial accepted flags directly by deleting a dead path, dropping a parameter, or using the real API. If any fix needs a shape, run the **architect** skill once for the accepted set and surrounding code. Stop at the sketch. Architect shapes. Step 4 implements.
-4. Implement the smallest root-cause fix in scope. Remove every named workaround. If the root cause is out of scope, land the smallest in-scope fix and report the rest open. principle-fix-root-causes and principle-redesign-from-first-principles guide intent only. Neither authorizes widening the fence nor fixing instances outside it. Never bolt on symptom guards.
-5. Constraint comments say `do not remove`, `do not change wording`, or `talk to X before changing`. Leave keeps about things we cannot change. Offer the cheapest in-scope type, runtime, test, or CI lint. Wait for interactive approval. Unattended and eval require caller pre-approval. If approved, encode then delete. Otherwise delete, report the constraint open, and sketch out-of-scope work.
-6. Report the deletion count, restored comments, reruns, architect sketch, fixes, encoding offers, encodings, unenforced constraints, and other open work.
+2. Check its report and diff. Reject application-code edits, scope escapes, a comment in scope with no row, a deleted survivor, a deletion whose verdict is not `delete`, a Stale verdict that names no checked code, and a verdict an earlier question in its order fits. Revert and rerun one rejected report with the failure named. Reject a second, report it open, and fail the **no-comments** skill.
+3. Move each comment Comment Sicko left to its destination, through the skill that owns it:
+   - **Excuse.** File an issue in the repo's tracker with the **writing-good-tickets** skill. The issue names the symbol that carries the hack.
+   - **Definition.** Rename the symbol, narrow its type, or add the term to the repo's `GLOSSARY.md`.
+   - **Constraint.** Pin it with a type, or with a test through the **tdd** skill.
+   - **DecisionRecord.** Check the decision against the one bar in `~/.pi/agent/skills/domain-modeling/ADR-FORMAT.md`. When it passes all three conditions and no ADR in the repo records it, write the ADR through `playbooks/documentation-and-adrs.md`. Otherwise delete the comment. Comments that record one decision share one ADR, and no ADR is written per comment or per module.
+
+   Remove each comment in the commit that lands its destination, and name the issue in that commit for an Excuse. Removing a suppression directive brings back the violation under it, so fix the violation in the same commit, or keep the directive and report it open with its issue.
+
+4. Report the deletion count, each destination with its path or link, reruns, and every comment left open with where its content should go.
