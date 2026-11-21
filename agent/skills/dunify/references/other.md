@@ -15,6 +15,7 @@ The dunify reference for a language that has no file of its own. Answer each que
 - **Inner switches.** A linter that bundles other linters often keeps each one's rules behind its own switch. Turn those on too.
 - **Type checker.** Use its strictest mode. Where two checkers exist, pick the one whose strictest mode reports more on this repo, measured by running both.
 - **Formatter.** Run it in check mode.
+- **Size rules.** Find the rule that caps a file's lines and set it to 600. Set each rule that caps a function's length or statement count, and each rule for complexity, nesting depth and parameter count, the way the ledger in `SKILL.md` says. Where the linter has no file cap, the check runs `find <source root> -name '*.<ext>' -exec awk 'FNR == 601 { print FILENAME " is over 600 lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' {} +`.
 
 ## Known collisions
 
@@ -22,7 +23,11 @@ Start from the linter's own page on formatter conflicts and on rules that oppose
 
 ## Boundaries
 
-Prefer a tool that checks resolved import edges between directories. Where the language has none, use the compiler's own visibility, such as a package per runtime directory, and an ast-grep rule on import statements for the edges visibility cannot express.
+Prefer a tool that checks resolved import edges between directories. Where the language has none, use the compiler's own visibility, such as a package per runtime directory, and an ast-grep rule on import statements for the edges visibility cannot express. The gate holds the edge file at every depth, so prove on a fixture three folders deep that an import from outside a folder past its edge file fails.
+
+## Width
+
+`scripts/width.sh` from `SKILL.md` works for every language. Pass it each source root.
 
 ## Bans
 
@@ -34,7 +39,7 @@ Set `language` in the rule from `SKILL.md`. To find what the grammar calls a com
 
 ## Baseline
 
-Check the linter and the type checker for a baseline file or a mode that reports only new violations. A mode that filters by changed lines misses a violation outside the diff, so prefer a baseline file. Where neither exists, write the budget script from `SKILL.md`.
+Check the linter and the type checker for a baseline file or a mode that reports only new violations. A mode that filters by changed lines misses a violation outside the diff, so prefer a baseline file. Where neither exists, write the budget script from `SKILL.md`. The budget script also counts the lines of the file cap command until the burn-down ends.
 
 ## Check command
 
