@@ -76,7 +76,7 @@ Write the reply clean as you draft it. A cleanup pass after drafting does not re
 
 Every playbook ends with a reply written this way, PR link as `https://github.com/<owner>/<repo>/pull/<number>`. Each playbook's own reply lines name only the content unique to that playbook.
 
-Comments follow the same rule as the reply. Write them clean as you go. Write no comment but a license header, a `/// <reference` line, or a doc comment on a public declaration where the repo allows one, and say the rest with a name, a type, a test, an issue or an ADR. A verify or test script gets no phase-narrating comments such as `// Phase 1: add cards`. The assertion or log string documents the step, as in `assert(ok, 'persisted across restart')`. This applies to every file you produce, including a delegate's diff.
+Comments follow the same rule as the reply. Write them clean as you go. Write no comment but a license header, a `/// <reference` line, the reason beside a rule in a linter config, or a doc comment on a public declaration where the repo allows one, and say the rest with a name, a type, a test, an issue or an ADR. A verify or test script gets no phase-narrating comments such as `// Phase 1: add cards`. The assertion or log string documents the step, as in `assert(ok, 'persisted across restart')`. This applies to every file you produce, including a delegate's diff.
 </writing-the-reply>
 
 <context>
