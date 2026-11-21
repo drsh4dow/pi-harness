@@ -93,7 +93,7 @@ Clippy config has no path scope. Exempt the owner with `#![expect(clippy::disall
 
 ## Comment check
 
-The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. The two kinds cover the doc comments `///`, `//!`, `/** */` and `/*! */` too. Rust tools take directives as attributes, so the only exclusion is the license header at the top of the file:
+The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. The two kinds cover the doc comments `///`, `//!`, `/** */` and `/*! */` too. A `#[doc = "..."]` or `#![doc = "..."]` attribute is a doc comment written as an attribute, so the rule rejects it as well. Rust tools take other directives as attributes, so the only exclusion is the license header at the top of the file:
 
 ```yaml
 id: no-comments
@@ -102,13 +102,14 @@ severity: error
 message: Delete this comment. Say it with a name, a type, a test, an issue or an ADR.
 rule:
    any:
-      - kind: line_comment
-      - kind: block_comment
-   not:
-      all:
-         - regex: '^(//|/\*)[\s\S]*(Copyright|SPDX-License-Identifier)'
-         - inside: { kind: source_file }
-         - not: { follows: { not: { any: [kind: line_comment, kind: block_comment] }, stopBy: end } }
+      - any: [kind: line_comment, kind: block_comment]
+        not:
+           all:
+              - regex: '^(//|/\*)[\s\S]*(Copyright|SPDX-License-Identifier)'
+              - inside: { kind: source_file }
+              - not: { follows: { not: { any: [kind: line_comment, kind: block_comment] }, stopBy: end } }
+      - kind: attribute
+        regex: '^doc\s*='
 ```
 
 ## Baseline
