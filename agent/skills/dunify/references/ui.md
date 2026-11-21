@@ -58,6 +58,6 @@ Done when the run exits 0 on the app and 2 on the fixture.
 
 ## Step 4. Baseline and check
 
-Run the default properties on the untouched app. Where one fails, replace the `export *` line with `defaultActions` from `@antithesishq/bombadil/browser/defaults` and the names that hold from `@antithesishq/bombadil/browser/defaults/properties`. Each property that fails joins the burn-down queue with its trace, and goes back into the specification once the app holds it.
+Run the default properties on the untouched app. Where one fails, replace the `export *` line with `defaultActions` from `@antithesishq/bombadil/browser/defaults` and the names that hold from `@antithesishq/bombadil/browser/defaults/properties`. Each property that fails joins the burn-down queue with its trace, and goes back into the specification once the app holds it. Step 5 of `SKILL.md` is done only when every dropped property is back.
 
 The `check` command starts the app on empty data, waits for the origin to answer, runs the property run, and stops what it started.

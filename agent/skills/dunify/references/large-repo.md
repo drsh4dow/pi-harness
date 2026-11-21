@@ -26,7 +26,7 @@ Under the map, add the **slice plan**. Each line names one slice, its lines of s
 
 Put the **pilot** first. The pilot is a slice of a few thousand lines with at most one importer and few recent commits. It writes a durable value, and it crosses a contract edge where the repo has one, so it meets every gate. Draw its inner rows in full.
 
-Done when the user approves the map, the bans, the rules off and the slice plan.
+Done when the user approves the map, every list under it and the slice plan.
 
 ## Step 4. Baseline the whole repo
 
