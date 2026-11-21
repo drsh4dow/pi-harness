@@ -162,7 +162,7 @@ Run every auto-fix. A fix that trips another rule is a collision, so settle it a
 - it fails when any count is above the committed one;
 - it fails when a count is below the committed one, and tells the reader to commit the lower count.
 
-The baseline replaces suppression directives. Write none. Existing comments get the same treatment: count them in the baseline, and leave their removal to the **no-comments** skill.
+The baseline replaces suppression directives, which the comment check rejects. Count every existing comment in the baseline with the other violations, so it is burned down with them. Remove comments only through the **no-comments** skill, which moves what each one says to its destination.
 
 Done when the check passes on the untouched repo and fails after you add one violation of a baselined rule.
 
