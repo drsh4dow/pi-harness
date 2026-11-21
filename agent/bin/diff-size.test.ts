@@ -108,6 +108,27 @@ test("diff-size sizes the head it names in place of HEAD", () =>
 		}),
 	));
 
+test("diff-size reads .gitattributes from the head it names, not from the checkout", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			yield* git("checkout", "-q", "-b", "marked", "main");
+			yield* commitFiles({
+				".gitattributes":
+					"gen.ts linguist-generated\nprompts/*.md -linguist-documentation\nsrc/made.ts linguist-generated\n",
+				"src/made.ts": "m\nm\n",
+			});
+			yield* git("checkout", "-q", "work");
+			const main = yield* Effect.map(git("rev-parse", "--short=7", "main"), Str.trim);
+
+			const got = yield* diffSize(repo, ["main", "marked"]);
+
+			expect(got).toEqual({
+				code: 0,
+				lines: [`size: production +1 -0, tests +0 -0, docs +0 -0, other +2 -0 (base ${main})`],
+			});
+		}),
+	));
+
 test.each([
 	{ name: "an unknown base", cwd: repo, args: ["nope"] },
 	{ name: "a folder outside a git repository", cwd: scratch, args: [] },
