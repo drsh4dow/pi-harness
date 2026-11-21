@@ -65,7 +65,7 @@ No linter ships these three gates, so you build them:
 
 - **Boundaries** reject every import the layout map does not allow.
 - **Bans** reject an API that takes judgment to use well, such as an effect hook, a raw timer or a transport call. Each ban names one **owner**, the single file or folder allowed to use the API, and its message names the function to call instead. Write that function in the owner before you add the ban. A ban holds inside its owner's runtime directory, so its message never points across a boundary.
-- **The comment check** rejects every comment in a source file except a license header at the top of the file and a `/// <reference` line. Doc comments and tool directives are comments too. Linter config files are exempt.
+- **The comment check** rejects every comment in a source file except a license header at the top of the file and a `/// <reference` line. Doc comments and tool directives are comments too. Linter config files are exempt. Each `//` line is its own comment, so a license header written in `//` lines keeps only its Copyright and SPDX lines.
 
 ## Steps
 

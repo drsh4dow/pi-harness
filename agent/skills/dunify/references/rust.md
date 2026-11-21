@@ -93,7 +93,7 @@ Clippy config has no path scope. Exempt the owner with `#![expect(clippy::disall
 
 ## Comment check
 
-The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. The two kinds cover the doc comments `///`, `//!`, `/** */` and `/*! */` too. A `#[doc = "..."]` or `#![doc = "..."]` attribute is a doc comment written as an attribute, so the rule rejects it as well. Rust tools take other directives as attributes, so the only exclusion is the license header at the top of the file:
+The kinds are `line_comment` and `block_comment`, and `kind: comment` fails to parse. The two kinds cover the doc comments `///`, `//!`, `/** */` and `/*! */` too. A `#[doc = "..."]` or `#![doc = "..."]` attribute is a doc comment written as an attribute, so the rule rejects it as well. Rust tools take other directives as attributes, so the only exclusion is the license header at the top of the file. Each `//` line is its own comment, so a license header written in `//` lines keeps only its Copyright and SPDX lines:
 
 ```yaml
 id: no-comments
