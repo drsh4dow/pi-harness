@@ -138,13 +138,12 @@ Scan for these patterns — each one is a concrete signal, not a vague smell:
 
 **Naming and readability:**
 
-| Pattern                    | Signal                                         | Simplification                                                           |
-| -------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| Generic names              | `data`, `result`, `temp`, `val`, `item`        | Rename to describe the content: `userProfile`, `validationErrors`        |
-| Abbreviated names          | `usr`, `cfg`, `btn`, `evt`                     | Use full words unless the abbreviation is universal (`id`, `url`, `api`) |
-| Misleading names           | Function named `get` that also mutates state   | Rename to reflect actual behavior                                        |
-| Comments explaining "what" | `// increment counter` above `count++`         | Delete the comment — the code is clear enough                            |
-| Comments explaining "why"  | `// Retry because the API is flaky under load` | Keep these — they carry intent the code can't express                    |
+| Pattern                    | Signal                                       | Simplification                                                           |
+| -------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| Generic names              | `data`, `result`, `temp`, `val`, `item`      | Rename to describe the content: `userProfile`, `validationErrors`        |
+| Abbreviated names          | `usr`, `cfg`, `btn`, `evt`                   | Use full words unless the abbreviation is universal (`id`, `url`, `api`) |
+| Misleading names           | Function named `get` that also mutates state | Rename to reflect actual behavior                                        |
+| Comments explaining "what" | `// increment counter` above `count++`       | Delete the comment — the code is clear enough                            |
 
 **Redundancy:**
 
