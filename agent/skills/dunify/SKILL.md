@@ -209,7 +209,7 @@ The baseline is the queue. Up to about 20,000 lines of source, run this step und
 Give each module in the map one owner delegate, in its own worktree, on a branch cut from the last accepted one. Order the modules by fewest importers first. Start together only modules with no import between them and no importer in common. Give each owner:
 
 - its rows, the language reference, the `check` command, the folder rule and the split order;
-- what done means. Every file of the module sits in its row's place, and a file that mixed two rows is split between them. Each of the module's baseline entries is fixed at its cause, so its counts are zero. The **no-comments** skill has passed on the module with no comment left open, and the violation under each directive it removed is fixed. `check` exits 0, and the work is committed.
+- what done means. Every file of the module sits in its row's place, and a file that mixed two rows is split between them. Each of the module's baseline entries is fixed at its cause, so its counts are zero, except a suppression directive the **no-comments** skill kept open with its issue. That skill has passed on the module, with no comment left behind. `check` exits 0, and the work is committed.
 
 The ledger, the gate rules, the `check` command and `CODING_STANDARDS.md` are yours alone. An owner edits its module's files and its baseline counts. Outside its module it changes only the lines that name a moved file, in the importers and in the build's module list, with one scripted rewrite. It reports any other change it needs in its answer. Make that change, then send the owner on.
 
