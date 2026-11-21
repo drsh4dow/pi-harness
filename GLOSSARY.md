@@ -165,7 +165,7 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011, 
   _Avoid_: DoD
 - **Definition of Done.** The standing project bar every change meets, whatever its task: tests pass, no regressions, behavior verified at runtime, docs updated. It adds to a task's acceptance criteria rather than replacing them.
 - **Approach.** How the work reaches the destination. The agent owns it, and it "is more malleable", because "things has to be adapted given the discoveries of unknowns".
-- **Spec.** The document that joins the destination, with its acceptance criteria, and the approach, for work that spans sessions. In the human's words, "the spec armonizes both".
+- **Spec.** The document that holds the destination, with its acceptance criteria and constraints, for work that spans sessions. It leaves the approach to whoever builds it.
 - **Grant.** The human's words, such as "run until done", that let the agent work without stopping for the rest of the session.
 - **Shared documents.** The three documents every role reads for the area it works in: the glossary for what a word means, the coding standards for the mechanical rules, and the ADRs for why the code is the way it is.
 - **Handoff PR.** A PR against trunk that the human reviews, one per piece of work unless a part must deploy or revert on its own. Not to be confused with a handoff note, which one session writes for the next.
