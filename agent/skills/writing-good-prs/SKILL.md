@@ -192,6 +192,7 @@ Write the body to a file and run these steps in order.
 
 Publish the same file with `scripts/publish-pr.ts create <body-file> --title "<title>"` or `scripts/publish-pr.ts edit <number> <body-file> --title "<title>"`, never with a bare `gh pr create --body-file` or `gh pr edit --body-file`. Both verbs take `--repo` and `--template`, `create` also takes `--base`, `--head`, and `--draft`, and `edit` also takes `--replace`. Pass `--draft` when step 2 says to keep the PR a draft. Keep the title out of the body file.
 
+- It writes the size line `diff-size` prints into the body, so the body file leaves it out.
 - It reruns check-body with the PR's changed files, for `create` the branch diff against the base, and publishes only after it exits 0. A body that changes a UI file, such as `.tsx` or `.css`, fails without a `| Before | After |` table or a `**Not checked:**` line that names the missing screenshots.
 - On `edit`, it keeps each `## ` section that the live body has and the file lacks, such as a plan a bot appended, after the section it followed in the live body, and prints `publish-pr: kept "## <heading>" from the live body` for each. To delete such a section on purpose, pass `--replace`, so the file replaces the live body whole, and say so in your report.
 - It reads the PR back and compares it with what it sent, ignoring line ends and trailing newlines. On a difference it prints the changed lines.

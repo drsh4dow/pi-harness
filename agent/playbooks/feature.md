@@ -16,7 +16,7 @@ when: "New or changed behavior, built from a named data shape: add or change a f
    - **Smallest safe decomposition.** If one worker is best, name why.
 5. Hand code-writing to a delegate with the named data shape and its organizing structure per **principle-model-the-domain** (a state machine over scattered booleans, a table/registry over branching, a typed model over repeated shape assumptions), chosen before the delegate writes logic, and the acceptance criteria. Pick each delegate's model alias and role for the job. Delegate via the **arena** skill instead only for a contested shape that is costly to undo. No "standing by" reply that waits on a nested agent. Comments per the comments rule in the system prompt. Surgical edits, re-ground against the source for upstream-derived files. Port shared-primitive improvements to all consumers and verify each. Commit liberally. The step is done when each delegate's work is committed on your branch.
 6. Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass. Flag it.
-7. Run one pass of `playbooks/code-simplification.md` over the whole diff that deletes what no acceptance criterion needs, commit it, and put `git diff --shortstat <base>...HEAD` from before and after it in the PR. Then rebase into small, ordered commits.
+7. Run one pass of `playbooks/code-simplification.md` over the whole diff that deletes what no acceptance criterion needs, and commit it. Then rebase into small, ordered commits.
    Use **principle-sequence-verifiable-units**, building, verifying, and committing each small unit before the next.
 8. If the design is contested, `interrogate` before shipping.
 9. Run **Opening a PR**.
