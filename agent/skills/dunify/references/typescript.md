@@ -81,7 +81,7 @@ Keep both sides of these pairs on, since one file passes both: `eslint/no-ternar
 
 ## Boundaries
 
-Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScript through the compiler API of TypeScript 6 and older. Under TypeScript 7 it cruises 0 modules and exits 0 unless `parser` is `"swc"`, so confirm its summary counts your modules. Write one `forbidden` rule per layout row, with the row's Imports column in `to.pathNot`. `$1` reuses the runtime directory that `from.path` captured, and the rule catches `import type` edges too. Run it as `depcruise src --output-type err-long`, which prints each rule's `comment` under its violation and exits with the violation count. The `client/` row in `.dependency-cruiser.json`, a format the ceiling does not lint:
+Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScript through the compiler API of TypeScript 6 and older. Under TypeScript 7 it cruises 0 modules and exits 0 unless `parser` is `"swc"`, so confirm its summary counts your modules. Write one `forbidden` rule per layout row, with the row's Imports column in `to.pathNot`. `$1` reuses the runtime directory that `from.path` captured, which is `src/` itself for a project with one runtime, and the rule catches `import type` edges too. Run it as `depcruise src --output-type err-long`, which prints each rule's `comment` under its violation and exits with the violation count. The `client/` row in `.dependency-cruiser.json`, a format the ceiling does not lint, holds for one runtime and for several:
 
 ```json
 {
@@ -90,8 +90,8 @@ Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScri
 			"name": "client-imports",
 			"severity": "error",
 			"comment": "client/ imports only primitives/ and shared/. Call client/ from a feature.",
-			"from": { "path": "^src/([^/]+)/client/" },
-			"to": { "path": "^src/", "pathNot": ["^src/$1/(client|primitives)/", "^src/shared/"] }
+			"from": { "path": "^(src/(?:(?!features/|client/|primitives/)[^/]+/|))client/" },
+			"to": { "path": "^src/", "pathNot": ["^$1(client|primitives)/", "^src/shared/"] }
 		}
 	],
 	"options": {
@@ -105,17 +105,22 @@ Install `dependency-cruiser` and `@swc/core`. dependency-cruiser parses TypeScri
 
 Add one rule that holds the edge file at every depth. `from.path` captures the importer's folders, one per group. The first `pathNot` entry allows a file directly in one of those folders, or the `index.ts` of a folder directly in one of them. The second allows a file directly in `features/`, `client/`, `primitives/` or `shared/`, or the edge file of a folder there, since the row rules judge those imports. Six folder levels below `src/` get a group each, and an import from deeper fails closed. dependency-cruiser refuses a quantifier inside a quantified group as an unsafe regex, so each optional part is written `(x|)`.
 
+dependency-cruiser pastes each captured folder name into `pathNot` as regex, and it has no escape. So `from.pathNot` skips an importer below a folder whose name holds a regex character, which would otherwise reject `[id]/page.ts` importing `./data.ts`. Imports from those folders go unchecked. Name folders with letters, digits, `-` and `_`. Where a framework names them, such as Next.js routes, each route file imports only edge files, and you list those folders in `CODING_STANDARDS.md` as checked by review.
+
 ```json
 {
 	"name": "edge-file",
 	"severity": "error",
 	"comment": "Import a folder from outside it only through its edge file, index.ts.",
-	"from": { "path": "^(src/)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)(.*/|)[^/]+$" },
+	"from": {
+		"path": "^(src/)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)(.*/|)[^/]+$",
+		"pathNot": "[\\[\\]()+*?^$|{}\\\\.][^/]*/"
+	},
 	"to": {
 		"path": "^src/",
 		"pathNot": [
 			"^$1(?:$2(?:$3(?:$4(?:$5(?:$6(?:$7(?:$8|)|)|)|)|)|)|)[^/]+(?:/index\\.tsx|/index\\.ts|)$",
-			"^src/(?:[^/]+/|)(?:features|client|primitives|shared)/[^/]+(?:/index\\.tsx|/index\\.ts|)$"
+			"^src/(?:(?!features/|client/|primitives/)[^/]+/|)(?:features|client|primitives|shared)/[^/]+(?:/index\\.tsx|/index\\.ts|)$"
 		]
 	}
 }
