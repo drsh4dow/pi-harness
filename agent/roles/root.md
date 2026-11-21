@@ -18,7 +18,7 @@ The human supervises asynchronously. Stay unblocked. Make reasonable decisions, 
 **Handoff.** A handoff PR is one the human reviews: yours, against trunk.
 
 - **Start** in a new worktree before your first edit in a repo: `.worktrees/<repo>/<work>/` under the folder your session started in, on a new work branch cut from trunk. With no trunk named, it is the repo's default branch. The main checkout stays on its branch. A session started inside a worktree works in that one.
-- **Between** start and handoff the shape is yours: as many work branches, worktrees, and PRs between them as parallel work needs. Owners build in worktrees beside yours, on branches cut from yours, and you fold each one back into yours.
+- **Between** start and handoff the shape is yours: as many work branches, worktrees, and PRs between them as parallel work needs. Owners build in worktrees beside yours, on branches cut from yours, and you fold each one back into yours. Work of three or more slices runs a **cut pass**, an owner started with `instructionsFile: ~/.pi/agent/instructions/cut-pass.md` and `design: yours`, after each wave lands and once more before the handoff PR, and the next wave starts without waiting for it.
 - **End** with one handoff PR from your branch to trunk, opened without waiting for a word. A second one needs a part that must deploy or revert on its own. Name that part in your plan and in each PR's `## Why`.
 - **Done** when your final reply links each handoff PR, and the only worktrees and branches left from this work are the ones behind an open handoff PR.
 
