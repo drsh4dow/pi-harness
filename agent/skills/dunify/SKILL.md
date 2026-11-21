@@ -35,7 +35,7 @@ Inside a runtime directory there are three names. A runtime carries only the one
 
 A runtime with neither `client/` nor `primitives/` holds its owned folders directly, with no `features/` level.
 
-Every folder inside a feature, a client or `primitives/`, at any depth, is a module with one edge file as its interface. Code outside a folder imports only that folder's edge file. The language reference names the edge file.
+Every folder inside a feature, a client or `primitives/`, at any depth, is a module with one edge file as its interface. Code outside a folder imports only that folder's edge file. The language reference names the edge file. A group of features is itself a feature, so when `features/` passes 20 entries, related features move into a folder with its own edge file and become its inner modules.
 
 Dune's tree is the worked example:
 
@@ -58,11 +58,11 @@ A runtime's **entry file** sits at the root of its runtime directory. It starts 
 
 A file holds at most 600 lines, and a folder holds at most 20 entries, counting the files and folders directly in it.
 
-**The folder rule.** A file at the cap becomes a folder named for its concept, with the old file as its edge file. It never becomes a suffixed sibling such as `report-utils.ts`. A folder at the cap groups its files into such folders, one per concept. The tests of an edge file count like any other file, and when they crowd the folder they go into folders named for the behavior they exercise.
+**The folder rule.** A file over the cap becomes a folder named for its concept. What its callers use moves to the folder's edge file, and its parts become modules inside. It never becomes a suffixed sibling such as `report-utils.ts`. A folder over the cap groups its files into such folders, one per concept. The tests of an edge file count like any other file, and when they crowd the folder they go into folders named for the behavior they exercise.
 
-**The split order.** Place each part of a file or folder at its cap by the first question that fits:
+**The split order.** Place each part of a file or folder over its cap by the first question that fits:
 
-1. Does it know no feature and no outside system? It goes to `primitives/`.
+1. Does it know no feature and no outside system, and own no state? It goes to `primitives/`.
 2. Does it write a durable value or know an outside system? It goes to `client/`.
 3. Is it a concept with its own interface? It becomes a sub-module, with its tests inside.
 4. Is the file one concept that the user granted an exception at the stop of step 2? It stays whole.
@@ -92,7 +92,7 @@ An exception to the file cap exists only when the user grants it at the stop of 
 
 No linter ships these four gates, so you build them:
 
-- **Boundaries** reject every import the layout map does not allow, and every import that reaches past a module's edge file, at any depth.
+- **Boundaries** reject every import the layout map does not allow, and every import from outside a module that reaches past its edge file, at any depth.
 - **Bans** reject an API that takes judgment to use well, such as an effect hook, a raw timer or a transport call. Each ban names one **owner**, the single file or folder allowed to use the API, and its message names the function to call instead. Write that function in the owner before you add the ban. A ban holds inside its owner's runtime directory, so its message never points across a boundary.
 - **The comment check** rejects every comment in a source file except a license header at the top of the file, a `#!` line on line 1 of a file and a `/// <reference` line. Doc comments and tool directives are comments too. Linter config files are exempt. Each `//` line is its own comment, so when you build the comment check, rewrite a license header of `//` lines as one block comment, which the rule passes whole.
 - **Width** fails when a folder under the source root holds more than 20 entries, and its message names the folder rule. Copy [`scripts/width.sh`](scripts/width.sh) into the repo, such as to `tools/width.sh`, and run it as `sh tools/width.sh size-limits.txt <source root>...`. It skips what git ignores, such as `__pycache__`, and fails with its usage when a root is missing. Commit `size-limits.txt` beside it. Each line raises the cap of one path, such as a folder of test data, and holds the path, its limit and the reason, split by spaces. A path with a space in it cannot be listed.
@@ -101,7 +101,7 @@ No linter ships these four gates, so you build them:
 
 ### 1. Read and measure
 
-For a new repo, ask the user for the language, the app kind, and any framework they have already picked. Pick none yourself. Stop until they answer.
+For a new repo, ask the user for the language, the app kind, and any framework they have already picked. Pick none yourself. Stop until they answer. A new repo stops twice, here and at step 2. An existing repo stops once, at step 2.
 
 Read the reference for each language the repo uses: [`references/typescript.md`](references/typescript.md), [`references/effect.md`](references/effect.md) when `effect` is a dependency, [`references/rust.md`](references/rust.md), [`references/python.md`](references/python.md), and [`references/other.md`](references/other.md) for any other language. Read [`references/ui.md`](references/ui.md) as well when the repo has a web UI.
 
@@ -112,9 +112,10 @@ For an existing repo, measure before you read. Get each of these from a command:
 - the commits of the last 90 days per module;
 - the build and test commands CI runs, whether each passes on the untouched tree, and how long each takes;
 - each folder the width gate fails and each file over the cap, with the nominations of [SHALLOW-SIGNALS.md](../codebase-design/SHALLOW-SIGNALS.md) for each;
-- the violations of each rule with the ceiling, the size rules, the comment check and the width gate on, counted per rule, from a scratch config outside the repo.
+- the violations of each rule with the ceiling, the size rules, the comment check and the width gate on, counted per rule, from a scratch config outside the repo;
+- what each question a language reference asks the user needs, such as a missing schema library or a dependency advisory.
 
-Stop and tell the user when the build or the tests fail or cannot run on this machine, since no move can be checked against a red tree. A green CI run of the same commit counts as a pass.
+When the build or the tests fail or cannot run on this machine, end the run and tell the user, since no move can be checked against a red tree. A green CI run of the same commit counts as a pass.
 
 Past about 20,000 lines of source, one agent cannot read the repo and one branch cannot carry the change. Read [`references/large-repo.md`](references/large-repo.md) now and follow it through every step.
 
@@ -141,9 +142,10 @@ Under the map, list:
 - **The bans**, each with its API, its owner and its message. For an existing repo, seed them from mistakes that happened twice, found the way the **correct** skill finds mistake classes, and then from the language reference. For a new repo, seed them from the language reference. Propose a ban only for an API the code calls today or the first feature will call, so every owner has a caller. A mistake that is a missing call is no ban. List it under the five rules as a gap.
 - **The hot spots**, one per registry. Where the stack discovers files in one line, such as a glob import, plan to replace the registry with it. A registry stays when the compiler rejects a missing entry, or when the stack has no such discovery, and is named here.
 - **The five rules**, each with the row or gate that upholds it. A rule with none is a gap, and you say so.
-- **The rules off.** List the rules from the installed tool, since any list written down is already stale. Settle each collision yourself with files that prove it, kept outside the repo, before any auto-fix runs, since a fix settles a collision by deleting code. Then list every other rule you want off with its count from step 1, what it flags here and your pick, and each file over the cap that is one concept as an exception. End with the count of every rule that stays on, which the burn-down fixes.
+- **The rules off.** List the rules from the installed tool, since any list written down is already stale. Settle each collision yourself with files that prove it, kept outside the repo, before any auto-fix runs, since a fix settles a collision by deleting code. Then list every other rule you want off with its count from step 1, what it flags here and your pick, and each file over the cap that is one concept as an exception, with its line count. End with the step 1 count of every rule that stays on. The burn-down fixes those, and the boundary and ban violations the baseline finds in step 4.
+- **The questions** each language reference asks the user, with your pick.
 
-Show all of it to the user in one message and stop. Done when the user approves the map, the bans and the rules off. No later step stops for the user.
+Show all of it to the user in one message and stop. Done when the user approves the map, the bans, the rules off and the questions. No later step stops for the user.
 
 ### 3. Raise the ceiling and build the gates
 
@@ -169,7 +171,7 @@ rule:
 
 `ast-grep scan --rule <file> <source root>` exits 1 on a match. The first exclusion lets a `/// <reference` line pass. The second lets a license header pass only at the top of the file. The language reference gives the `language` and the comment kinds.
 
-Every message names the owner, the edge file, the folder rule or the function to use. For each gate, write a fixture that breaks it and a test that expects the gate to fail on the fixture. Keep both, with the fixtures outside every path the check scans. Where a gate matches by path, the test copies the fixture into that path and removes it afterward.
+Every message names the owner, the edge file, the folder rule or the function to use. Where the tool prints its own text, such as rustc's `E0603`, `CODING_STANDARDS.md` pairs that text with the fix. For each gate, write a fixture that breaks it and a test that expects the gate to fail on the fixture. Keep both, with the fixtures outside every path the check scans. Where a gate matches by path, the test copies the fixture into that path and removes it afterward.
 
 Done when every stable rule is on, every rule that is off has its line in the ledger, and each gate has failed on its fixture in a real run, with its message in the output.
 
@@ -196,29 +198,29 @@ Write two files with the **writing-for-agents** skill:
 
 When an `AGENTS.md` already exists, move its instructions into `CODING_STANDARDS.md`, and delete each line that a gate now enforces or that a config file already states.
 
-Done when `check` exits 0 on a clean checkout after its install step, fails after you add one violation of a baselined rule, and the work is committed.
+Done when `check` exits 0 on a clean checkout after its install step, fails after you add one violation of a baselined rule, or of any rule in a new repo, and the work is committed.
 
 ### 5. Burn the baseline down
 
 Skip this step for a new repo.
 
-The baseline is the queue. Up to about 20,000 lines of source, run this step under `playbooks/autonomous-run.md`, with this step's done line as the exit condition. Past that, run it under `playbooks/orchestrate.md`, with the slices of `references/large-repo.md`.
+The baseline is the queue. Up to about 20,000 lines of source, run this step under `playbooks/autonomous-run.md`, with this step's done line as the exit condition. Past that, run it under `playbooks/orchestrate.md`, with the slices of `references/large-repo.md`. That playbook keeps you off code, so give each edit this step calls yours to one **integration owner**. It alone writes the shared files and the branch that collects accepted work, rebases each branch you accept onto it, replaces the registries and runs the copy scan. You still read each diff and run `check` before you accept it.
 
 Give each module in the map one owner delegate, in its own worktree, on a branch cut from the last accepted one. Order the modules by fewest importers first. Start together only modules with no import between them and no importer in common. Give each owner:
 
 - its rows, the language reference, the `check` command, the folder rule and the split order;
-- what done means. Every file of the module sits in its row's place, and a file that mixed two rows is split between them. Each of the module's baseline entries is fixed at its cause, so its counts are zero. The **no-comments** skill has run on the module. `check` exits 0, and the work is committed.
+- what done means. Every file of the module sits in its row's place, and a file that mixed two rows is split between them. Each of the module's baseline entries is fixed at its cause, so its counts are zero. The **no-comments** skill has passed on the module with no comment left open, and the violation under each directive it removed is fixed. `check` exits 0, and the work is committed.
 
-The ledger, the gate rules, the `check` command and `CODING_STANDARDS.md` are yours alone. An owner edits its module's files and its baseline counts. Outside its module it changes only the lines that name a moved file, in the importers and in the build's module list, with one scripted rewrite. It reports any other change it needs in its answer.
+The ledger, the gate rules, the `check` command and `CODING_STANDARDS.md` are yours alone. An owner edits its module's files and its baseline counts. Outside its module it changes only the lines that name a moved file, in the importers and in the build's module list, with one scripted rewrite. It reports any other change it needs in its answer. Make that change, then send the owner on.
 
-An owner's answer is a claim. Read its diff and run `check` on its branch before you accept it, and rebase each accepted branch onto the one before it. Replace each registry the map plans to replace. An issue the **no-comments** skill files for an excuse joins the queue.
+An owner's answer is a claim. Read its diff and run `check` on its branch before you accept it, and rebase each accepted branch onto the one before it. Replace each registry the map plans to replace. An issue the **no-comments** skill files for an excuse joins the queue, and an owner fixes it like a baseline entry.
 
-No suppression, no rule turned off and no cap raised without the user. For a question that comes up after the stop, pick the answer that keeps every rule on, carry it out, and record the question and your pick in `USER_ACTION_ITEMS.md`.
+Settle a collision you prove at any time, as the ceiling says, with its proof files, its ledger line and a line in `USER_ACTION_ITEMS.md`. Every other rule stays as the user approved it: no suppression, no rule turned off, no cap raised and no new exception. A file over the cap without an exception gets the folder rule. For any other question that comes up after the stop, pick the answer that keeps every rule on, carry it out, and record the question and your pick in `USER_ACTION_ITEMS.md` for the user to review.
 
 Once every module has moved, run the **copy scan** once over the source root:
 
-- each name declared at the top level in two or more owners, meaning features, client modules and `primitives/`, where the texts look alike;
-- each clone of 30 tokens or more from `npx jscpd --min-tokens 30 --reporters json --output <scratch folder> <source root>` whose two sides sit in different owners, leaving out clones of import lines.
+- each name declared at the top level in two or more of the features, the client modules and `primitives/`, where the texts look alike;
+- each clone of 30 tokens or more from `npx jscpd@5.4.3 --min-tokens 30 --reporters json --output <scratch folder> <source root>` whose two sides sit in two of them, leaving out clones of import lines.
 
 A hit nominates. Read both sides, and give each real copy one home by the split order, with every caller pointed at it. Most real copies belong to a client, not to `primitives/`.
 
@@ -230,4 +232,4 @@ Delete the baseline files and the budget script, and make `check` run each tool 
 
 Done when `check` exits 0 on a clean checkout and the work is committed.
 
-**Reply:** the layout map as built, the ledger with each reason, each rule's count at step 1 beside its count now, each real copy with its home, the registries that stay, and what `USER_ACTION_ITEMS.md` holds. Name the next skills: **correct** whenever the user corrects an agent, and **create-verification-skill** to prove behavior at runtime.
+**Reply:** the layout map as built, the ledger with each reason, for an existing repo each rule's count at step 1 and each gate's count at step 4 beside its count now, each real copy with its home, the registries that stay, and what `USER_ACTION_ITEMS.md` holds. Name the next skills: **correct** whenever the user corrects an agent, and **create-verification-skill** to prove behavior at runtime.
