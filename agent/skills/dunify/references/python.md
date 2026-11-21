@@ -1,10 +1,10 @@
 # Python
 
-The dunify reference for Python, used in steps 3 to 5 of [`../SKILL.md`](../SKILL.md). Checked on ruff 0.17.5, basedpyright 1.40.2, import-linter 2.16, ast-grep 0.51.3 and uv 0.13.8.
+The dunify reference for Python, used in steps 3 to 5 of [`../SKILL.md`](../SKILL.md). Checked on ruff 0.17.6, basedpyright 1.40.2, import-linter 2.17, ast-grep 0.51.3 and uv 0.13.8.
 
 ## Source root and edge file
 
-The source root is `src/<package>/` and a feature's edge file is its `__init__.py`. A runtime directory is a subpackage, such as `src/app/server/`. Runtimes that deploy apart become uv workspace members at `packages/<runtime>/src/<runtime>/`, with the contract as one more member. Re-export a feature's names from its edge file through `__all__`, which ruff and basedpyright both accept, and import those names. `from app.server.features.billing import total` records an import of `billing.total` when `total` is a module, and the boundary gate rejects it.
+The source root is `src/<package>/` and a feature's edge file is its `__init__.py`. A runtime directory is a subpackage, such as `src/app/server/`. Runtimes that deploy apart become uv workspace members at `packages/<runtime>/src/<runtime>/`, with the contract as one more member. Re-export a feature's names from its edge file through `__all__`, which ruff and basedpyright both accept, and import those names. Inside a feature, a client module or `primitives/`, name every module and package but the edge file with a leading underscore, such as `_summary.py` or `_totals/`, at every depth. `from app.server.features.billing import total` records an import of `billing.total` when `total` is a module, and the boundary gate rejects it.
 
 ## Ceiling
 
@@ -14,6 +14,7 @@ select = ["ALL"]
 ignore = [
 	"COM812", # collision: ruff format writes code COM812 rejects
 	"D", # collision: the comment check rejects every docstring
+	"PLR0915", # the user's standing choice
 ]
 flake8-bandit.check-typed-exception = true
 flake8-implicit-str-concat.allow-multiline = false
@@ -26,6 +27,7 @@ typeCheckingMode = "all"
 - Put this in `pyproject.toml` and pin every tool exactly in the `dev` dependency group, since `ALL` gains rules on each ruff upgrade. `ALL` holds every plugin ruff implements, framework groups such as `DJ`, `FAST` and `PD` included. Leave `preview` unset.
 - List ruff's rules with `uv run ruff rule --all --output-format json` and keep the entries whose `status` key is `Stable`, because `"preview": false` also matches removed rules. `uv run ruff check --show-settings` prints the resolved set under `linter.rules.enabled`.
 - basedpyright has no command that lists rules. `all` sets every rule in the table on its configuration docs page to error, except the ones that table marks discouraged.
+- `PLR0915` is the only rule that caps a function's statements, and no rule caps its lines or a module's lines. `C901`, `PLR0912`, `PLR0913`, `PLR0917` and `PLR0911` stay on at their defaults, 10, 12, 5, 5 and 6. The nesting rule `PLR1702` is preview, so the ceiling has no nesting cap. The check holds the file cap with `find src -name '*.py' -exec awk 'FNR == 601 { print FILENAME " is over 600 lines. Apply the folder rule."; bad = 1; nextfile } END { exit bad }' {} +`.
 - `CPY001` is stable and wants a `# Copyright <year> <owner>` line atop every file, empty `__init__.py` included. An SPDX line alone fails it.
 
 ## Known collisions
@@ -55,11 +57,7 @@ contracts = [
 		"(client)",
 		"(primitives)",
 	] },
-	{ name = "Features meet at edge files", type = "independence", modules = [
-		"app.*.features.*",
-	], ignore_imports = [
-		"app.*.features.** -> app.*.features.*",
-	], unmatched_ignore_imports_alerting = "none" },
+	{ name = "Inner modules stay inside their parent", type = "private_modules" },
 	{ name = "Primitives import nothing from the app", type = "forbidden", source_modules = [
 		"app.*.primitives",
 	], forbidden_modules = [
@@ -75,8 +73,8 @@ contracts = [
 ```
 
 - `uv run lint-imports` exits 1 when a contract breaks. It counts imports under `if TYPE_CHECKING:`, so runtimes stay apart for types too.
-- Parentheses mark a layer optional, so a runtime may lack one. The edge-file ignore needs `unmatched_ignore_imports_alerting = "none"`, or the contract fails while no feature imports another.
-- For a runtime that holds its owned folders directly, put `app.<runtime>.*` in the edge-file contract, add `app.<runtime>.** -> app.<runtime>.*` to its ignores, and keep it out of the layers contract. For a single runtime, the container is `app` and the first contract goes.
+- Parentheses mark a layer optional, so a runtime may lack one. For a runtime that holds its owned folders directly, keep it out of the layers contract. For a single runtime, the container is `app` and the first contract goes.
+- `private_modules` lets only a module's parent package and that package's descendants import a module whose name starts with `_`, which holds every edge file at every depth. A feature, a client module and a contract keep plain names, so the other contracts judge those imports.
 - In a uv workspace, list every member in `root_packages` in place of `root_package`, and run `lint-imports` from the workspace root.
 
 ## Bans
@@ -125,10 +123,10 @@ Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned versi
 ## Baseline
 
 - basedpyright has one. `uv run basedpyright --writebaseline` writes `.basedpyright/baseline.json` and exits 1 on the run that records new errors. A normal run fails on a new error and rewrites the file when errors fall, so the check runs `git diff --exit-code .basedpyright/baseline.json` after it.
-- Ruff has none, and `--add-noqa` writes suppression directives. The budget script reads `uv run ruff check --output-format json --exit-zero` and replaces `ruff check .` in the check. Each entry has `code` and `filename`, an absolute path to make relative.
+- Ruff has none, and `--add-noqa` writes suppression directives. The budget script reads `uv run ruff check --output-format json --exit-zero` and the file cap command's lines, and replaces `ruff check .` and the file cap command in the check until the burn-down ends. Each entry has `code` and `filename`, an absolute path to make relative.
 - The comment check uses the budget script too. `uv run ast-grep scan --rule no-comments.yml --json=stream src tests` prints one object per line with `file` and `ruleId`, and exits 1 while matches remain.
 - import-linter baselines a violation as an `ignore_imports` entry in its contract. The default alerting fails once that import is gone, so the list only shrinks.
 
 ## Check command
 
-`uv check` runs ty, not this stack. Where the repo has no task runner, add a `Makefile` whose `check` target runs, in order: `uv run ruff format --check .`, `uv run ruff check .`, `uv run basedpyright`, `uv run lint-imports`, `uv run ast-grep scan --rule no-comments.yml src tests`, and `uv run pytest -q`. Keep gate fixtures in a top-level `gate_fixtures/`, listed in ruff's `extend-exclude` and basedpyright's `exclude`. Each gate test runs its tool on the fixture by path, such as `ruff check --select TID251 gate_fixtures/ban.py`. import-linter reads only the installed package, so the boundary test copies its fixture into `src/` and deletes it afterward.
+`uv check` runs ty, not this stack. Where the repo has no task runner, add a `Makefile` whose `check` target runs, in order: `uv run ruff format --check .`, `uv run ruff check .`, `uv run basedpyright`, `uv run lint-imports`, `uv run ast-grep scan --rule no-comments.yml src tests`, the file cap command, `sh tools/width.sh width-exempt.txt src`, and `uv run pytest -q`. Keep gate fixtures in a top-level `gate_fixtures/`, listed in ruff's `extend-exclude` and basedpyright's `exclude`. Each gate test runs its tool on the fixture by path, such as `ruff check --select TID251 gate_fixtures/ban.py`. import-linter reads only the installed package, so the boundary test copies its fixture into `src/` and deletes it afterward.
