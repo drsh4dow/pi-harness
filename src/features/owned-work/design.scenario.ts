@@ -136,9 +136,9 @@ scenario({
 			yield* run.check(
 				sentAll(
 					levelThree,
-					"Your design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.",
+					"Your design is yours to settle as you build. Run the `architect` skill first for a one-way-door shape (a schema, a wire format, or an interface another slice builds on) or when your task asks for it.",
 				),
-				"every request of the level-3 owner says its design is its own, with architect only for a one-way door",
+				"every request of the level-3 owner says its design is its own, with architect for a one-way door or when its task asks",
 			);
 			yield* run.check(
 				wake.details.outcome.status === "done" && answer === "4",
