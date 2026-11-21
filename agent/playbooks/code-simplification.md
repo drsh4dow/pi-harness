@@ -8,7 +8,7 @@ when: "Before a commit, or code works but is hard to read or maintain: asked to 
 
 ## Overview
 
-Simplify code by reducing complexity while preserving exact behavior. The goal is not fewer lines — it's code that is easier to read, understand, modify, and debug. Every simplification must pass a simple test: "Would a new team member understand this faster than the original?"
+Simplify code by reducing complexity while preserving exact behavior. Deletion is the first tool. Between two forms of the same size, readability decides. Every simplification must pass a simple test: "Would a new team member understand this faster than the original?"
 
 ## When to Use
 
@@ -98,7 +98,7 @@ Simplification has a failure mode: over-simplification. Watch for these traps:
 - **Inlining too aggressively** — removing a helper that gave a concept a name makes the call site harder to read
 - **Combining unrelated logic** — two simple functions merged into one complex function is not simpler
 - **Removing "unnecessary" abstraction** — some abstractions exist for extensibility or testability, not complexity
-- **Optimizing for line count** — fewer lines is not the goal; easier comprehension is
+- **Compressing instead of deleting.** Fewer lines come from removing logic, not from packing the same logic into denser lines
 
 ### 5. Scope to What Changed
 
