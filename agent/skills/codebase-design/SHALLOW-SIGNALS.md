@@ -1,6 +1,6 @@
 # Shallow signals
 
-Four signals that nominate shallow modules and the groups a wide folder should split into. Assumes the vocabulary in [SKILL.md](SKILL.md). Single importer and hub read the import graph, from the repo's import graph tool, such as `depcruise src --output-type json`, or from the build tool. Name-stem sibling and concept count read only file names.
+Four signals that nominate shallow modules and the groups a wide folder should split into. Assumes the vocabulary in [SKILL.md](SKILL.md). Single importer and hub read the import graph, from the repo's import graph tool, such as `depcruise src --output-type json` from the `dependency-cruiser` package, or from the build tool. Run the binary the repo installed, since `npx depcruise` with none installed fetches an unrelated package of that name. Name-stem sibling and concept count read only file names.
 
 | Signal                                                                                                 | What it nominates                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

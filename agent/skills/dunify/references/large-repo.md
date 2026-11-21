@@ -22,7 +22,7 @@ Done when every area has answered, and the code that issues each durable value's
 
 Draw the rows for each runtime directory and each contract edge in full. Give each slice one row. Its owner draws the slice's inner rows in step 5, by the folder rule and the split order. Source that the build leaves out gets a row with the user's choices, which are to delete it or to bring it into the build.
 
-Under the map, add the **slice plan**. Each line names one slice, its lines of source, its commits of the last 90 days, the slices it imports, the slices that import it, and its build and test command. A move changes the import lines of every importer, so order the plan by fewest importers first.
+Under the map, add the **slice plan**. Each line names one slice, its lines of source, its commits of the last 90 days, the slices it imports, the slices that import it, and its build and test command. Order the plan as step 5 of `SKILL.md` orders the modules.
 
 Put the **pilot** first. The pilot is a slice of a few thousand lines with at most one importer and few recent commits. It writes a durable value, and it crosses a contract edge where the repo has one, so it meets every gate. Draw its inner rows in full.
 

@@ -131,7 +131,7 @@ Add `ast-grep-cli` to the `dev` group so `uv run ast-grep` runs the pinned versi
 - basedpyright has one. `uv run basedpyright --writebaseline` writes `.basedpyright/baseline.json` and exits 1 on the run that records new errors. A normal run fails on a new error and rewrites the file when errors fall, so the check runs `git diff --exit-code .basedpyright/baseline.json` after it.
 - Ruff has none, and `--add-noqa` writes suppression directives. The budget script reads `uv run ruff check --output-format json --exit-zero` and the file cap command's lines, and replaces `ruff check .` and the file cap command in the check until the burn-down ends. Each entry has `code` and `filename`, an absolute path to make relative.
 - The comment check uses the budget script too. `uv run ast-grep scan --rule no-comments.yml --json=stream src tests` prints one object per line with `file` and `ruleId`, and exits 1 while matches remain.
-- import-linter baselines a violation as an `ignore_imports` entry in its contract. The default alerting fails once that import is gone, so the list only shrinks.
+- import-linter baselines a violation as an `ignore_imports` entry in its contract. The default alerting fails once that import is gone, so the list only shrinks. It names modules by dotted path, and `.basedpyright/baseline.json` and the budget script's counts key by file path, so a move renames the file in all three.
 
 ## Check command
 
