@@ -60,7 +60,7 @@ const designLine = Design.match({
 	Sketch: ({ path }) =>
 		`Build to the sketch ${path}. Where the code shows a smaller shape that meets the same acceptance criteria, build that, and say in your answer what the sketch got wrong.`,
 	Yours: () =>
-		"Your design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.",
+		"Your design is yours to settle as you build. Run the `architect` skill first for a one-way-door shape (a schema, a wire format, or an interface another slice builds on) or when your task asks for it.",
 });
 
 const reviewText = (pr: string, head: string) =>

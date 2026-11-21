@@ -128,7 +128,7 @@ test.each(preambleRows)("$name", (row) => {
 	expect(composed(options({ customPrompt: row.shared }), row.layers).customPrompt).toBe(row.expect);
 });
 
-test("an owner handed its own design reads that it settles the shape, with architect only for a one-way door", () => {
+test("an owner handed its own design reads that it settles the shape, with architect for a one-way door or when its task asks", () => {
 	const brief = {
 		role: "owner",
 		goal: "Cap the retries.",
@@ -142,7 +142,7 @@ test("an owner handed its own design reads that it settles the shape, with archi
 	} as const;
 
 	expect(briefBlocks(brief)).toBe(
-		"<work>\nThe user's goal: Cap the retries.\nYour design is yours to settle as you build. Run the `architect` skill first only for a one-way-door shape: a schema, a wire format, or an interface another slice builds on.\n</work>",
+		"<work>\nThe user's goal: Cap the retries.\nYour design is yours to settle as you build. Run the `architect` skill first for a one-way-door shape (a schema, a wire format, or an interface another slice builds on) or when your task asks for it.\n</work>",
 	);
 });
 
