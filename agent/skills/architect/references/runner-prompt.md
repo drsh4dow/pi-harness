@@ -10,7 +10,7 @@ Apply the following discipline. The orchestrator compares candidates on these ax
 - Data structures first. Get the core types right and the code becomes obvious. Trace each dominant access pattern through the proposed structure. If the answer is "we'll add a map / index / cache later," the structure is wrong.
 - Interface depth. Compare the capability hidden behind the public surface relative to the size of that surface. Prefer a simple interface that pulls complexity into the callee, even when the implementation becomes less simple. Do not put transport or wire types on the public API. Parse into domain types behind the interface.
 - Shared state: if two actors might both write, ask "what happens?" If the answer isn't "nothing," default to per-actor state with a merge at the read boundary, per principle-separate-before-serializing-shared-state.
-- Make boundaries visible. `not implemented` errors for bodies and `// TODO` pseudocode for tricky logic. A reader should trace data from input to output by reading types and signatures alone.
+- Make boundaries visible. `not implemented` errors for bodies, with the pseudocode for tricky logic in the error's message. A reader should trace data from input to output by reading types and signatures alone.
 - Encode invariants in types: hard-to-misuse types > runtime checks > prose comments, per principle-encode-lessons-in-structure.
 - Validate at boundaries, trust types inside, per principle-boundary-discipline. Business logic as pure functions. The shell stays thin.
 - Single source of truth per invariant. Derive instead of sync.
