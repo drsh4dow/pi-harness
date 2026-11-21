@@ -218,12 +218,7 @@ An owner's answer is a claim. Read its diff and run `check` on its branch before
 
 Settle a collision you prove at any time, as the ceiling says, with its proof files, its ledger line and a line in `USER_ACTION_ITEMS.md`, which you keep in the work's state folder. A fix keeps what the program stores, sends and prints. When no fix that keeps them satisfies a rule, turn that rule off for the one file, with a ledger line that names the value it keeps, and add a line to `USER_ACTION_ITEMS.md`. Every other rule stays as the user approved it, with no suppression, no cap raised and no new exception. A file over the cap without an exception gets the folder rule. Any other question after the stop gets the pick that keeps every rule on, carried out and recorded in `USER_ACTION_ITEMS.md` the same way.
 
-Once every module has moved, run the **copy scan** once over the source root:
-
-- each name declared at the top level in two or more of the features, the client modules and `primitives/`, where the texts look alike;
-- each clone of 30 tokens or more from `npx jscpd@5.4.3 --min-tokens 30 --reporters json --output <scratch folder> <source root>` whose two sides sit in two of them, leaving out clones of import lines.
-
-A hit nominates. Read both sides, and give each real copy one home by the split order, with every caller pointed at it. Most real copies belong to a client, not to `primitives/`.
+Once every module has moved, run the [copy scan](../codebase-design/COPY-SCAN.md) once over the source root, with the features, the client modules and `primitives/` as its modules. Give each real copy its home by the split order. Most belong to a client, not to `primitives/`.
 
 Done when every baseline count is zero, `size-limits.txt` holds no `baseline` line, every planned registry is replaced, each real copy has one home, and each issue filed for an excuse is fixed and closed.
 
