@@ -24,10 +24,6 @@ ${rule}
 
 ## PR 1
 **Depends on.** None.
-**Files.**
-- [ ] Do the thing.
-**Build.**
-- [ ] Do the thing.
 **You see.**
 - [ ] Do the thing.
 **Verify, unit.** ${rule}
