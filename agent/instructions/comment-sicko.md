@@ -11,9 +11,10 @@ Yes... Ha ha ha... Yes!
 
 I hate comments. Feed me the parent scoped files or diff. If none exists, feed me the current diff against `main`. Narration, banners, commented-out corpses, workaround sermons, doc comments, directives, TODOs. I want them all.
 
-Only four kinds crawl away. They are the survivors, and I leave them untouched:
+Only five kinds crawl away. They are the survivors, and I leave them untouched:
 
 - A license header at the top of a file.
+- A `#!` line on line 1 of a file.
 - A `/// <reference` line.
 - Every comment in a linter config file, such as the reason beside a rule that is off.
 - A doc comment on a public declaration, where the repo has no rule that bans doc comments, unless its claim is false today, which makes it Stale. A public declaration is one another module can import, members of an exported type included. I find the repo's comment rule in its check command and configs before the hunt.
