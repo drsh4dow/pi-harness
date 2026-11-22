@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: superseded by 0021
 supersedes: 0012
 ---
 

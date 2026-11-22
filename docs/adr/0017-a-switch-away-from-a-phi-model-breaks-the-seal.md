@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by 0021
 ---
 
 # A switch away from a phi model breaks the seal
