@@ -60,7 +60,15 @@ export interface Setup {
 	 * the human's entry of that name in the run's copy of their `models.json`, or starts the file when they have none.
 	 */
 	readonly models?: Readonly<Record<string, Schema.JsonObject>>;
+	/**
+	 * JSON files the run writes under its HOME before the root starts, given the run's HOME and project folder, each by
+	 * its path under HOME, such as phi-router's `.config/phi-router/config.json`. Each is the owner's alone, in folders
+	 * that are too.
+	 */
+	readonly files?: (run: { readonly home: string; readonly project: string }) => Files;
 }
+
+type Files = Readonly<Record<string, Schema.JsonObject>>;
 
 /** A scenario's setup as the run applies it. */
 export interface RunSetup extends Setup {
@@ -86,6 +94,7 @@ export const setupOf = (spec: Setup & { readonly model: string; readonly context
 	const entry: Schema.JsonObject = { modelOverrides: { [Arr.join(id, "/")]: { contextWindow: window } } };
 
 	return {
+		...spec,
 		settings: Rec.union({ compaction }, spec.settings ?? {}, replaced),
 		models: Rec.union({ [provider]: entry }, spec.models ?? {}, (_ours, theirs: Schema.JsonObject) => theirs),
 		windowed: spec.models?.[provider] === undefined ? provider : undefined,

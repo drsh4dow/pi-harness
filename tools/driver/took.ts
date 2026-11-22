@@ -7,6 +7,7 @@ import * as Predicate from "effect/Predicate";
 import * as Rec from "effect/Record";
 import * as Schedule from "effect/Schedule";
 import type * as Schema from "effect/Schema";
+import * as Str from "effect/String";
 
 import { type ScenarioFailed, SetupFailed } from "./failed.ts";
 import { isJsonArray, type Loaded } from "./probe.ts";
@@ -45,6 +46,17 @@ const fieldsOf = ([key, value]: readonly [string, Schema.Json]) => {
 		: [key];
 };
 
+/** The top-level settings keys the driver confirms: `compaction` by its fields, `packages` by what pi loaded from each. */
+const confirmedKeys = new Set(["compaction", "packages"]);
+
+/** Pure. Each local package a `packages` setting names, by its path, that no loaded extension comes from. */
+const unloadedOf = (settings: Schema.JsonObject, extensions: ReadonlyArray<string>) => {
+	const named = settings["packages"];
+	const packages = named !== undefined && isJsonArray(named) ? Arr.filter(named, Predicate.isString) : [];
+
+	return Arr.filter(packages, (folder) => !Arr.some(extensions, Str.startsWith(`${folder}/`)));
+};
+
 /** Pure. Whether a JSON value sets `contextWindow` at any depth. */
 const setsWindow = (value: Schema.Json): boolean => {
 	if (isJsonArray(value)) {
@@ -60,12 +72,14 @@ const setsWindow = (value: Schema.Json): boolean => {
 /**
  * Pure. Each thing the run asked that the root's pi, by its probe's record, does not run on, or that the record cannot
  * confirm. pi drops a `models.json` it rejects without a word, so a setup with `models` counts any error pi reports
- * for that file. The root's context window is confirmed only as `contextWindow`, so a window in `models` is refused.
+ * for that file. The root's context window is confirmed only as `contextWindow`, so a window in `models` is refused. A
+ * package the setup names counts as taken once the root loaded an extension from its folder.
  */
 export const unmetOf = ({ asked, loaded }: { readonly asked: Asked; readonly loaded: Loaded }) => {
 	const window = asked.contextWindow ?? loaded.contextWindow;
 	const settings = Rec.toEntries(asked.setup.settings ?? {});
-	const others = Arr.filter(settings, ([key]) => key !== "compaction");
+	const others = Arr.filter(settings, ([key]) => !confirmedKeys.has(key));
+	const unloaded = unloadedOf(asked.setup.settings ?? {}, loaded.extensions);
 	const unconfirmed = Arr.filter(Arr.flatMap(settings, fieldsOf), (path) => !confirmable.has(path));
 	const missed = Arr.filter(settings, ([key, value]) => !Equal.equals(loaded.settings[key], value));
 	const dropped = asked.setup.models === undefined ? Option.none() : loaded.modelsError;
@@ -78,7 +92,8 @@ export const unmetOf = ({ asked, loaded }: { readonly asked: Asked; readonly loa
 			: [`its context window is ${String(loaded.contextWindow)}, not ${String(window)}`]),
 		...Arr.map(Option.toArray(dropped), (error) => `it dropped models.json: ${error}`),
 		...Arr.map(missed, ([key]) => `its settings key ${key} is not the one set`),
-		...Arr.map(others, ([key]) => `the driver confirms only the settings key compaction, not ${key}`),
+		...Arr.map(unloaded, (folder) => `it loaded no extension from the package ${folder}`),
+		...Arr.map(others, ([key]) => `the driver confirms only the settings keys compaction and packages, not ${key}`),
 		...Arr.map(
 			unconfirmed,
 			(path) => `the driver cannot confirm the setting ${path}, only ${Arr.join([...confirmable], ", ")}`,

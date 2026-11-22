@@ -47,7 +47,7 @@ const rows: ReadonlyArray<{
 		name: "a settings key the record cannot confirm is refused, even when the record shows it",
 		asked: { setup: { settings: { compaction, contextWindow: 40_000 } } },
 		loaded: { settings: { compaction, contextWindow: 40_000 } },
-		expected: ["the driver confirms only the settings key compaction, not contextWindow"],
+		expected: ["the driver confirms only the settings keys compaction and packages, not contextWindow"],
 	},
 	{
 		name: "a compaction field pi does not read is refused",
@@ -61,13 +61,13 @@ const rows: ReadonlyArray<{
 		name: "an unknown setting set to an empty object is refused",
 		asked: { setup: { settings: { compaction, bogusSetting: {} } } },
 		loaded: { settings: { compaction, bogusSetting: {} } },
-		expected: ["the driver confirms only the settings key compaction, not bogusSetting"],
+		expected: ["the driver confirms only the settings keys compaction and packages, not bogusSetting"],
 	},
 	{
 		name: "a dotted top-level key is refused, though pi records it as set",
 		asked: { setup: { settings: { "compaction.enabled": false } } },
 		loaded: { settings: { compaction, "compaction.enabled": false } },
-		expected: ["the driver confirms only the settings key compaction, not compaction.enabled"],
+		expected: ["the driver confirms only the settings keys compaction and packages, not compaction.enabled"],
 	},
 	{
 		name: "a context window given only through models is refused",
@@ -81,6 +81,24 @@ const rows: ReadonlyArray<{
 		name: "a root with no core socket misses the run's core",
 		loaded: { socket: Option.none() },
 		expected: [`it starts delegates in no core, not the run's ${socket}`],
+	},
+	{
+		name: "a package the root loaded an extension from is taken",
+		asked: { setup: { settings: { compaction, packages: ["/r/phi-router"] } } },
+		loaded: {
+			settings: { compaction, packages: ["/r/phi-router"] },
+			extensions: ["/r/phi-router/plugins/pi/extension.mjs"],
+		},
+		expected: [],
+	},
+	{
+		name: "a package the root loaded nothing from is a miss, even when a sibling folder shares its prefix",
+		asked: { setup: { settings: { compaction, packages: ["/r/phi-router"] } } },
+		loaded: {
+			settings: { compaction, packages: ["/r/phi-router"] },
+			extensions: ["/r/phi-router-old/plugins/pi/extension.mjs"],
+		},
+		expected: ["it loaded no extension from the package /r/phi-router"],
 	},
 	{
 		name: "a models.json error is the human's own when the setup sets no models",

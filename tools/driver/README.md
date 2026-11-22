@@ -53,6 +53,14 @@ a direct child of the driver, and to the process group it leads if it leads one.
 exited but that it has not yet waited for. Until that wait the child keeps its pid, so no other process can hold that
 pid or lead that group.
 
+With `PI_DRIVER_SERVICE=1` already set, `bun <file>` plays the run in the process you started, with no service of its
+own. That is how a run stays inside a network namespace that only you made, where loopback is the whole network, as
+`src/features/phi/` scenarios need:
+
+```sh
+unshare -rn sh -c 'ip link set lo up && PI_DRIVER_SERVICE=1 bun src/features/phi/wire.scenario.ts'
+```
+
 A run whose driver in the service dies outright, by `kill -9` of that process or `systemctl --user stop` of its
 unit, leaves no process, but two things on disk: the run folder, with the link `home/.pi/agent/auth.json` to your
 `auth.json`, and the run's runtime folder `$TMPDIR/pi-driver/pi-driver-<pid>-<tag>`, which holds a dead socket and a
@@ -157,13 +165,18 @@ included, sees them.
 - `settings` replaces top-level keys of the run's copy of your `settings.json`. The copy never holds your
   `packages`, `extensions`, `skills`, `prompts` or `themes`, so nothing of the live harness loads into a run. The
   driver accepts only `compaction` with the fields `enabled`, `reserveTokens` and `keepRecentTokens`, the ones it can
-  read back from the running pi, nested as in `settings: { compaction: { enabled: false } }`. It exits 2 on any other
-  key or field, a dotted key such as `"compaction.enabled"` included: pi keeps a key it ignores without a word.
+  read back from the running pi, nested as in `settings: { compaction: { enabled: false } }`, and `packages`, each a
+  local package's absolute path, as `pi install <path>` writes it. It exits 2 on any other key or field, a dotted key
+  such as `"compaction.enabled"` included: pi keeps a key it ignores without a word.
 - `models` holds provider entries by name, as in `models.json`'s `providers` (fields in pi's
   `docs/models-configuration.md`, `modelOverrides` included). Each replaces your entry of that name in the run's copy
   of your `models.json`, or starts the file if you have none. pi in RPC mode drops a `models.json` it rejects
   without a word and runs on without your entries. A `contextWindow` anywhere in `models` exits 2: give the root's
   window as `contextWindow`, which the driver reads back.
+
+- `files` is a function from the run's `{ home, project }` folders to JSON files the run writes under HOME before the
+  root starts. Each key is a path under HOME, such as phi-router's `.config/phi-router/config.json`, and each value
+  is the JSON object the file holds. The driver writes each file owner-only, in owner-only folders.
 
 - `contextWindow` forces compaction in a few turns. It gives the root's model a window of that many tokens and
   replaces your compaction settings, which may reserve more than the whole window, with a reserve of a quarter of it,
@@ -180,7 +193,8 @@ scenario({
 `tools/driver/compaction.scenario.ts` proves it: three prompts of filler, then a compaction entry in the root's session.
 
 Before `play` runs, the driver reads what the root's pi runs on and exits 2, naming each miss, unless it runs the
-`model`, the `contextWindow`, every `settings` field you set, a `models.json` pi kept, and the run's own terminal core.
+`model`, the `contextWindow`, every `settings` field you set, an extension from each package you set, a `models.json`
+pi kept, and the run's own terminal core.
 Of the rest of `models`, it confirms only that pi kept the file, not that pi applies each field.
 
 ### Examples
