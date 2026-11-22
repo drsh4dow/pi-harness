@@ -15,6 +15,7 @@ import type { Static } from "typebox";
 
 import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { type Gh, ghLayer } from "#src/client/gh/index.ts";
+import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { makeSessionFolder, readStagedBrief } from "#src/client/pi-cli/index.ts";
 import type { PiHost } from "#src/client/pi-host/index.ts";
 import type { SessionAddress } from "#src/client/pi-sessions/index.ts";
@@ -47,7 +48,7 @@ const resultOf = (json: JsonValue, isError: boolean) =>
 		isError,
 	}));
 
-type CallServices = Gh | BriefSources | NodeServices.NodeServices;
+type CallServices = Gh | BriefSources | PhiRouter | NodeServices.NodeServices;
 
 type Runtime = PiHost<Ledger | CallServices, never>;
 
@@ -79,6 +80,16 @@ const ownBrief = (ownSession: Option.Option<OwnSession>) =>
 		),
 	);
 
+/** When its parent is held, the delegate's session is pinned in phi-router before its first request. */
+const pinnedFirst = (pin: boolean, session: string) =>
+	pin
+		? Effect.flatMap(PhiRouter, (router) =>
+				Effect.mapError(router.pin(session), ({ why }) =>
+					BadDelegate.make({ why: `phi-router did not pin the delegate's session: ${why}` }),
+				),
+			)
+		: Effect.void;
+
 /** Runs a settled delegate again in its own session, on the model the PHI gate allows for its brief's model now. */
 const relaunched = Effect.fn("relaunched")(function* ({
 	ledger,
@@ -95,7 +106,10 @@ const relaunched = Effect.fn("relaunched")(function* ({
 }) {
 	const request = yield* parseContinuation(ref, call);
 	const continuation = yield* ledger.continuation(request);
-	const { model, substitution } = yield* modelOf(ctx, table, modelNameOf(continuation.brief.model));
+	const { model, substitution, pin } = yield* modelOf(ctx, table, modelNameOf(continuation.brief.model));
+
+	yield* pinnedFirst(pin, continuation.childSession.id);
+
 	const handle = yield* ledger.start({ ...continuation, brief: { ...continuation.brief, model } });
 
 	return { handle, substitution };
@@ -130,13 +144,16 @@ const delegateTool = (
 
 						const fresh = yield* freshCall(call);
 						const inherited = yield* ownBrief(ownSession);
-						const { brief, cwd, substitution } = yield* parseCall(ctx, table, roles, inherited, fresh);
+						const { brief, cwd, substitution, pin } = yield* parseCall(ctx, table, roles, inherited, fresh);
 						const reviewed = yield* withReview(fresh.reviews)(brief);
+						const childSession = { ...place, cwd: Option.getOrElse(cwd, () => place.cwd), id: uuidv7() };
+
+						yield* pinnedFirst(pin, childSession.id);
 
 						const handle = yield* ledger.start(
 							StartRequest.Delegate({
 								brief: reviewed,
-								childSession: { ...place, cwd: Option.getOrElse(cwd, () => place.cwd), id: uuidv7() },
+								childSession,
 								group: Option.fromUndefinedOr(call.group),
 							}),
 						);
@@ -233,7 +250,7 @@ const register = (
 	}
 };
 
-export type ToolServices = Gh | BriefSources;
+export type ToolServices = Gh | BriefSources | PhiRouter;
 
 export const Tools = {
 	register,

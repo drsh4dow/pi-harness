@@ -18,7 +18,6 @@ import { piHost } from "#src/client/pi-host/index.ts";
 import { StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
 import { guideFiles, readGuides } from "#src/features/loaded/index.ts";
 import { selfFromEnv } from "#src/features/owned-work/index.ts";
-import { internalIdsOnly, isPhi } from "#src/features/phi-router/index.ts";
 import { lastFolder } from "#src/features/state-folder/index.ts";
 import { guidesToRestore, noGuides } from "./guides.ts";
 import {
@@ -46,7 +45,6 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 type StreamSimple = ExtensionContext["modelRegistry"]["streamSimple"];
 
-/** `streamSimple`, unlike `complete`, routes a virtual model, as `direct`, so a PHI router sends the summary to its BAA account. */
 interface Caller {
 	readonly model: Model<Api> | undefined;
 	readonly modelRegistry: {
@@ -98,9 +96,6 @@ const guidesFor = Effect.fn("guidesFor")(
 	),
 );
 
-/** In a `phi` session a clean summary goes on to a personal account, so it names patients by internal id only. */
-const systemPromptFor = (model: Model<Api>) => (isPhi(model) ? `${systemPrompt} ${internalIdsOnly}` : systemPrompt);
-
 interface Attempt {
 	readonly reply: Reply;
 	readonly usage: ReadonlyArray<Usage>;
@@ -125,7 +120,7 @@ const attempt = Effect.fn("attempt")(function* ({
 				.streamSimple(
 					model,
 					{
-						systemPrompt: systemPromptFor(model),
+						systemPrompt,
 						messages: [{ role: "user", content: [{ type: "text", text }], timestamp }],
 					},
 					{ signal, cacheRetention: "none", sessionId: uuidv7() },

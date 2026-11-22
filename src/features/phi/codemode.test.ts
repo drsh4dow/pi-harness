@@ -1,0 +1,71 @@
+import { expect, test } from "bun:test";
+
+import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
+import * as Effect from "effect/Effect";
+
+import { guardCodemode } from "./codemode.ts";
+
+const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
+
+const phiModel = (id: string) => ({ ...opus, provider: "phi", id });
+
+const phiAuto = phiModel("auto");
+
+const onAccount = (provider: string) => ({ ...opus, provider });
+
+const codemode = (code: string) => ({
+	type: "tool_call" as const,
+	toolCallId: "call-1",
+	toolName: "codemode",
+	input: { code },
+});
+
+const blocked = [
+	{ name: "a script that calls models", code: "await models.classify(m, c)" },
+	{ name: String.raw`an escaped \u006dodels`, code: String.raw`const m = this["\u006dodels"]` },
+	{ name: String.raw`a braced \u{67}lobalThis`, code: String.raw`\u{67}lobalThis.x` },
+	{ name: "a dynamic import", code: 'const m = await import ("x")' },
+];
+
+const guardedInPhiAuto = (code: string): ReturnType<typeof guardCodemode> =>
+	guardCodemode({ event: codemode(code), ctx: { model: phiAuto } });
+
+test.each(blocked)("the codemode guard in a phi/auto session: $name is blocked", ({ code }) =>
+	Effect.runPromise(
+		Effect.map(
+			Effect.promise(() => guardedInPhiAuto(code)),
+			(result) => {
+				expect(result?.block).toBe(true);
+			},
+		),
+	),
+);
+
+test("the codemode guard in a phi/auto session: a script that only calls tools is allowed", () =>
+	Effect.runPromise(
+		Effect.map(
+			Effect.promise(() => guardedInPhiAuto('await tools.read({ path: "a.ts" })')),
+			(result) => {
+				expect(result).toBeUndefined();
+			},
+		),
+	));
+
+const scriptIn = (model: ReturnType<typeof phiModel>) =>
+	Effect.promise(() => guardCodemode({ event: codemode("models.x"), ctx: { model } }));
+
+const sessions = Effect.all([
+	scriptIn(onAccount("ent")),
+	scriptIn(onAccount("openai")),
+	scriptIn(phiModel("claude-fable-5-2")),
+	scriptIn(onAccount("ultra-a")),
+	scriptIn(onAccount("opencode-go")),
+]);
+
+test("the codemode guard covers a BAA-provider session and a phi/<id> one, and leaves an open one alone", () =>
+	Effect.runPromise(
+		Effect.map(sessions, ([ent, openai, phiFable, ultraA, opencodeGo]) => {
+			expect([ent?.block, openai?.block, phiFable?.block]).toEqual([true, true, true]);
+			expect([ultraA, opencodeGo]).toEqual([undefined, undefined]);
+		}),
+	));

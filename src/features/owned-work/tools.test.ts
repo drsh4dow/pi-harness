@@ -12,6 +12,7 @@ import * as Str from "effect/String";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh } from "#src/client/gh/index.ts";
+import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { piHost } from "#src/client/pi-host/index.ts";
 import { Self } from "./child.ts";
 import { Ledger } from "./ledger.ts";
@@ -25,6 +26,7 @@ const runtime = piHost(
 		Layer.provideMerge(briefSourcesLayer, NodeServices.layer),
 		Layer.mock(Ledger)({}),
 		Layer.mock(Gh)({}),
+		Layer.mock(PhiRouter)({}),
 	),
 );
 
@@ -172,6 +174,7 @@ const commandRuntime = piHost(
 				}),
 		}),
 		Layer.mock(Gh)({}),
+		Layer.mock(PhiRouter)({}),
 	),
 );
 

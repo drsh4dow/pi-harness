@@ -1,12 +1,11 @@
-import type { Api, Model, ProviderStreams } from "@earendil-works/pi-ai";
+import type { Api, Model } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import * as Function from "effect/Function";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { type Account, accountOf, accountProvider, accounts, accountsHost, anthropicOf } from "./accounts.ts";
+import { accountOf, accountProvider, accounts, accountsHost, anthropicOf } from "./accounts.ts";
 import { endedOnRateLimit, failOver } from "./failover.ts";
 
 export { type AccountId, accountOf, accounts, type Login } from "./accounts.ts";
@@ -95,17 +94,11 @@ const switchAccount = (pi: ExtensionAPI) => (args: string, ctx: ExtensionCommand
 		yield* moveTo(pi, ctx, target.model);
 	});
 
-type GuardPersonal = (
-	account: Extract<Account, { readonly baa: false }>["id"],
-) => (api: ProviderStreams) => ProviderStreams;
-
-export const claudeAccounts = (guardPersonal: GuardPersonal) => (pi: ExtensionAPI) => {
+export const claudeAccounts = (pi: ExtensionAPI) => {
 	const anthropic = anthropicOf();
 
 	for (const account of accounts) {
-		pi.registerProvider(
-			accountProvider({ anthropic, account, wrap: account.baa ? Function.identity : guardPersonal(account.id) }),
-		);
+		pi.registerProvider(accountProvider({ anthropic, account }));
 	}
 
 	pi.on("agent_end", (event, ctx) =>

@@ -24,6 +24,7 @@ import * as Str from "effect/String";
 
 import { type Hc, hcLayer, TerminalAddress } from "#src/client/hc/index.ts";
 import { type HerdrApp, herdrAppLayer } from "#src/client/herdr-app/index.ts";
+import { phiRouterLayer, routerExtensionOf } from "#src/client/phi-router/index.ts";
 import { type PiCli, piCliLayer, unwrapMessage } from "#src/client/pi-cli/index.ts";
 import { type PiHost, piHost } from "#src/client/pi-host/index.ts";
 import { type PiSessions, piSessionsLayer } from "#src/client/pi-sessions/index.ts";
@@ -52,6 +53,25 @@ interface Session {
 
 type Env = Readonly<Record<string, string | undefined>>;
 
+interface Parts {
+	readonly agentKey: string;
+	readonly parent: Option.Option<TerminalAddress>;
+	readonly relay: Relay;
+	readonly slices: ReturnType<typeof slicesLayer>;
+}
+
+/** What a session's work runs on. Each delegate loads phi-router's pi package when this session has it. */
+const servicesOf = (pi: ExtensionAPI, parts: Pick<Start, "childExtensions" | "env"> & Parts) => {
+	const router = routerExtensionOf(pi.getCommands());
+	const cli = piCliLayer([...parts.childExtensions, ...Option.toArray(router)]);
+	const tools = Layer.merge(Tools.layer, phiRouterLayer({ extension: router, env: parts.env }));
+	const hc = hcLayer({ agentKey: parts.agentKey, parent: parts.parent });
+	const host = hostLayer({ pi, relay: parts.relay });
+	const own = Layer.mergeAll(hc, host, parts.slices, piSessionsLayer, cli, herdrAppLayer);
+
+	return Layer.provideMerge(own, Layer.provideMerge(tools, NodeServices.layer));
+};
+
 const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, stamp, sliceOf }: Start, self: Self) => {
 	const { agentKey } = inheritance;
 	const parent = Option.map(Option.fromUndefinedOr(env["HC_TERMINAL_ID"]), TerminalAddress);
@@ -64,18 +84,7 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 		? slicesLayer({ slice: sliceOf(agentKey), rootPid: Option.some(process.pid) })
 		: slicesLayer({ slice: self.slice, rootPid: Option.none() });
 
-	const services = Layer.provideMerge(
-		Layer.mergeAll(
-			hcLayer({ agentKey, parent }),
-			hostLayer({ pi, relay }),
-			slices,
-			piSessionsLayer,
-			piCliLayer(childExtensions),
-			herdrAppLayer,
-		),
-		Layer.provideMerge(Tools.layer, NodeServices.layer),
-	);
-
+	const services = servicesOf(pi, { agentKey, parent, relay, slices, childExtensions, env });
 	const host = piHost(Layer.provideMerge(ledger, services));
 
 	return { host, lineage: { agentKey, stamp }, relay, terminal: parent, passEnv };

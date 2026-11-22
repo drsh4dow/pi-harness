@@ -1,0 +1,26 @@
+{
+	"judge": {
+		"endpoint": "https://api.openai.com/v1",
+		"keyCommand": "jq -r .openai.key /home/drsh4dow/.pi/agent/auth.json"
+	},
+	"clean": [
+		{ "name": "ultra-a", "vendor": "anthropic", "loginFolder": "/home/drsh4dow/.local/share/phi-logins/claude-1" },
+		{
+			"name": "ultra-b",
+			"vendor": "anthropic",
+			"scheme": "oauth",
+			"keyCommand": "jq -r '.\"ultra-b\".key' /home/drsh4dow/.pi/agent/auth.json"
+		},
+		{ "name": "codex", "vendor": "openai", "loginFolder": "/home/drsh4dow/.local/share/phi-logins/codex" }
+	],
+	"sealed": [
+		{ "name": "ent", "vendor": "anthropic", "loginFolder": "/home/drsh4dow/.claude", "lacks": ["claude-fable-5-2"] },
+		{
+			"name": "openai",
+			"vendor": "openai",
+			"scheme": "apiKey",
+			"keyCommand": "jq -r .openai.key /home/drsh4dow/.pi/agent/auth.json"
+		}
+	],
+	"targetModel": { "anthropic": "claude-opus-5-5", "openai": "gpt-6.1-sol" }
+}

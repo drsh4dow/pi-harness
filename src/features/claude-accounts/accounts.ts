@@ -1,4 +1,4 @@
-import type { Model, ProviderStreams } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
 import { anthropicMessagesApi } from "@earendil-works/pi-ai/compat";
 import { createProvider, hasApi, type Provider } from "@earendil-works/pi-ai/models";
 import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
@@ -146,18 +146,9 @@ const authOf = (login: Login, { oauth }: Anthropic) => {
 
 /**
  * Anthropic's catalog and API under the account's id. Pi stores and reads the account's credential under that id, and
- * each model names it as its provider, so a session shows which account answered. `wrap` goes around the api here, in
- * the provider itself, so no later registration can drop it.
+ * each model names it as its provider, so a session shows which account answered.
  */
-export const accountProvider = ({
-	anthropic,
-	account,
-	wrap,
-}: {
-	anthropic: Anthropic;
-	account: Account;
-	wrap: (api: ProviderStreams) => ProviderStreams;
-}): Provider =>
+export const accountProvider = ({ anthropic, account }: { anthropic: Anthropic; account: Account }): Provider =>
 	createProvider({
 		id: account.id,
 		name: account.name,
@@ -172,5 +163,5 @@ export const accountProvider = ({
 				compat: { ...model.compat, supportsMessageThreads: !account.baa },
 			}),
 		),
-		api: wrap(anthropicMessagesApi()),
+		api: anthropicMessagesApi(),
 	});
