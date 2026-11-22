@@ -177,7 +177,7 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011, 
 - **State label.** The hc label on a root agent's own terminal that names the state folder its session last wrote to.
 - **Trace and Actions panels.** herdr-app panels that draw the todo list and decision trail, or the action items, of the focused agent's root.
 - **Known limit.** A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith. Not a **cut**.
-- **Cut.** A finding whose fix removes production code and keeps behavior: a copy of logic that exists elsewhere, a module that fails the deletion test, a guard for a case that cannot occur, code nothing reads, an option nobody asked for. Its diff removes more production lines than it adds, and the verdict on the **cut pass** branch confirms the behavior kept.
+- **Cut.** A finding whose fix removes more production code than it adds and keeps behavior: a copy of logic that exists elsewhere, a module that fails the deletion test, a guard for a case that cannot occur, code nothing reads, an option nobody asked for. The verdict on the **cut pass** branch confirms the behavior kept.
 - **Cut pass.** One owner that applies cuts across the combined diff of a **wave**. Subtraction is its whole task.
 - **Frontier.** The tickets whose blockers are all done.
 - **Wave.** The slices that were on the frontier together and have landed.
