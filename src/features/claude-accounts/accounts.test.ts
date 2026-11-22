@@ -59,7 +59,7 @@ const modelsWith = (credentials: Readonly<Record<string, Credential>>) => {
 	});
 
 	for (const account of accounts) {
-		models.setProvider(accountProvider({ anthropic, account, wrap: Function.identity }));
+		models.setProvider(accountProvider({ anthropic, account }));
 	}
 
 	return models;
@@ -99,7 +99,7 @@ test("ent never offers Fable, which the Enterprise org cannot serve, while the p
 	const offersFable = (account: Account) => {
 		const models = createModels({ credentials: memoryStore({}) });
 
-		models.setProvider(accountProvider({ anthropic: withFable, account, wrap: Function.identity }));
+		models.setProvider(accountProvider({ anthropic: withFable, account }));
 
 		return Arr.some(models.getModels(account.id), ({ id }) => id === "claude-fable-5-2");
 	};
@@ -182,7 +182,7 @@ test("ultra-b refuses an API key at login and stores nothing", () =>
 
 test("the OAuth accounts log in through Anthropic's flow, and ultra-b only by pasting a token", () => {
 	const logins = Arr.map(accounts, (account) => {
-		const { auth } = accountProvider({ anthropic, account, wrap: Function.identity });
+		const { auth } = accountProvider({ anthropic, account });
 
 		return { id: account.id, oauth: auth.oauth?.name, apiKey: auth.apiKey?.name };
 	});

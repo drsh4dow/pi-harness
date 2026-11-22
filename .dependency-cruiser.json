@@ -18,7 +18,7 @@
 			"comment": "A feature imports its own files, another feature's or a client's index.ts, and src/primitives/. Move shared code to src/primitives/ or behind an index.ts.",
 			"from": {
 				"path": "^src/features/([^/]+)/",
-				"pathNot": ["\\.(test|fixture|scenario)\\.ts$", "^src/features/phi-router/corpus/"]
+				"pathNot": "\\.(test|fixture|scenario)\\.ts$"
 			},
 			"to": {
 				"path": "^(src|tools|agent)/",
@@ -70,13 +70,13 @@
 		{
 			"name": "production-imports-test-code",
 			"severity": "error",
-			"comment": "Production code never imports a test, a fixture, a scenario or the PHI eval corpus.",
+			"comment": "Production code never imports a test, a fixture or a scenario.",
 			"from": {
 				"path": "^(src|agent)/",
-				"pathNot": ["\\.(test|fixture|scenario)\\.ts$", "^src/features/phi-router/corpus/"]
+				"pathNot": "\\.(test|fixture|scenario)\\.ts$"
 			},
 			"to": {
-				"path": ["\\.(test|fixture|scenario)\\.ts$", "^src/features/phi-router/corpus/"]
+				"path": "\\.(test|fixture|scenario)\\.ts$"
 			}
 		},
 		{

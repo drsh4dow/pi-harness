@@ -345,8 +345,8 @@
 			},
 		},
 		{
-			// tools/ and the PHI eval corpus are outside the runtime the bans guard
-			"files": ["tools/**", "src/features/phi-router/corpus/**"],
+			// tools/ is outside the runtime the bans guard
+			"files": ["tools/**"],
 			"rules": {
 				"eslint/no-restricted-imports": "off",
 				"eslint/no-restricted-properties": [
@@ -357,17 +357,6 @@
 						"message": "Read the environment in the entry file and pass it in, or read one variable with Effect's Config.",
 					},
 				],
-			},
-		},
-		{
-			// With the user's approval (2026-11-17): the corpus's CRC32 and seeded random generator need bitwise math
-			"files": [
-				"src/features/phi-router/corpus/encodings.ts",
-				"src/features/phi-router/corpus/random.ts",
-				"src/features/phi-router/corpus/images.ts",
-			],
-			"rules": {
-				"eslint/no-bitwise": "off",
 			},
 		},
 		{
@@ -394,7 +383,6 @@
 			// pi and oxlint load these files' default export, so no other export form works
 			"files": [
 				"agent/extensions/*/index.ts",
-				"src/features/phi-router/border.fixture.ts",
 				"tools/driver/probe.ts",
 				"tools/prompts/capture.ts",
 				"tools/oxlint/fixtures/effect-pi-idioms.ts",

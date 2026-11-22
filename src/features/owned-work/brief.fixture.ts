@@ -13,6 +13,7 @@ import type { Static } from "typebox";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh, GhError } from "#src/client/gh/index.ts";
+import { PhiRouter, PhiRouterError } from "#src/client/phi-router/index.ts";
 import type { Design } from "#src/client/pi-cli/index.ts";
 import { piHost } from "#src/client/pi-host/index.ts";
 import type { DelegateParams } from "./brief.ts";
@@ -71,6 +72,7 @@ export const table = {
 interface Started {
 	readonly brief: Brief;
 	readonly cwd: string;
+	readonly session: string;
 }
 
 export const started: Array<Started> = [];
@@ -89,14 +91,14 @@ const settledOn = new Map([
 	["delegate-1", "openai/gpt-6-luna"],
 	["delegate-2", "ultra-a/claude-opus-5-5"],
 	["delegate-3", "openai/gpt-6.1-sol"],
-	["delegate-4", "phi/glm-5.3-flash"],
+	["delegate-4", "opencode-go/glm-5.3-flash"],
 ]);
 
 const ledger = Layer.mock(Ledger)({
 	start: (request) =>
 		Effect.sync(() => {
 			if (StartRequest.$is("Delegate")(request)) {
-				started.push({ brief: request.brief, cwd: request.childSession.cwd });
+				started.push({ brief: request.brief, cwd: request.childSession.cwd, session: request.childSession.id });
 			}
 
 			return handle;
@@ -156,7 +158,27 @@ const gh = Layer.succeed(
 	}),
 );
 
-const services = Layer.mergeAll(Layer.provideMerge(briefSourcesLayer, NodeServices.layer), ledger, home, gh);
+/**
+ * The sessions the fake phi-router holds pinned, the one it cannot answer about, and each session a delegate start had
+ * it pin, in order.
+ */
+export const router = { held: new Set(["held-parent"]), unanswered: "lost-parent", pinned: new Array<string>() };
+
+const phiRouter = Layer.succeed(
+	PhiRouter,
+	PhiRouter.of({
+		pinned: (session) =>
+			session === router.unanswered
+				? Effect.fail(PhiRouterError.make({ args: ["phi-router", "status"], why: "connection refused" }))
+				: Effect.succeed(router.held.has(session)),
+		pin: (session) =>
+			Effect.sync(() => {
+				router.pinned.push(session);
+			}),
+	}),
+);
+
+const services = Layer.mergeAll(Layer.provideMerge(briefSourcesLayer, NodeServices.layer), ledger, home, gh, phiRouter);
 
 export const runtime = ManagedRuntime.make(services);
 
@@ -174,7 +196,7 @@ export const callerOf = (): Parameters<typeof delegate.execute>[4] => {
 		model: opus,
 		thinkingLevel: "low",
 		modelRegistry: { getAll: () => [luna, opus, proxied] },
-		sessionManager: { getBranch: () => [] },
+		sessionManager: { getBranch: () => [], getSessionId: () => "parent" },
 	};
 
 	return caller;
