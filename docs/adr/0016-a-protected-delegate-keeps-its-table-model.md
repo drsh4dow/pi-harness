@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: superseded by 0021
 ---
 
 # A protected delegate keeps its table model

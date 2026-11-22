@@ -116,26 +116,13 @@ Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
 
 ## PHI routing
 
-Terms for sending each request to a personal provider or a BAA provider by what it holds. See ADRs 0012, 0013, 0015, 0016 and 0017.
+Terms for the harness's side of PHI routing. phi-router routes each request of a session on a `phi` model, and [its glossary](https://github.com/drsh4dow/phi-router/blob/main/GLOSSARY.md) defines its own terms, such as **open account**, **BAA account**, **lane**, **verdict**, **stub**, **pin** and **BAA repo**. See ADRs 0015 and 0021.
 
-- **PHI.** For routing, content that holds a complete direct identifier of a real patient or member, such as a full name, an SSN or an MRN. Internal ids, health facts tied only to one, staff and vendor contacts, fragments and counts are not.
-- **BAA account.** A Claude account covered by the Anthropic business associate agreement.
-- **BAA provider.** A provider whose models may read PHI.
-- **`phi/<id>`.** A model a session or delegate selects to run the model `<id>` with each request routed by content, to the **sealed lane** or the **clean lane**.
-- **`phi/auto`.** The `phi/<id>` whose model is the one the router's configuration names.
-- **Personal provider.** A provider outside the BAA that the clean lane may use and the **border** guards.
-- **Home account.** The personal Claude account a `phi` session's clean lane tries first.
-- **Clean lane.** Where a request with no sealed new content runs, on a personal provider when one can take it.
-- **Sealed lane.** Where sealed content runs: a BAA provider that carries its model, else the **substitute**.
-- **Substitute.** The model that runs sealed content when no BAA provider carries the model asked for.
-- **Protected session.** A session whose selected model is a `phi/<id>` or one on a BAA provider. Its delegates and scripts stay inside the BAA boundary or behind the border.
-- **Verdict.** What the router concluded about one message part: **sealed**, it holds a complete direct identifier of a real patient or member, or cleared, it does not.
-- **Stub.** The constant text a personal provider sees in place of a part that is sealed or not yet judged.
-- **Border.** The check on every request bound for a **personal provider** while the process's selected model is a `phi/<id>`, which passes cleared parts and stubs the rest.
-- **Pin.** A session's choice to run wholly on the BAA account, with nothing judged, until it unpins.
-- **Fixture.** A turn part whose exact text the router's configuration lists, so the policy engine skips it, rules and judge alike.
-- **Lane log.** One line per routed request or border report, which never holds content.
-- **Canary.** A synthetic identifier planted in a test corpus, so a test can search request bodies for it. Never real PHI.
+- **`phi` model.** A model of the `phi` provider that phi-router's pi package registers: `phi/auto`, `phi/sealed`, and `phi/<id>` for each Anthropic model of pi's catalog.
+- **BAA provider.** A pi provider whose models may read PHI, so it runs outside phi-router: `ent`, then `openai`.
+- **Protected session.** A session on a `phi` model or a BAA provider. Its delegates stay inside the BAA boundary, and its codemode scripts may not call models.
+- **Held parent.** A protected session whose delegates start pinned: one on a BAA provider or `phi/sealed`, or one phi-router reports pinned.
+- **Canary.** A synthetic identifier planted in a scenario's files, so the scenario can search request bodies for it. Never real PHI.
 
 ## Compaction
 
