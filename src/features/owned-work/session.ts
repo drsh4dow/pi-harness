@@ -32,18 +32,14 @@ import { type Slices, slicesLayer } from "#src/client/systemd/index.ts";
 import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "./child.ts";
 import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";
-import { Host, Ledger, ledgerLayer } from "./ledger.ts";
-import { Out } from "./out.ts";
+import { hostLayer, messageOf, type Relay } from "./host.ts";
+import { Ledger, ledgerLayer } from "./ledger.ts";
 import { warnPolling } from "./polling.ts";
-import { entryKind, firstRefAfter } from "./recorded.ts";
+import { firstRefAfter } from "./recorded.ts";
 import { Tools, type ToolServices } from "./tools.ts";
 import type { Settled } from "./work.ts";
 
 type RuntimeServices = Ledger | ToolServices | Hc | Slices | PiCli | PiSessions | HerdrApp | NodeServices.NodeServices;
-
-interface Relay {
-	waiter: Option.Option<Deferred.Deferred<ReadonlyArray<Settled>>>;
-}
 
 interface Session {
 	readonly host: PiHost<RuntimeServices, never>;
@@ -53,37 +49,6 @@ interface Session {
 	readonly terminal: Option.Option<TerminalAddress>;
 	readonly passEnv: Readonly<Record<string, string>>;
 }
-
-const messageOf = (settled: Settled) => {
-	const json = Out.result(settled);
-
-	return Effect.map(Out.text(json), (content) => ({ customType: entryKind, content, display: true, details: json }));
-};
-
-const hostLayer = (pi: ExtensionAPI, relay: Relay) => {
-	const send = (settled: Settled) =>
-		Effect.map(messageOf(settled), (message) => {
-			pi.sendMessage(message, { deliverAs: "followUp", triggerTurn: true });
-		});
-
-	const handOver = (waiter: Deferred.Deferred<ReadonlyArray<Settled>>, results: ReadonlyArray<Settled>) => {
-		relay.waiter = Option.none();
-
-		return Effect.asVoid(Deferred.succeed(waiter, results));
-	};
-
-	return Layer.succeed(Host, {
-		wake: (results) =>
-			Option.match(relay.waiter, {
-				onSome: (waiter) => handOver(waiter, results),
-				onNone: () => Effect.asVoid(Effect.forEach(results, send)),
-			}),
-		append: (entry) =>
-			Effect.sync(() => {
-				pi.appendEntry(entryKind, Out.entry(entry));
-			}),
-	});
-};
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -102,7 +67,7 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 	const services = Layer.provideMerge(
 		Layer.mergeAll(
 			hcLayer({ agentKey, parent }),
-			hostLayer(pi, relay),
+			hostLayer({ pi, relay }),
 			slices,
 			piSessionsLayer,
 			piCliLayer(childExtensions),
