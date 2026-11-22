@@ -201,6 +201,21 @@ const writeConfig = Effect.fn("writeConfig")(function* (layout: Layout, setup: R
 	yield* fs.writeFileString(`${layout.agent}/models.json`, models);
 });
 
+/** Writes each of the setup's JSON files under the run's HOME, owner-only, in owner-only folders. */
+const writeFiles = Effect.fn("writeFiles")(function* (layout: Layout, setup: RunSetup) {
+	const fs = yield* FileSystem.FileSystem;
+
+	yield* Effect.forEach(Rec.toEntries(setup.files?.(layout) ?? {}), ([file, json]) =>
+		Effect.gen(function* () {
+			const path = `${layout.home}/${file}`;
+			const text = yield* encodeJson(json);
+
+			yield* fs.makeDirectory(Str.replace(/\/[^/]*$/u, "")(path), { recursive: true, mode: 0o700 });
+			yield* fs.writeFileString(path, text, { mode: 0o600 });
+		}),
+	);
+});
+
 /**
  * The `pi` on the run's PATH, through links, before the wrapper exists, and its version. pi names a session folder for
  * its working folder, so the wrapper starts pi only inside the run's folder, whose path holds the run's id.
@@ -272,10 +287,9 @@ export const openWorld = (input: {
 		yield* startCore({ layout, env });
 		yield* linkAgent(layout, `${humanHome}/.pi/agent`);
 		yield* writeConfig(layout, input.setup, `${humanHome}/.pi/agent`);
+		yield* writeFiles(layout, input.setup);
 
-		const exec = yield* execIn({ env, cwd: layout.project });
-
-		return { layout, agentDir: `${worktree}/agent`, env, pi, exec };
+		return { layout, agentDir: `${worktree}/agent`, env, pi, exec: yield* execIn({ env, cwd: layout.project }) };
 	}).pipe(
 		Effect.catchTags({
 			PlatformError: (error) => Effect.fail(SetupFailed.make({ message: error.message })),
