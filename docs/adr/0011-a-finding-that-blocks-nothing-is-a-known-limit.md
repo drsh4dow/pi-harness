@@ -10,7 +10,7 @@ Agents finishing a task kept finding edge cases, and each fix or ticket made mor
 
 So the harness chose four rules:
 
-- A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith, is a known limit. It gets one line in the pull request's Scope, no fix, and no ticket unless it breaks the spec or the human asks. The shared prompt layer says this once, and the playbooks use the term.
+- A finding that fails no acceptance criterion, gate, or doc line, and that no user would hit in good faith, is a known limit. It gets one line in the pull request's Scope, no fix, and no ticket unless it breaks the spec or the human asks. The triage-findings principle says this once, and the playbooks use the term.
 - After its full review, a pull request gets two repair rounds. When the second fails, the pull request is reported blocked with what still fails, and its design is decided again before a third fix. The playbooks that loop on fixes point at the attack-the-premise principle at that step. A wake that stops the loop on a third failed verdict is separate work.
 - A ticket names its non-goals, and its checks and non-goals stay as written once work starts.
 - The feature playbook runs one simplify-and-reduce pass that deletes what no acceptance criterion needs, and the pull request reports the diff size before and after it.

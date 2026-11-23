@@ -106,6 +106,7 @@ VERDICT: PASS | PASS+NOTES | FAIL | INCOMPLETE
 4. End with one verdict as the last line of your answer: `VERDICT: FAIL` for any Critical or Required finding, `VERDICT: PASS+NOTES` when only Optional or Nit findings remain, `VERDICT: PASS` when none do, and `VERDICT: INCOMPLETE` when you could not check what the review needs. The parent's ledger records that line, and an answer without it records incomplete
 5. Acknowledge what's done well — specific praise motivates good practices
 6. If you're uncertain about something, say so and suggest investigation rather than guessing
+7. Sort each finding per **principle-triage-findings** before you give it a severity. A known limit and a cut are never Critical or Required, and each cut gets a line in your answer for the next cut pass
 
 ## Composition
 
