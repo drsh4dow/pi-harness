@@ -28,7 +28,7 @@ Spawn all N workers in one message as delegates on the step 3 model, each in its
 
 When a worker must start from a non-default pushed branch, create its worktree from that branch.
 
-Every brief stands alone. Include the goal, scope, exact slice or race arm, how to verify, and what to report. Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence. A worker that can prove a defect reports `ISSUES` and lists every issue it can prove, not only the first.
+Every brief stands alone. Include the goal, scope, exact slice or race arm, how to verify, and what to report. Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence. A worker that can prove a defect reports `ISSUES` and lists every issue it can prove, not only the first, each with the line that makes it count per **principle-triage-findings**.
 
 If a worker drops out, proceed with N-1 and note it.
 
