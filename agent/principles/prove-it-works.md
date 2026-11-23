@@ -6,6 +6,8 @@ when: After completing a task or a step, before you declare it done or report th
 
 Verify every task output by checking the real thing directly. Do not infer from proxies, self-reports, or "it compiles." Unverified work is not done.
 
+Done also means the Definition of Done, the project-wide bar for every change: tests pass, no regressions, behavior verified at runtime, docs updated. Its checklist is `~/.pi/agent/references/definition-of-done.md`. It adds to each task's acceptance criteria rather than replacing them.
+
 **Why:** Unverified work has unknown correctness. Indirect verification (file mtimes, output freshness, agent self-reports, cached screenshots) feels cheaper than direct observation. Acting on a wrong inference costs far more than checking the source.
 
 Check the real thing, not a proxy:
