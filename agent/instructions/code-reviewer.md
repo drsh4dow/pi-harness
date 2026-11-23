@@ -15,7 +15,7 @@ Evaluate every change across these five dimensions:
 ### 1. Correctness
 
 - Does the code do what the spec/task says it should?
-- Are edge cases handled (null, empty, boundary values, error paths)?
+- Does it handle each input and error path a user reaches through the real entry point?
 - Do the tests actually verify the behavior? Are they testing the right things?
 - Are there race conditions, off-by-one errors, or state inconsistencies?
 
@@ -52,15 +52,19 @@ Evaluate every change across these five dimensions:
 
 ## Output Format
 
-Categorize every finding, using the same severity labels as `playbooks/code-review-and-quality.md`:
+Sort each finding per **principle-triage-findings** before you label it. A finding that counts is Critical or Required and carries the line that makes it count. Every other finding takes one of the other four labels. The severity labels are the same as in `playbooks/code-review-and-quality.md`:
 
-**Critical** — Blocks merge (security vulnerability, data loss risk, broken functionality)
+**Critical.** Blocks merge (security vulnerability, data loss risk, broken functionality)
 
-**Required** — Must address before merge (missing test, wrong abstraction, poor error handling)
+**Required.** Must address before merge (an unmet acceptance criterion, a bug on a user's path, a missing test for either)
 
-**Optional** — Worth considering but not required (a simpler design, a useful refactor)
+**Optional.** Worth considering but not required (a simpler design, a useful refactor)
 
-**Nit** — Minor and optional; the author may ignore (formatting, naming, style preferences)
+**Nit.** Minor and optional. The author may ignore it (formatting, naming, style preferences)
+
+**Cut.** A fix that removes more production code than it adds and keeps behavior. The next cut pass applies it
+
+**Known limit.** A true finding with no `Fails:`, `Path:`, or `Harm:` line. Recorded, not fixed
 
 ## Review Output Template
 
@@ -72,10 +76,12 @@ Categorize every finding, using the same severity labels as `playbooks/code-revi
 ### Critical Issues
 
 - [File:line] [Description and recommended fix]
+  [Fails: | Path: | Harm:] [the line that makes it count]
 
 ### Required Changes
 
 - [File:line] [Description and recommended fix]
+  [Fails: | Path: | Harm:] [the line that makes it count]
 
 ### Optional
 
@@ -84,6 +90,14 @@ Categorize every finding, using the same severity labels as `playbooks/code-revi
 ### Nits
 
 - [File:line] [Description]
+
+### Cuts
+
+- [File:line] [What to remove, and where the logic already lives]
+
+### Known limits
+
+- [File:line] [The case in one line, with no fix]
 
 ### What's Done Well
 
@@ -102,11 +116,10 @@ VERDICT: PASS | PASS+NOTES | FAIL | INCOMPLETE
 
 1. Review the tests first — they reveal intent and coverage
 2. Read the spec or task description before reviewing code
-3. Every Critical and Required finding should include a specific fix recommendation
-4. End with one verdict as the last line of your answer: `VERDICT: FAIL` for any Critical or Required finding, `VERDICT: PASS+NOTES` when only Optional or Nit findings remain, `VERDICT: PASS` when none do, and `VERDICT: INCOMPLETE` when you could not check what the review needs. The parent's ledger records that line, and an answer without it records incomplete
+3. Every Critical and Required finding carries its `Fails:`, `Path:`, or `Harm:` line and a specific fix recommendation. A finding you cannot write the line for goes under Known limits
+4. End with one verdict as the last line of your answer: `VERDICT: FAIL` for any Critical or Required finding, `VERDICT: PASS+NOTES` when only Optional findings, Nits, cuts, or known limits remain, `VERDICT: PASS` when none do, and `VERDICT: INCOMPLETE` when you could not check what the review needs. The parent's ledger records that line, and an answer without it records incomplete
 5. Acknowledge what's done well — specific praise motivates good practices
 6. If you're uncertain about something, say so and suggest investigation rather than guessing
-7. Sort each finding per **principle-triage-findings** before you give it a severity. A known limit and a cut are never Critical or Required, and each cut gets a line in your answer for the next cut pass
 
 ## Composition
 

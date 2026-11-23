@@ -27,8 +27,7 @@ Every review evaluates code across these dimensions:
 Does the code do what it claims to do?
 
 - Does it match the spec or task requirements?
-- Are edge cases handled (null, empty, boundary values)?
-- Are error paths handled (not just the happy path)?
+- Does it handle each input and error path a user reaches through the real entry point?
 - Does it pass all tests? Are the tests actually testing the right things?
 - Are there off-by-one errors, race conditions, or state inconsistencies?
 
@@ -148,7 +147,7 @@ Tests reveal intent and coverage:
 ```
 - Do tests exist for the change?
 - Do they test behavior (not implementation details)?
-- Are edge cases covered?
+- Is each behavior on a user's path covered?
 - Do tests have descriptive names?
 - Would the tests catch a regression if the code changed?
 ```
@@ -172,6 +171,8 @@ For each file changed:
 
 Before reporting a finding, check it against the callers, guards and tests that reach the changed code, and drop it if they rule it out. Label defects that already exist in the base separately from regressions this change introduces. Zero findings is a valid result; do not invent one.
 
+Sort each finding per **principle-triage-findings**. A Critical or Required finding carries its `Fails:`, `Path:`, or `Harm:` line. A finding with no such line is a known limit.
+
 Label every comment with its severity so the author knows what's required vs optional:
 
 | Prefix                        | Meaning            | Author Action                                           |
@@ -181,6 +182,8 @@ Label every comment with its severity so the author knows what's required vs opt
 | **Nit:**                      | Minor, optional    | Author may ignore — formatting, style preferences       |
 | **Optional:** / **Consider:** | Suggestion         | Worth considering but not required                      |
 | **FYI**                       | Informational only | No action needed — context for future reference         |
+| **Cut:**                      | Net removal        | The next cut pass applies it                            |
+| **Known limit:**              | No user reaches it | One line in the PR, no fix                              |
 
 This prevents authors from treating all feedback as mandatory and wasting time on optional suggestions.
 
@@ -306,8 +309,7 @@ For triaging `npm audit` findings and supply-chain risk (typosquatting, compromi
 ### Correctness
 
 - [ ] Change matches spec/task requirements
-- [ ] Edge cases handled
-- [ ] Error paths handled
+- [ ] Inputs and error paths a user reaches are handled
 - [ ] Tests cover the change adequately
 
 ### Readability
