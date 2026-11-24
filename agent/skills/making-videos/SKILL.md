@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 A video here is a script voiced first, a picture cued to that voice, one cut, and checks on the file the viewer will watch. Pick the blocks the video needs. The user's rules and the checks on the export apply to every video.
 
+Paths below are relative to this skill's folder. Setup and installation: [references/setup.md](references/setup.md).
+
 ## The user's rules
 
 Each rule cost the user at least one round of rework. A brief changes one only by naming it, and a brief you wrote changes none.
@@ -43,20 +45,20 @@ Take these in order. Each ends on its done-when.
 5. **One chapter first.** Cut one chapter in its final framing, give the user its path, open it, and wait for a yes. If the user told you to run without stopping, log that you skipped the wait and show the chapter at handoff. Done on the user's yes or the logged skip.
 6. **Cut and mix.** Per [references/cut-and-mix.md](references/cut-and-mix.md). Done when the export exists and you know its sha256.
 7. **Check the export.** Run `scripts/check.sh` once per export, per [references/checks.md](references/checks.md), with `--since` on a re-cut. Done when `checks/verdict.txt` has no FAIL line and you have looked by eye at each LOOK hit and at what no script covers.
-8. **Watch.** Brief two delegates with `instructionsFile: ~/.pi/agent/instructions/cold-reader.md` from [references/watcher-brief.md](references/watcher-brief.md) for each new sha256. Fix their blockers, re-export, run step 7 on the new export, and only then send it to two new watchers, with the re-watch block when [references/watcher-brief.md](references/watcher-brief.md) allows it. Change only the lines and shots a blocker names. A fixed line states only what its frame shows, and no other line gains a fact: one fix reworded four lines to clear one blocker, voiced a claim the picture never showed, and cost a third round. A fix to the brief alone, such as a seed identity it left out, leaves the export as it was, so only a new watcher for that part reviews it again. Stop when both say ready, and hand off that export with every should-fix and nit in the README for the user to pick: one polish re-cut cost 8.5 minutes, and another led to a second re-cut. Stop after three rounds otherwise: a cut with an open blocker is not a final, so tell the user which blockers are left.
+8. **Watch.** Start two watchers per [references/watcher-brief.md](references/watcher-brief.md) for each new sha256. Fix their blockers, re-export, run step 7 on the new export, and only then send it to two new watchers, with the re-watch block when [references/watcher-brief.md](references/watcher-brief.md) allows it. Change only the lines and shots a blocker names. A fixed line states only what its frame shows, and no other line gains a fact: one fix reworded four lines to clear one blocker, voiced a claim the picture never showed, and cost a third round. A fix to the brief alone, such as a seed identity it left out, leaves the export as it was, so only a new watcher for that part reviews it again. Stop when both say ready, and hand off that export with every should-fix and nit in the README for the user to pick: one polish re-cut cost 8.5 minutes, and another led to a second re-cut. Stop after three rounds otherwise: a cut with an open blocker is not a final, so tell the user which blockers are left.
 9. **Hand off.** Done when the user has the path and the file is open.
 
 ## Handoff
 
-- Put the absolute path of the final file on its own line, with its length and size, then open it with `xdg-open`.
+- Put the absolute path of the final file on its own line, with its length and size, then open it with `xdg-open` on Linux or `open` on macOS.
 - Finals go in `~/Videos/<project>/`, sources in `~/Videos/<project>/src/`. A disk cleanup once wiped every source of a video kept under `/tmp`.
 - Write `README.md` beside the final with its path and sha256, length, chapters, how it was made (what is real, staged or masked), known gaps and the should-fixes and nits left for the user, both watcher verdicts with their sha256, and "human listening pass: not measured".
 - Delete superseded cuts or mark them in the README. Give the user videos only, never an intermediate file such as a script or a timeline.
-- For a PR or ticket, upload the file (the **dumpfile** skill, or the tracker's own upload), download it again, compare sha256, and link the URL.
+- For a PR or ticket, upload the file with the tracker's own upload, download it again, compare sha256, and link the URL.
 
 ## Machine
 
-- Run one render or recording at a time, in the background. Video work has run this machine out of memory.
+- Run one render or recording at a time, in the background. Video work has run machines out of memory.
 - Stop every recorder, browser and emulator you start in a `finally`, and leave shared ones alone.
 - Before helpers start from a brief, run each command in it once. A wrong render flag in one brief made three helpers render the whole film.
 

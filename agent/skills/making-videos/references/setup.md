@@ -4,14 +4,13 @@
 
 ## Install the skill
 
-The skill is the folder `agent/skills/making-videos/` in the pi harness, https://github.com/drsh4dow/pi-harness, which lives at `~/.pi`. Web capture also uses the `agent-browser` skill, which the harness's web extension loads from `features/web/agent-browser/`. On a new machine, clone the harness and install its packages:
+Install it for every project with the skills CLI (Node 22 or newer), then start a new agent session so it loads:
 
 ```bash
-git clone https://github.com/drsh4dow/pi-harness ~/.pi
-bun install --cwd ~/.pi
+npx skills add drsh4dow/pi-harness --skill making-videos -g
 ```
 
-Start a new pi session, or run `/reload` in an open one, so it loads the skill, then run `~/.pi/agent/skills/making-videos/scripts/check.sh --setup`.
+The folder carries every script, template and font it uses. Run `scripts/check.sh --setup` from it, and install what it names from the table below.
 
 ## Tools
 
@@ -28,7 +27,7 @@ Start a new pi session, or run `/reload` in an open one, so it loads the skill, 
 | xdotool                       | web                                   | `apt install xdotool`                                                                                                                                                                                           | `dnf install xdotool`                                                                                           | `pacman -S xdotool`                      | none                                         |
 | xdpyinfo                      | web                                   | `apt install x11-utils`                                                                                                                                                                                         | `dnf install xdpyinfo`                                                                                          | `pacman -S xorg-xdpyinfo`                | none                                         |
 | Chromium                      | web                                   | Debian `apt install chromium`, Ubuntu `snap install chromium`                                                                                                                                                   | `dnf install chromium`, then `CHROMIUM=chromium-browser`                                                        | `pacman -S chromium`                     | none                                         |
-| agent-browser                 | web                                   | the Install line in `~/.pi/src/features/web/agent-browser/SKILL.md`                                                                                                                                             | same                                                                                                            | same                                     | same                                         |
+| agent-browser                 | web                                   | `bun add -g agent-browser && agent-browser install`                                                                                                                                                             | same                                                                                                            | same                                     | same                                         |
 | Node 22 or newer              | web, compose                          | a version manager such as fnm, nvm or mise; distro packages are often older, so check `node -v`                                                                                                                 | same                                                                                                            | `pacman -S nodejs npm`                   | `brew install node`                          |
 | bun                           | compose, and installing agent-browser | `curl -fsSL https://bun.sh/install \| bash`                                                                                                                                                                     | same                                                                                                            | same                                     | `brew install oven-sh/bun/bun`               |
 | adb, emulator, avdmanager     | android                               | Android Studio, or the SDK command-line tools and `sdkmanager "platform-tools" "emulator"`. Add `$ANDROID_HOME/platform-tools`, `$ANDROID_HOME/emulator` and `$ANDROID_HOME/cmdline-tools/latest/bin` to `PATH` | same                                                                                                            | same                                     | same                                         |

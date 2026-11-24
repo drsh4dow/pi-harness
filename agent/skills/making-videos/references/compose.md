@@ -2,8 +2,6 @@
 
 Promos, explainers and terminal tutorials drawn in code and cued to the voice. Copy `templates/remotion/` into `~/Videos/<project>/src/film/`. Its `README.md` has the commands to set it up, preview, render and type-check it, and the mistakes that broke renders before.
 
-For a math-style explainer, the pi skill at `~/Projects/old-pi/agent/skills/catchup-video` is a Manim toolkit. The user picked its look.
-
 ## Cue to the voice
 
 - Cue every change on a spoken word with `at(line, word)` from `src/cues.ts`, never on a hand-typed frame. Words match the `say` text, so it is `at("d6", "three-sixty's")`.
