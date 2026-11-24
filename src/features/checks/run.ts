@@ -10,12 +10,14 @@ import * as Str from "effect/String";
 import {
 	holdPlace,
 	type Holder,
+	keptBytes,
 	queuesFolder,
 	type Ran,
 	type Receipt,
 	receiptOf,
 	receiptsFolder,
 	recordReceipt,
+	replay,
 	runShown,
 	type Wait,
 	type Worktree,
@@ -25,8 +27,8 @@ import {
 /** One check slot per four cores, and never fewer than two. */
 export const checkSlotsFor = (cores: number) => Math.max(2, Math.floor(cores / 4));
 
-const receiptKey = ({ tree, prefix }: Worktree, command: ReadonlyArray<string>) => {
-	const bytes = new TextEncoder().encode(Arr.join([tree, prefix, ...command], "\0"));
+const receiptKey = ({ tree, root, prefix }: Worktree, command: ReadonlyArray<string>) => {
+	const bytes = new TextEncoder().encode(Arr.join([tree, root, prefix, ...command], "\0"));
 
 	return Effect.map(
 		Effect.promise(() => crypto.subtle.digest("SHA-256", bytes)),
@@ -90,15 +92,15 @@ const shellWord = (word: string) =>
 /** The command as a shell would take it. */
 const shownOf = (command: ReadonlyArray<string>) => Arr.join(Arr.map(command, shellWord), " ");
 
-const served = (key: string, { command, tail, passedAt, seconds }: Receipt) =>
+const served = (key: string, { command, stdout, stderr, passedAt, seconds }: Receipt) =>
 	Effect.andThen(
-		tail === "" ? Effect.void : Console.log(tail),
-		Console.log(
+		replay({ stdout, stderr }),
+		Console.error(
 			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on this tree at ${passedAt} in ${String(seconds)} s, so it did not run again. \`check --fresh -- ${shownOf(command)}\` runs it again.`,
 		),
 	);
 
-/** Records a receipt for a pass, unless the tree changed while the check ran. */
+/** Records a receipt for a pass, unless the tree changed while the check ran or its output is too long to keep. */
 const recordPass = (
 	{ home, command, cwd }: CheckRun,
 	{
@@ -112,16 +114,21 @@ const recordPass = (
 		const after = yield* worktreeAt(cwd);
 
 		if (Option.getOrUndefined(after)?.tree !== worktree.tree) {
-			yield* Console.error("check: passed, but the tree changed while it ran, so it has no receipt.");
+			return yield* Console.error("check: passed, but the tree changed while it ran, so it has no receipt.");
+		}
 
-			return;
+		if (Option.isNone(ran.output)) {
+			return yield* Console.error(
+				`check: passed, but printed over ${String(keptBytes)} bytes, so it has no receipt.`,
+			);
 		}
 
 		const finished = yield* Clock.currentTimeMillis;
 		const passedAt = DateTime.formatIso(DateTime.makeUnsafe(finished));
 
-		yield* recordReceipt(receiptsFolder(home))(key, { ...worktree, command, passedAt, seconds, tail: ran.tail });
-		yield* Console.log(
+		yield* recordReceipt(receiptsFolder(home))(key, { ...worktree, ...ran.output.value, command, passedAt, seconds });
+
+		return yield* Console.error(
 			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on tree ${idOf(worktree.tree)} in ${String(seconds)} s.`,
 		);
 	});
