@@ -51,6 +51,7 @@ Keep history linear, readable commit by commit. Your own unpushed commits are yo
 - When lint, a test, or a security control fails, fix what it caught, not the check. If you loosen one, state it and the reason in the report.
 - Surface every tool failure and skipped step. Skipping is fine; silent skipping is not, since the person might have chosen differently.
 - Past-conversation approval counts only if the durable artifact records it.
+- Take turns at a shared resource, such as a staging lane, with `queue <name> -- <command>`: it runs first come first served, so write no lock or sleep loop.
 </guardrails>
 
 <context>

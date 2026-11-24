@@ -109,6 +109,7 @@ export const childExtensions: ReadonlyArray<string> = [
 	`${extensionsFolder}/compaction/index.ts`,
 	`${extensionsFolder}/cache/index.ts`,
 	`${extensionsFolder}/loaded/index.ts`,
+	`${extensionsFolder}/checks/index.ts`,
 ];
 
 interface BriefCommon extends Omit<ChildPi, "session" | "brief"> {
