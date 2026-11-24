@@ -3,48 +3,33 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const diff = `## What changed
+const whatChanged = `## What changed
 
-\`\`\`diff
-- return lines.slice(0, -1);
-+ return lines;
-\`\`\`
+- The parser keeps the last line.
 
 `;
 
-const prBody = (whatChanged: string, tail = "") => `## Why
+const scope = `## Scope
+
+- Covers the parser only.
+
+`;
+
+const sizedScope = `## Scope\nsize: production +4 -1, tests +3 -0, docs +1 -0, other +0 -0 (base 9c1e2a0)\n\n`;
+
+const prBody = (changed = whatChanged, tail = "", scoped = scope) => `## Why
 
 The parser drops the last line of a file that has no trailing newline.
 
-${whatChanged}## Scope
+${changed}${scoped}## Verification
 
-Covers the parser only.
-
-## Blast Radius
-
-Callers of the parser. A two-way door.
-
-## Verification
-
-- **The last line is read.** \`0 lines\` → \`1 line\`.
-
-**Not checked:** nothing.
+- \`bun test parser\` → 12 pass.
 ${tail}`;
-
-const evidence = `
-## Evidence
-
-<details><summary>Parser run</summary>
-
-\`\`\`text
-1 line
-\`\`\`
-
-</details>
-`;
 
 const lines = (count: number, text: string) =>
   Array.from({ length: count }, (_, index) => `${text} ${index + 1}.\n`).join("");
+
+const said = (bullet: string) => `## What changed\n\n- ${bullet}\n\n`;
 
 const bugTemplate = `## What happens
 
@@ -194,48 +179,67 @@ function check(kind: string, body: string, files: Record<string, string> = {}) {
 }
 
 test.each([
-  { name: "a PR with a diff and its Evidence in <details>", body: prBody(diff, evidence) },
+  { name: "a PR of Why, What changed, and Verification", body: prBody() },
+  { name: "a PR that drops every heading but Why, Scope, and Verification", body: prBody("") },
+  { name: "a PR whose Scope holds only the size line publish-pr writes", body: prBody(whatChanged, "", sizedScope) },
+  { name: "a PR that leaves Scope empty for publish-pr's size line", body: prBody(whatChanged, "", "## Scope\n\n") },
   {
-    name: "a PR whose What changed holds only an image",
-    body: prBody("## What changed\n\n![Parser call tree](https://example.com/tree.png)\n\n"),
+    name: "a PR without Why",
+    body: `${whatChanged}${scope}## Verification\n\n- \`bun test parser\` → 12 pass.\n`,
   },
   {
-    name: "a PR of 45 lines with 20 inside <details>",
+    name: "a PR with all six headings",
     body: prBody(
-      diff,
-      `## Evidence\n<details><summary>Parser run</summary>\n${lines(18, "Output line")}</details>\n`,
+      whatChanged,
+      "",
+      `## Scope\n\n- Leaves out: files over 2 GB.\n\n## Tradeoffs\n\nA streaming parser would cost a rewrite of every caller.\n\n## Blast Radius\n\nCallers of the parser, which would see one extra line. A two-way door.\n\n`,
     ),
   },
+  { name: "a PR of 39 lines", body: prBody(whatChanged, lines(24, "Output line")) },
   {
-    name: "a PR of 40 lines outside <details> plus the size line publish-pr writes",
+    name: "a PR of 39 lines plus the size line under Scope",
+    body: prBody(whatChanged, lines(26, "Output line"), sizedScope),
+  },
+  {
+    name: "a PR naming <details>, a long dash, and curly quotes inside inline code",
+    body: prBody(said("Refuses `<details>`, `a \u2014 b`, and `\u201Cvalue\u201D`.")),
+  },
+  {
+    name: "a PR with a long dash in a link destination",
+    body: prBody(said("Follows [the style guide](https://example.com/dash\u2014guide).")),
+  },
+  {
+    name: "a PR with literal words that unslop rule 7 lists",
     body: prBody(
-      diff,
-      `<details><summary>Log</summary>\n\nOutput.\n\n</details>\n${lines(16, "Context line")}`,
-    ).replace(
-      "## Scope\n",
-      "## Scope\nsize: production +4 -1, tests +3 -0, docs +1 -0, other +0 -0 (base 9c1e2a0)\n",
+      said("The PDF prints in landscape, and `snake_case` keeps its underscore. See [the run](https://example.com/enhanced)."),
     ),
   },
   {
     name: "a PR changing a .tsx file with a Before | After table",
     body: prBody(
-      diff,
+      whatChanged,
       "\n| Before | After |\n| --- | --- |\n| ![before](https://example.com/b.png) | ![after](https://example.com/a.png) |\n",
     ),
     files: ui("src/App.tsx\n"),
   },
   {
     name: "a PR changing a .tsx file that names the missing screenshots",
-    body: prBody(diff).replace(
-      "**Not checked:** nothing.",
-      "**Not checked:** screenshots, because the dev server needs production keys.",
+    body: prBody(
+      whatChanged,
+      "\n**Not checked:** screenshots, because the dev server needs production keys.\n",
     ),
     files: ui("src/App.tsx\n"),
   },
   {
     name: "a PR changing only a .ts file without a table",
-    body: prBody(diff),
+    body: prBody(),
     files: ui("src/server.ts\n"),
+  },
+  {
+    name: "a ticket quoting a reporter with a curly apostrophe",
+    kind: "ticket",
+    body: bugBody.replace("returns a 500.", "returns a 500. A biller wrote: \u201Cit doesn\u2019t save\u201D."),
+    files: { "--template": bugTemplate },
   },
   {
     name: "a ticket filling ENG: Bug",
@@ -255,36 +259,64 @@ test.each([
 
 test.each([
   {
-    name: "a PR without What changed",
-    body: prBody(""),
-    finding: 'body.md:1: missing "## What changed"',
+    name: "a PR without Scope, which carries the size line",
+    body: prBody(whatChanged, "", ""),
+    finding: 'body.md:1: missing "## Scope"',
   },
   {
-    name: "a PR whose What changed is prose only",
-    body: prBody("## What changed\n\nThe parser keeps the last line.\n\n"),
-    finding: 'body.md:5: "## What changed" has no visual',
+    name: "a PR with Scope after Verification",
+    body: prBody(whatChanged, "\n## Scope\n\nCovers the parser only.\n"),
+    finding: 'body.md:17: "## Scope" is out of order or repeated',
   },
   {
-    name: "a PR of 41 lines outside <details>",
-    body: prBody(
-      diff,
-      `<details><summary>Log</summary>\n\nOutput.\n\n</details>\n${lines(17, "Context line")}`,
-    ),
-    finding: "body.md:46: body has 41 visible lines outside <details>",
+    name: "a PR with an Evidence section",
+    body: prBody(whatChanged, "\n## Evidence\n\nThe parser log.\n"),
+    finding: 'body.md:17: unexpected heading "## Evidence"',
   },
   {
-    name: "a PR with an Evidence line outside <details>",
-    body: prBody(diff, evidence.replace("\n<details>", "\nThe parser log.\n\n<details>")),
-    finding: 'body.md:28: "## Evidence" has lines outside <details>',
+    name: "a PR of 40 lines",
+    body: prBody(whatChanged, lines(25, "Output line")),
+    finding: "body.md:40: body has 40 lines, cut it to under 40",
   },
   {
-    name: "a PR with an empty Evidence",
-    body: prBody(diff, "\n## Evidence\n"),
-    finding: 'body.md:26: "## Evidence" has lines outside <details>',
+    name: "a PR with <details>",
+    body: prBody(whatChanged, "\n<details><summary>Log</summary>\n\nOutput.\n\n</details>\n"),
+    finding: "body.md:17: a PR body has no <details>",
+  },
+  {
+    name: "a PR with a long dash",
+    body: prBody(said("The parser keeps the last line \u2014 always.")),
+    finding: "body.md:7: long dash, use a period or a comma",
+  },
+  {
+    name: "a PR with curly quotes",
+    body: prBody(said("The parser keeps the \u201Clast\u201D line.")),
+    finding: "body.md:7: curly quote, use a straight quote",
+  },
+  {
+    name: "an empty PR body",
+    body: "",
+    finding: "body.md:1: body is empty",
+  },
+  {
+    name: "a PR body of only a Scope heading and its size line",
+    body: "## Scope\nsize: production +4 -1, tests +3 -0, docs +1 -0, other +0 -0 (base 9c1e2a0)\n",
+    finding: "body.md:1: body is empty",
+  },
+  {
+    name: "a PR with a heading that has nothing under it",
+    body: prBody(whatChanged, "\n## Blast Radius\n"),
+    finding: 'body.md:17: "## Blast Radius" is empty, drop it',
+  },
+  {
+    name: "a PR that leaves out a heading its template has",
+    body: "## Testing\n\n- `bun test parser`: 12 pass.\n",
+    files: { "--template": "## Why\n\n## What changed\n\n## Testing\n" },
+    finding: 'body.md:1: missing "## Why"',
   },
   {
     name: "a PR changing a .tsx file without a table",
-    body: prBody(diff),
+    body: prBody(),
     files: ui("src/App.tsx\n"),
     finding: "body.md:1: the PR changes UI files (src/App.tsx) but has no",
   },
