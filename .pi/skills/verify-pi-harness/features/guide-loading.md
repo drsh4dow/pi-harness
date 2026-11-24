@@ -32,5 +32,5 @@ Preconditions:
 - Every guides run exits 0 when it completes. The `verdict` line is the result, not the exit code (`tools/driver/guides/measure.ts`).
 - `verdict no-event` or a `budget` ending means the agent never reached the act. It proves nothing either way.
 - One run samples one path of a model. Report a single `hit` or `miss` as one sample.
-- `tools/driver/guides/rounds.sh` runs all six in parallel, three trials each. That breaks the one-run-at-a-time rule on this account.
+- `tools/driver/guides/rounds.sh` runs all six in parallel, three trials each. That is 18 runs at once, over the limit of 3 on this account.
 - quaycart needs `magick` on PATH to plant its screenshot.
