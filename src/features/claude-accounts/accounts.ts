@@ -1,14 +1,16 @@
-import type { Model } from "@earendil-works/pi-ai";
+import type { Model, ProviderStreams, StreamOptions } from "@earendil-works/pi-ai";
 import { anthropicMessagesApi } from "@earendil-works/pi-ai/compat";
 import { createProvider, hasApi, type Provider } from "@earendil-works/pi-ai/models";
 import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 import * as Arr from "effect/Array";
+import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
+import { backAt } from "#src/client/claude-usage/index.ts";
 import { piHost } from "#src/client/pi-host/index.ts";
 
 type ApiKeyAuth = NonNullable<Provider["auth"]["apiKey"]>;
@@ -144,12 +146,54 @@ const authOf = (login: Login, { oauth }: Anthropic) => {
 	}
 };
 
+const tooManyRequests = 429;
+
+const limitWatched = (api: ProviderStreams, limited: (back: DateTime.Utc) => void): ProviderStreams => {
+	const watching =
+		(fetch: typeof globalThis.fetch) =>
+		(...request: Parameters<typeof fetch>) =>
+			accountsHost.run(
+				Effect.gen(function* () {
+					const response = yield* Effect.promise(() => fetch(...request));
+					const now = yield* DateTime.now;
+
+					if (response.status === tooManyRequests) {
+						limited(backAt({ headers: response.headers, now }));
+					}
+
+					return response;
+				}),
+			);
+
+	const watched = (options?: StreamOptions) => {
+		const fetch = options?.fetch ?? globalThis.fetch;
+
+		return { ...options, fetch: Object.assign(watching(fetch), { preconnect: fetch.preconnect }) };
+	};
+
+	return {
+		...api,
+		stream: (model, context, options) => api.stream(model, context, watched(options)),
+		streamSimple: (model, context, options) => api.streamSimple(model, context, watched(options)),
+	};
+};
+
 /**
  * Anthropic's catalog and API under the account's id. Pi stores and reads the account's credential under that id, and
  * each model names it as its provider, so a session shows which account answered.
  */
-export const accountProvider = ({ anthropic, account }: { anthropic: Anthropic; account: Account }): Provider =>
-	createProvider({
+export const accountProvider = ({
+	anthropic,
+	account,
+	limited,
+}: {
+	anthropic: Anthropic;
+	account: Account;
+	limited: (back: DateTime.Utc) => void;
+}): Provider => {
+	const api = limitWatched(anthropicMessagesApi(), limited);
+
+	return createProvider({
 		id: account.id,
 		name: account.name,
 		auth: authOf(account.login, anthropic),
@@ -163,5 +207,6 @@ export const accountProvider = ({ anthropic, account }: { anthropic: Anthropic; 
 				compat: { ...model.compat, supportsMessageThreads: !account.baa },
 			}),
 		),
-		api: anthropicMessagesApi(),
+		api,
 	});
+};

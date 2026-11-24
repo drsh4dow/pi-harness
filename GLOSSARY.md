@@ -48,6 +48,7 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Panel.** The models a skill runs one delegate on each, for work such as competing designs or a review.
 - **Model table.** The aliases and the panel: the models a delegate call may name.
 - **Claude account.** One Claude login as its own provider, with Anthropic's models and its own credential: the personal subscriptions ultra-a and ultra-b, and ent, the **BAA account**.
+- **Limited account.** A Claude account that answered 429, until the reset that reply names. A session that hits a 429 moves to an account that is not limited, or waits for the first one back.
 - **Role.** What an agent is for: root, owner or leaf. The root is the pi at the human's terminal, and a delegate's parent names its role.
 - **Owner.** A delegate handed one slice and its **design**, to build, verify, commit and report on. It can hand parts of its slice to delegates of its own.
 - **Design.** Who settled the shape of an owner's slice: a sketch made before the hand-off, which the owner builds to, or the owner itself as it builds.

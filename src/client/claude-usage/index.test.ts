@@ -10,7 +10,7 @@ import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 
-import { ClaudeUsage, claudeUsageLayer } from "./index.ts";
+import { backAt, ClaudeUsage, claudeUsageLayer } from "./index.ts";
 
 interface Sent {
 	readonly url: string;
@@ -176,3 +176,43 @@ test("a probe reply with no rate-limit headers fails with the status and reason"
 			expect(got.message).toBe("Claude probe answered HTTP 401: invalid x-api-key");
 		}).pipe(Effect.provide(rejected)),
 	));
+
+const limitedAt = DateTime.makeUnsafe("2026-11-18T11:04:37Z");
+
+const backs = [
+	{
+		name: "the latest reset of a rejected claim, not of an allowed one",
+		headers: {
+			"anthropic-ratelimit-unified-status": "rejected",
+			"anthropic-ratelimit-unified-reset": "1795000000",
+			"anthropic-ratelimit-unified-5h-status": "allowed",
+			"anthropic-ratelimit-unified-5h-reset": "1797000000",
+			"anthropic-ratelimit-unified-7d-status": "rejected",
+			"anthropic-ratelimit-unified-7d-reset": "1796000000",
+		},
+		back: DateTime.makeUnsafe(1_796_000_000_000),
+	},
+	{
+		name: "retry-after when it is later than every reset",
+		headers: {
+			"anthropic-ratelimit-unified-status": "rejected",
+			"anthropic-ratelimit-unified-reset": "1795000000",
+			"retry-after": "99999999",
+		},
+		back: DateTime.add(limitedAt, { seconds: 99_999_999 }),
+	},
+	{
+		name: "retry-after alone",
+		headers: { "retry-after": "30" },
+		back: DateTime.add(limitedAt, { seconds: 30 }),
+	},
+	{
+		name: "a minute when the headers name no reset",
+		headers: { "anthropic-ratelimit-unified-status": "rejected", "retry-after": "soon" },
+		back: DateTime.add(limitedAt, { minutes: 1 }),
+	},
+];
+
+test.each(backs)("a 429 says its account is back at $name", ({ headers, back }) => {
+	expect(backAt({ headers: new Headers(headers), now: limitedAt })).toEqual(back);
+});
