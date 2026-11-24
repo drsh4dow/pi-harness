@@ -10,7 +10,7 @@ Promos, explainers and terminal tutorials drawn in code and cued to the voice. C
 
 ## Look
 
-The user's favourite is 3Blue1Brown with code aesthetics. Offer the look as its own pick, with one still per option.
+The default look is 3Blue1Brown with code aesthetics. With checkpoints on, offer the look as its own pick, with one still per option.
 
 - A dark stage. One meaning per colour for the whole film, set in `src/theme.ts`.
 - For a full-screen 1080p player: labels 26 px and up, file and terminal text 22 px and up, captions 36 px in a 150 px band. For a smaller player, such as a docs page, scale them by 1920 divided by its width, and keep a terminal to about 80 columns. Shared parts follow the same floor: a 17 px terminal title in a shared part was flagged by four watchers.

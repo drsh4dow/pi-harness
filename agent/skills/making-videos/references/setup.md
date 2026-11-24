@@ -41,7 +41,7 @@ The folder carries every script, template and font it uses. Run `scripts/check.s
 
 ## Voice keys
 
-`scripts/tts.py` voices the script with Gemini (`GEMINI_API_KEY`) or ElevenLabs (`ELEVENLABS_API_KEY`). One key is enough.
+`scripts/tts.py` voices the script with Gemini (`GEMINI_API_KEY`) in the voice Iapetus, or ElevenLabs (`ELEVENLABS_API_KEY`) in the voice Mark. One key is enough. Recommend Gemini: its free tier voices short videos, within a daily quota.
 
 - **Gemini.** Sign in at https://aistudio.google.com/apikey and click Create API key. Google's own tools also read `GOOGLE_API_KEY`, but `tts.py` reads only `GEMINI_API_KEY`.
 - **ElevenLabs.** Create a key at https://elevenlabs.io/app/settings/api-keys. A key can be limited to some endpoints. Allow text to speech, and music too if you want `scripts/music.sh` to make a music bed.
@@ -62,4 +62,4 @@ Open a new terminal, start a new agent session from it, and run `check.sh --setu
 
 **No key, captions only.** The video runs with no voice. Voice it with `narrate.py --voice captions` (SKILL.md step 3) and check the export with `check.sh --profile captions`.
 
-**A key that fails.** `--setup` sees only that a key is set. A bad key, no credits or a spent daily quota fails that provider when `narrate.py` runs, and it moves on to the next voice in its chain, which ends in captions only (`tts.py --help` has the rules). So a spent key can end in a video with no voice. `narrate.py` prints the voice that ran, so tell the user which one it was.
+**A key that fails.** `--setup` sees only that a key is set. A bad key, no credits or a spent daily quota fails that provider when `narrate.py` runs, and it moves on to the next voice in its chain, Iapetus then Mark (`tts.py --help` has the rules). When neither voices the script, `narrate.py` fails: ask the user for a working key or captions only. `narrate.py` prints the voice that ran, so tell the user which one it was.
