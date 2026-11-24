@@ -41,13 +41,12 @@ class Failure {
 
 const defaultShapes: Record<Kind, readonly SectionRule[]> = {
   pr: [
-    { heading: "Why", marker: "##", required: true },
-    { heading: "What changed", marker: "##", required: true },
+    { heading: "Why", marker: "##", required: false },
+    { heading: "What changed", marker: "##", required: false },
     { heading: "Scope", marker: "##", required: true },
     { heading: "Tradeoffs", marker: "##", required: false },
-    { heading: "Blast Radius", marker: "##", required: true },
-    { heading: "Verification", marker: "##", required: true },
-    { heading: "Evidence", marker: "##", required: false },
+    { heading: "Blast Radius", marker: "##", required: false },
+    { heading: "Verification", marker: "##", required: false },
   ],
   ticket: [
     { heading: "Problem", marker: "##", required: true },
@@ -143,7 +142,10 @@ function sectionOpener(text: string): { heading: string; marker: Marker } | null
 }
 
 function templateShape(kind: Kind, template: string): SectionRule[] | Failure {
-  const optional = new Set(defaultShapes[kind].filter((rule) => !rule.required).map(headingKey));
+  const optional =
+    kind === "pr"
+      ? new Set(["## tradeoffs", "## evidence"])
+      : new Set(defaultShapes.ticket.filter((rule) => !rule.required).map(headingKey));
   const sections = parseBody(template).sections;
 
   if (sections.length === 0) return new Failure("the template has no ## headings or +++ blocks");
@@ -239,22 +241,6 @@ function proseLines(lines: readonly Line[]) {
   return lines.filter((_, index) => !inFence[index]);
 }
 
-function insideDetails(lines: readonly Line[]): boolean[] {
-  const inFence = fenced(lines);
-  let depth = 0;
-
-  return lines.map((line, index) => {
-    if (inFence[index]) return depth > 0;
-
-    const opens = line.text.match(/<details\b/gi)?.length ?? 0;
-    const closes = line.text.match(/<\/details>/gi)?.length ?? 0;
-    const inside = depth > 0 || opens > 0;
-
-    depth = Math.max(0, depth + opens - closes);
-    return inside;
-  });
-}
-
 function contentFindings(kind: Kind, body: Body): Finding[] {
   const findings: Finding[] = [];
 
@@ -272,8 +258,14 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
   }
 
   for (const line of proseLines(body.lines)) {
-    if (/[\u2013\u2014]/.test(line.text)) {
+    const prose = line.text.replaceAll(/`[^`]*`/g, "").replaceAll(/\]\([^)]*\)/g, "]");
+
+    if (/[\u2013\u2014]/.test(kind === "pr" ? prose : line.text)) {
       findings.push({ where: line.number, message: "long dash, use a period or a comma" });
+    }
+
+    if (kind === "pr" && /[\u2018\u2019\u201C\u201D]/.test(prose)) {
+      findings.push({ where: line.number, message: "curly quote, use a straight quote" });
     }
 
     if (line.text.includes("<!--")) {
@@ -282,32 +274,29 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
         message: "template comment left in, replace or delete it",
       });
     }
+
+    if (kind === "pr" && /<details\b/i.test(prose)) {
+      findings.push({
+        where: line.number,
+        message: "a PR body has no <details>, cut the content or link it",
+      });
+    }
   }
 
-  const proof = sectionNamed(
-    body,
-    kind === "pr" ? ["## verification"] : ["## evidence", "## verification"],
-  );
+  const proof = sectionNamed(body, ["## evidence", "## verification"]);
   // A witness is something the reviewer sees: pasted output, a table, media, or a link.
   // Inline code alone names a command without showing what it printed, unless it pairs the
   // output before and after, as in `a-61 end` → `a-61 b-62 end`.
   const witness = /https?:\/\/|!\[|<img|<video|<details|^\s*(```|~~~)|^\s*\||`[^`]+`\s*→\s*`[^`]+`/;
 
-  if (proof !== undefined && !proof.lines.some((line) => witness.test(line.text))) {
-    findings.push({
-      where: proof.line,
-      message: `"${display(proof)}" shows no witness, paste the output, or add the table, media, or CI link that shows before and after`,
-    });
-  }
-
   if (
-    kind === "pr" &&
+    kind === "ticket" &&
     proof !== undefined &&
-    !proseLines(proof.lines).some((line) => notChecked.test(line.text))
+    !proof.lines.some((line) => witness.test(line.text))
   ) {
     findings.push({
       where: proof.line,
-      message: `"${display(proof)}" has no "**Not checked:**" line, list what has no witness or write nothing`,
+      message: `"${display(proof)}" shows no witness, paste the output, or add the table, media, or CI link that shows before and after`,
     });
   }
 
@@ -325,66 +314,27 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
 
   if (kind !== "pr") return findings;
 
-  const whatChanged = sectionNamed(body, ["## what changed"]);
+  const counted = body.lines.filter((line) => !sizeLine.test(line.text));
+  const headings = new Set(body.sections.map((section) => section.line));
 
-  if (whatChanged !== undefined && !whatChanged.lines.some((line) => visual.test(line.text))) {
-    findings.push({
-      where: whatChanged.line,
-      message: `"${display(whatChanged)}" has no visual, add pseudocode, a call tree, a component tree, a file tree, Mermaid, or a diff of one, per the show-me skill`,
-    });
+  if (!counted.some((line) => line.text.trim() !== "" && !headings.has(line.number))) {
+    findings.push({ where: 1, message: "body is empty" });
   }
 
-  const why = sectionNamed(body, ["## why"]);
-
-  if (why !== undefined) {
-    const words = proseLines(why.lines)
-      .filter((line) => !ticketLine.test(line.text))
-      .flatMap((line) => line.text.split(/\s+/).filter(Boolean)).length;
-
-    if (words > whyWordCap) {
-      findings.push({
-        where: why.line,
-        message: `"${display(why)}" has ${words} words of prose, cut it to ${whyWordCap} or fewer`,
-      });
+  // publish-pr writes the size line under Scope, so Scope may be left empty.
+  for (const section of body.sections) {
+    if (headingKey(section) !== "## scope" && !section.lines.some((line) => line.text.trim() !== "")) {
+      findings.push({ where: section.line, message: `"${display(section)}" is empty, drop it` });
     }
   }
 
-  const blastRadius = sectionNamed(body, ["## blast radius"]);
+  const length = counted.findLastIndex((line) => line.text.trim() !== "") + 1;
 
-  if (
-    blastRadius !== undefined &&
-    !proseLines(blastRadius.lines).some((line) => /\b(one|two)-way\b/i.test(line.text))
-  ) {
+  if (length > lineCap) {
     findings.push({
-      where: blastRadius.line,
-      message: `"${display(blastRadius)}" does not say whether the door is one-way or two-way`,
+      where: counted[lineCap].number,
+      message: `body has ${length} lines, cut it to under ${lineCap + 1} and link the rest`,
     });
-  }
-
-  const hidden = insideDetails(body.lines);
-  const visible = body.lines.filter((line, index) => !hidden[index] && !sizeLine.test(line.text));
-  const length = visible.findLastIndex((line) => line.text.trim() !== "") + 1;
-
-  if (length > visibleLineCap) {
-    findings.push({
-      where: visible[visibleLineCap].number,
-      message: `body has ${length} visible lines outside <details>, cut it to ${visibleLineCap} or fewer and move the rest into the Evidence <details> block`,
-    });
-  }
-
-  const evidence = sectionNamed(body, ["## evidence"]);
-
-  if (evidence !== undefined) {
-    const outside = evidence.lines.find(
-      (line) => line.text.trim() !== "" && !hidden[line.number - 1],
-    );
-
-    if (outside !== undefined || !evidence.lines.some((line) => hidden[line.number - 1])) {
-      findings.push({
-        where: outside?.number ?? evidence.line,
-        message: `"${display(evidence)}" has lines outside <details>, put its content inside one <details><summary>…</summary> block`,
-      });
-    }
   }
 
   return findings;
@@ -392,16 +342,9 @@ function contentFindings(kind: Kind, body: Body): Finding[] {
 
 const notChecked = /^\s*\*\*Not checked:\*\*/;
 
-const visual = /^\s*(```|~~~)|!\[[^\]]*\]\([^)]*\)|<img/i;
-
 const sizeLine = /^size: production \+\d+ -\d+, /;
 
-// The "Closes #N", "Part of #N", and "Depends on #N" lines that end a Why.
-const ticketLine = /^\s*(Closes|Fixes|Resolves|Part of|Depends on|Refs:?)\s/i;
-
-const whyWordCap = 70;
-
-const visibleLineCap = 40;
+const lineCap = 39;
 
 const uiExtensions = [".tsx", ".jsx", ".css", ".scss", ".vue", ".svelte", ".html"];
 
@@ -488,7 +431,7 @@ function openQuestionWarnings(body: Body): Finding[] {
     return [
       {
         where: line.number,
-        message: `warning: "${match[0]}" may leave a choice open, settle it before review or keep the PR a draft`,
+        message: `warning: "${match[0]}" may leave a choice open, settle it before you publish or name it in Scope`,
       },
     ];
   });

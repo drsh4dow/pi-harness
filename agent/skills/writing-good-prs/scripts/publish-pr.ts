@@ -8,10 +8,10 @@
 const { spawnSync } = process.getBuiltinModule("node:child_process");
 const { mkdtempSync, readFileSync, rmSync, writeFileSync } = process.getBuiltinModule("node:fs");
 const { tmpdir } = process.getBuiltinModule("node:os");
-const { dirname, join } = process.getBuiltinModule("node:path");
+const { basename, dirname, join } = process.getBuiltinModule("node:path");
 
 type Target =
-  | { kind: "create"; base: string | undefined; head: string | undefined; isDraft: boolean }
+  | { kind: "create"; base: string | undefined; head: string | undefined }
   | { kind: "edit"; number: string; replace: boolean };
 
 type Arguments = {
@@ -35,11 +35,11 @@ class Failure {
 }
 
 const usage =
-  "expected create <body-file> --title <title> [--draft] [--base <branch>] [--head <branch>] [--repo <owner/repo>] [--template <file>], " +
+  "expected create <body-file> --title <title> [--base <branch>] [--head <branch>] [--repo <owner/repo>] [--template <file>], " +
   "or edit <number> <body-file> --title <title> [--replace] [--repo <owner/repo>] [--template <file>]";
 
 const optionsFor = {
-  create: ["--title", "--draft", "--base", "--head", "--repo", "--template"],
+  create: ["--title", "--base", "--head", "--repo", "--template"],
   edit: ["--title", "--replace", "--repo", "--template"],
 } as const;
 
@@ -61,7 +61,7 @@ function parseArguments(argv: readonly string[]): Arguments | Failure {
 
   for (let index = 0; index < words.length; ) {
     const name = words[index];
-    const takesValue = name !== "--draft" && name !== "--replace";
+    const takesValue = name !== "--replace";
     const value = takesValue ? words[index + 1] : "";
 
     if (!allowed.includes(name) || value === undefined || options.has(name)) {
@@ -83,7 +83,6 @@ function parseArguments(argv: readonly string[]): Arguments | Failure {
           kind: "create",
           base: options.get("--base"),
           head: options.get("--head"),
-          isDraft: options.has("--draft"),
         };
 
   return {
@@ -208,22 +207,23 @@ function sizeOf(range: Range | Failure): string | Failure {
 
 const sizeLines = /^size: production \+\d+ -\d+, .*\n/gm;
 
-const scopeHeading = /^## +Scope[ \t]*\r?\n/im;
+const scopeHeading = /^## +Scope[ \t]*#*[ \t]*\r?$/i;
 
 function withSize(draft: string, size: string | Failure): { body: string; missing: Failure | undefined } {
   const body = draft.replace(sizeLines, "");
 
   if (size instanceof Failure) return { body, missing: size };
 
-  const scope = body.match(scopeHeading);
+  const lines = body.split("\n");
+  const inFence = fenced(lines);
+  const scope = lines.findIndex((line, index) => !inFence[index] && scopeHeading.test(line));
 
-  if (scope?.index === undefined) {
-    return { body, missing: new Failure("the body has no ## Scope heading") };
-  }
+  if (scope === -1) return { body, missing: new Failure("the body has no ## Scope heading") };
 
-  const end = scope.index + scope[0].length;
-
-  return { body: `${body.slice(0, end)}${size}\n${body.slice(end)}`, missing: undefined };
+  return {
+    body: [...lines.slice(0, scope + 1), size, ...lines.slice(scope + 1)].join("\n"),
+    missing: undefined,
+  };
 }
 
 function viewPullRequest(pr: string, repo: string | undefined): PullRequest | Failure {
@@ -308,13 +308,22 @@ function normalize(heading: string) {
 
 // `gh pr edit --body-file` replaces the whole body, which drops a section a bot appended, such
 // as a plan or a deploy preview. Each ## section the live body has and the draft lacks is kept
-// after the nearest section before it that the draft has, or first when none precedes it.
-function keepLiveSections(draft: string, live: string): { body: string; kept: string[] } {
+// after the nearest section before it that the draft has, or first when none precedes it,
+// unless its heading is one the harness writes, now or in an older body, even with a suffix such
+// as "## Verification (head b7e6a48d)". Those are the draft's to write, so a stale one is dropped.
+const harnessHeading =
+  /^(why|what changed|scope|tradeoffs|blast radius|verification|evidence|risk|before and after)\b/;
+
+function keepLiveSections(
+  draft: string,
+  live: string,
+): { body: string; kept: string[]; dropped: string[] } {
   const ours = blocks(draft);
   const known = new Set(
     ours.flatMap((block) => (block.heading === undefined ? [] : [normalize(block.heading)])),
   );
   const after = new Map<string | undefined, { heading: string; text: string }[]>();
+  const dropped: string[] = [];
   let anchor: string | undefined;
 
   for (const { heading, text } of blocks(live.replaceAll("\r\n", "\n"))) {
@@ -324,12 +333,14 @@ function keepLiveSections(draft: string, live: string): { body: string; kept: st
 
     if (known.has(key)) {
       anchor = key;
+    } else if (harnessHeading.test(key)) {
+      dropped.push(heading);
     } else {
       after.set(anchor, [...(after.get(anchor) ?? []), { heading, text }]);
     }
   }
 
-  if (after.size === 0) return { body: draft, kept: [] };
+  if (after.size === 0) return { body: draft, kept: [], dropped };
 
   const kept: string[] = [];
 
@@ -351,6 +362,7 @@ function keepLiveSections(draft: string, live: string): { body: string; kept: st
       .filter((text) => text !== "")
       .join("\n\n")}\n`,
     kept,
+    dropped,
   };
 }
 
@@ -402,10 +414,33 @@ function readbackFindings(title: string, body: string, pr: PullRequest): string[
   return findings;
 }
 
-function publish(args: Arguments, draft: string, size: string | Failure, dir: string): number {
+// Checks the body as it will be sent, before a bot's live sections join it, so a line publish-pr
+// adds can never carry a body past check-body.
+function publish(
+  args: Arguments,
+  draft: string,
+  size: string | Failure,
+  changedFiles: string,
+  dir: string,
+): number {
   const { target } = args;
   const sized = withSize(draft, size);
   let body = sized.body;
+
+  const composedFile = join(dir, `composed-${basename(args.bodyFile)}`);
+  writeFileSync(composedFile, body);
+
+  const checked = checkBody([
+    "pr",
+    composedFile,
+    "--title",
+    args.title,
+    "--changed-files",
+    changedFiles,
+    ...flag("--template", args.template),
+  ]);
+
+  if (checked !== 0) return checked;
 
   if (sized.missing !== undefined) {
     console.error(`publish-pr: warning: publishing without the size line: ${sized.missing.message}`);
@@ -417,6 +452,9 @@ function publish(args: Arguments, draft: string, size: string | Failure, dir: st
     if (live instanceof Failure) return ghFailed(live);
 
     const merged = keepLiveSections(body, live.body);
+
+    for (const heading of merged.dropped)
+      console.log(`publish-pr: dropped "## ${heading}" from the live body`);
 
     for (const heading of merged.kept)
       console.log(`publish-pr: kept "## ${heading}" from the live body`);
@@ -434,7 +472,6 @@ function publish(args: Arguments, draft: string, size: string | Failure, dir: st
           "create",
           ...flag("--base", target.base),
           ...flag("--head", target.head),
-          ...(target.isDraft ? ["--draft"] : []),
         ];
 
   const output = run("gh", [
@@ -492,18 +529,6 @@ function main(): number {
     const changedFiles = join(dir, "changed-files.txt");
     writeFileSync(changedFiles, paths);
 
-    const checked = checkBody([
-      "pr",
-      args.bodyFile,
-      "--title",
-      args.title,
-      "--changed-files",
-      changedFiles,
-      ...flag("--template", args.template),
-    ]);
-
-    if (checked !== 0) return checked;
-
     let draft: string;
 
     try {
@@ -515,7 +540,7 @@ function main(): number {
       return 64;
     }
 
-    return publish(args, draft, sizeOf(range), dir);
+    return publish(args, draft, sizeOf(range), changedFiles, dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
