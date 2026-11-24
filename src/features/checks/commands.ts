@@ -3,11 +3,12 @@ import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
 /**
- * What counts as a check: a simple command whose words, past its environment assignments and a `timeout`, `nice` or
- * `time` wrapper, start the way one of these patterns does.
+ * What counts as a check: a simple command whose words, past its environment assignments and a `timeout`, `nice`,
+ * `time` or `env` wrapper, start the way one of these patterns does. A package manager's options, such as `--cwd sub`,
+ * may come before or after its `run`.
  */
 const checkPatterns: ReadonlyArray<RegExp> = [
-	/^(?:bun|npm|pnpm|yarn)(?: run)? (?:check|test|lint|typecheck)(?:[:-]\S*)?(?=[\s;&|)]|$)/u,
+	/^(?:bun|npm|pnpm|yarn)(?: +-[\w-]+(?:=\S+| +[^\s;&|()-]\S*)?)*?(?: run(?: +-[\w-]+(?:=\S+| +[^\s;&|()-]\S*)?)*?)? (?:check|test|lint|typecheck)(?:[:-]\S*)?(?=[\s;&|)]|$)/u,
 	/^(?:just|make)(?: +[^\s;&|()]+)*? +(?:check|test|lint|typecheck)[\w:-]*(?=[\s;&|)]|$)/u,
 	/^(?:(?:npx|bunx|pnpm exec|uv run|poetry run|python3? -m) +)*(?:vitest|jest|pytest|tsc|mypy|ruff check|eslint|oxlint|cargo (?:test|check|clippy|nextest)|go (?:test|vet))(?=[\s;&|)]|$)/u,
 ];
@@ -16,7 +17,8 @@ const keywords = /^(?:(?:if|then|else|elif|do|while|until|time|!|\{)\s+)*/u;
 
 const assignments = /^(?:[A-Za-z_]\w*=(?:'[^']*'|"(?:[^"\\]|\\.)*"|[^\s'";&|()])*\s+)+/u;
 
-const wrappers = /^(?:(?:timeout(?: +-\S+(?: +\S+)?)* +\d\S*|nice(?: +-n +-?\d+)?|time) +)*/u;
+const wrappers =
+	/^(?:(?:timeout(?: +-\S+(?: +\S+)?)* +\d\S*|nice(?: +-n +-?\d+)?|time|env(?: +-\S+)*(?: +[A-Za-z_]\w*=(?:'[^']*'|"(?:[^"\\]|\\.)*"|[^\s'";&|()])*)*) +)*/u;
 
 /**
  * One shell token: a here-document with its body, a character that ends a simple command, a blank or comment, or a
