@@ -18,3 +18,5 @@ Would the tests catch a regression if the code changed? Answer it by experiment,
 The contract decides, not the shape of the assertion. When "an empty cart never charges" is the promise, an assertion that the payment client got no call is behavior. Pair it with a case where the charge happens, so that the test shows it can see a call. The payload that a mocked external service receives is behavior, because that service observes it. A call to an internal helper is implementation, because no user can see it. An empty list is the exact answer when no record matches, and a hollow check when the test only needs some result. An exact error message pins wording that no caller reads. The error type that callers branch on is the contract.
 
 A test can pin an invariant instead of a call, such as a key that must exist in two tables or a compile-time type check. The invariant is the behavior.
+
+The default suite holds no wall-clock assertion, such as "finishes under 1 s". Elapsed time measures the machine's load as much as the code, so the assertion fails on a busy machine and passes a slow regression on an idle one. Timing belongs in a perf check that runs on its own.
