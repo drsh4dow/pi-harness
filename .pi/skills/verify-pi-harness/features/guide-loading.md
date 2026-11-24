@@ -21,7 +21,7 @@ A guide is a playbook, skill or principle. It loads when the agent reads its fil
 Preconditions:
 
 - `bun install` ran in the worktree that holds the changed guide.
-- No other scenario or headless root runs. Each guides scenario runs `ultra-a/claude-opus-5-5` for up to 20 to 45 minutes.
+- At most 2 other scenarios or headless roots run, so no more than 3 run at once. Each guides scenario runs `ultra-a/claude-opus-5-5` for up to 20 to 45 minutes.
 
 - **Run one guide.** Pick the scenario whose guide the change touches. Run `bun tools/driver/guides/ledgerline.scenario.ts` with the `watch` tool and a deadline of 25 minutes. It prints `read skills/swarm/SKILL.md at <ts> by root` or `read ... never`, then `event from ... to ...` and last `verdict <hit|miss|no-event> <model> <event|settled|budget>`.
 - **Read the verdict.** Run `grep -E '^(read|event|verdict) ' /tmp/pi-driver/ledgerline-*/report.txt` on the folder its `evidence` line names. `verdict hit` proves the guide loaded before the event.

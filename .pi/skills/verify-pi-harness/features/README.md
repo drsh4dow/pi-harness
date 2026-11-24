@@ -7,7 +7,7 @@ This folder is the maintained source for proving what the harness does at runtim
 - Work in a git worktree of `drsh4dow/pi-harness` with `bun install` run, never in the live `~/.pi`.
 - For a headless root, `$repo`, `$skill` and `$run` are set and the pinned checkout exists, as `SKILL.md` Launch shows, and `doctor.sh` exits 0.
 - For a scenario, the change sits in the worktree you run `bun <file>.scenario.ts` from. The driver runs that worktree's `agent/`, uncommitted edits included.
-- No other headless root or scenario runs on this account.
+- At most 2 other headless roots or scenarios run on this account, so no more than 3 run at once, as `SKILL.md` says.
 
 ## Driving conventions
 
