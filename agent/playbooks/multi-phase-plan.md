@@ -70,7 +70,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 ### Verdict and merge, for every PR
 
 - [ ] A full swarm runs once, at the code-ready head. Another full swarm runs only for new behavior, a redesign, or a large new diff. A rebase, a merge-conflict resolution, or a minor fix gets a single verifier at the new head, and a wording-only change gets none. Run each full swarm per the **swarm** skill. One gates lane. The ten live lanes from the PR's **Verify, live** block. The perf lane from its **Verify, perf** block. Two or more audit lanes, each with its own focus, that read the diff and the receipts and distrust the PR body. The root audits the receipts in the merge-ready report before the verdict.
-- [ ] Judge every finding by the execution playbook's blocking rule. The verdict is clean when none blocks. A failure on trunk behavior in a lane marked `Regression lane against trunk.` is recorded against trunk and does not block the PR. A new head gets a fresh verdict, except for results that stay valid under the patch-id rule in `playbooks/shipping.md`.
+- [ ] Judge every finding by the execution playbook's blocking rule. The verdict is clean when none blocks. A failure on trunk behavior in a lane marked `Regression lane against trunk.` is recorded against trunk and does not block the PR. The patch-id rule in `playbooks/shipping.md` can carry a lane's result to a new head.
 - [ ] <The merge or handoff rule from the execution playbook, with the patch-id rule from `playbooks/shipping.md`.>
 
 ### Boot recipe, for every live lane
@@ -122,7 +122,7 @@ Each live lane runs in its own git worktree at the PR head. Drive through the pr
 
 **Merge.**
 
-- [ ] Root's clean verdict at the exact head SHA.
+- [ ] Root's clean verdict at the head, or carried to it by the patch-id rule in `playbooks/shipping.md`.
 - [ ] Bugbot triage done.
 - [ ] Rebased onto current trunk after the verdict, patch-id unchanged.
 - [ ] <The owner squash-merges its own PR once it is approved and nothing is outstanding, then dogfoods the live deployment in staging and in prod, or the root appends it to the base-branch stack and the operator lands it bottom-up.>

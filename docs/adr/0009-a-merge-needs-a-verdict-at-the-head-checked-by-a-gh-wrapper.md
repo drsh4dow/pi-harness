@@ -16,7 +16,7 @@ A verdict is a pass, a pass with notes, a fail, or incomplete. Incomplete is not
 
 A pass from a leaf that the pull request's author started is enough. The playbooks still ask for a verifier on another model family, and the gate does not check which model gave the verdict.
 
-The patch rule turns step 3 of the Shipping playbook into code: a rebase that leaves the patch unchanged keeps its verdict. It drops that step's judgment call on patches that differ only in tests, docs or lint config. Those now need a fresh verdict, so the gate needs no model.
+The patch rule turns step 3 of the Shipping playbook into code: a rebase that leaves the patch unchanged keeps its verdict. It keeps that step's judgment call on patches that differ only in tests, docs or lint config out of the gate. Those need a fresh verdict, so the gate needs no model, and the step's call decides only which lane results that verdict reuses.
 
 The gate covers every merge it sees, with no exemption list. That includes merges between work branches, which a grant already allows, and pull requests that change only docs. Agents have no override. When the human wants a merge the gate refuses, he makes it from his own shell or GitHub's site.
 
