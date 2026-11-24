@@ -1,9 +1,10 @@
 # Watcher brief
 
-Fill the brackets and send the block as the task message of two delegates with `instructionsFile: ~/.pi/agent/instructions/cold-reader.md`, one with the privacy part and one with the story part. Start both with one `group` name, so they watch at once. A new sha256 gets two new delegates. Each returns its findings as its answer; save them beside the export as `<export name>.privacy.md` and `<export name>.story.md`.
+Fill the brackets and send the block as the whole task of two subagents with fresh context, one with the privacy part and one with the story part, started together so they watch at once. When your agent cannot start subagents, run each block as the prompt of a new headless session of a coding agent CLI. A new sha256 gets two new watchers. Each returns its findings as its answer; save them beside the export as `<export name>.privacy.md` and `<export name>.story.md`.
 
 ```text
-You are a watcher. Review one video export cold. Do not edit the video or its sources.
+You are a watcher. Review one video export cold. Read only the files this message names and run only the
+commands it names. Edit nothing. Quote the line or name the frame each answer rests on.
 Your part: [privacy: steps 1 and 2 | story: steps 1, 3, 4 and 5]. Another watcher does the other steps; skip them.
 
 Export: [absolute path], sha256 [hash]. Kind: [walkthrough | demo | tutorial | promo | proof clip | explainer].
