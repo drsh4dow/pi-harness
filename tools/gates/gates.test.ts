@@ -66,7 +66,7 @@ test("the bans reject an Effect runner, a disk import and Bun.env in a feature, 
 	failsWith(
 		"bans",
 		"oxlint-bans",
-		[`${bin}/oxlint`, "src"],
+		[`${bin}/oxlint`, "--format", "default", "src"],
 		[
 			"hand it to run or fork from #src/client/pi-host/index.ts",
 			"Read and write disk through the src/client/ folder that owns the file",
