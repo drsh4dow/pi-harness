@@ -7,7 +7,7 @@
 		"#tools/*": "./tools/*"
 	},
 	"scripts": {
-		"prepare": "effect-tsgo patch --oxlint",
+		"prepare": "effect-tsgo patch --oxlint && git config core.hooksPath .githooks",
 		"fmt": "oxfmt",
 		"lint": "oxlint src tools agent/extensions agent/bin",
 		"typecheck": "tsc -p .",
