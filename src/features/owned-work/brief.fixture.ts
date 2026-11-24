@@ -1,5 +1,6 @@
 import { beforeAll, expect } from "bun:test";
 
+import type { Api, Model } from "@earendil-works/pi-ai";
 import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -12,6 +13,7 @@ import * as Struct from "effect/Struct";
 import type { Static } from "typebox";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
+import { ClaudeUsage } from "#src/client/claude-usage/index.ts";
 import { Gh, GhError } from "#src/client/gh/index.ts";
 import { PhiRouter, PhiRouterError } from "#src/client/phi-router/index.ts";
 import type { Design } from "#src/client/pi-cli/index.ts";
@@ -178,7 +180,16 @@ const phiRouter = Layer.succeed(
 	}),
 );
 
-const services = Layer.mergeAll(Layer.provideMerge(briefSourcesLayer, NodeServices.layer), ledger, home, gh, phiRouter);
+const noMeters = Layer.mock(ClaudeUsage)({});
+
+const services = Layer.mergeAll(
+	Layer.provideMerge(briefSourcesLayer, NodeServices.layer),
+	ledger,
+	home,
+	gh,
+	phiRouter,
+	noMeters,
+);
 
 export const runtime = ManagedRuntime.make(services);
 
@@ -189,13 +200,23 @@ const delegateStarting = (roles: ReadonlyArray<ChildRole>) =>
 
 export const delegate = delegateStarting(["owner", "leaf"]);
 
-/** A real caller carries its own thinking level, which a delegate must never take. */
-export const callerOf = (): Parameters<typeof delegate.execute>[4] => {
+const logins = new Map<string, string>();
+
+/**
+ * A real caller carries its own thinking level, which a delegate must never take. It has no login on any account, so a
+ * delegate reads no meter and stays on its parent's account.
+ */
+export const callerOf = (
+	getAll: () => ReadonlyArray<Model<Api>> = () => [luna, opus, proxied],
+): Parameters<typeof delegate.execute>[4] => {
 	const caller = {
 		cwd: `${fixtures}/work`,
 		model: opus,
 		thinkingLevel: "low",
-		modelRegistry: { getAll: () => [luna, opus, proxied] },
+		modelRegistry: {
+			getAll: () => [...getAll()],
+			getApiKeyForProvider: (provider: string) => Promise.resolve(logins.get(provider)),
+		},
 		sessionManager: { getBranch: () => [], getSessionId: () => "parent" },
 	};
 

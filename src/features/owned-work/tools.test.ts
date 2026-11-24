@@ -11,6 +11,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
+import { ClaudeUsage } from "#src/client/claude-usage/index.ts";
 import { Gh } from "#src/client/gh/index.ts";
 import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { piHost } from "#src/client/pi-host/index.ts";
@@ -27,6 +28,7 @@ const runtime = piHost(
 		Layer.mock(Ledger)({}),
 		Layer.mock(Gh)({}),
 		Layer.mock(PhiRouter)({}),
+		Layer.mock(ClaudeUsage)({}),
 	),
 );
 
@@ -175,6 +177,7 @@ const commandRuntime = piHost(
 		}),
 		Layer.mock(Gh)({}),
 		Layer.mock(PhiRouter)({}),
+		Layer.mock(ClaudeUsage)({}),
 	),
 );
 

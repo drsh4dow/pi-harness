@@ -14,6 +14,7 @@ import * as Option from "effect/Option";
 import type { Static } from "typebox";
 
 import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
+import { type ClaudeUsage, claudeUsageFetchLayer } from "#src/client/claude-usage/index.ts";
 import { type Gh, ghLayer } from "#src/client/gh/index.ts";
 import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { makeSessionFolder, readStagedBrief } from "#src/client/pi-cli/index.ts";
@@ -48,7 +49,7 @@ const resultOf = (json: JsonValue, isError: boolean) =>
 		isError,
 	}));
 
-type CallServices = Gh | BriefSources | PhiRouter | NodeServices.NodeServices;
+type CallServices = ToolServices | NodeServices.NodeServices;
 
 type Runtime = PiHost<Ledger | CallServices, never>;
 
@@ -250,12 +251,12 @@ const register = (
 	}
 };
 
-export type ToolServices = Gh | BriefSources | PhiRouter;
+export type ToolServices = Gh | BriefSources | PhiRouter | ClaudeUsage;
 
 export const Tools = {
 	register,
 	delegate: delegateTool,
 	serve: serveTool,
 	watch: watchTool,
-	layer: Layer.merge(ghLayer, briefSourcesLayer),
+	layer: Layer.mergeAll(ghLayer, briefSourcesLayer, claudeUsageFetchLayer),
 };

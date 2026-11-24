@@ -47,7 +47,7 @@ const delegateModel = ({ parent, session = "parent", name }: Row) => {
 	const caller = {
 		model: parent,
 		cwd: "/",
-		modelRegistry: { getAll: () => registry },
+		modelRegistry: callerOf(() => registry).modelRegistry,
 		sessionManager: { getSessionId: () => session },
 	};
 
@@ -151,9 +151,8 @@ type DelegateCall = Parameters<typeof delegate.execute>[1];
 /** What the delegate tool returns and starts for one call, and which sessions it had phi-router pin first. */
 const calledFrom = (parent: Model<Api>, session: string, call: DelegateCall) => {
 	const caller = {
-		...callerOf(),
+		...callerOf(() => registry),
 		model: parent,
-		modelRegistry: { getAll: () => registry },
 		sessionManager: { getBranch: () => [], getSessionId: () => session },
 	};
 
