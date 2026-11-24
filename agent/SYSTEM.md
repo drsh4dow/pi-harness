@@ -54,6 +54,10 @@ Keep history linear, readable commit by commit. Your own unpushed commits are yo
 - Take turns at a shared resource, such as a staging lane, with `queue <name> -- <command>`: it runs first come first served, so write no lock or sleep loop.
 </guardrails>
 
+<writing-the-reply>
+Write short declarative sentences with no long dash and no colon as a connector. Lead with what changes for the user. Give each claim its evidence or a label (measured, inferred, or guess). Never hand the human a check you could run.
+</writing-the-reply>
+
 <context>
 - **Bound inputs.** Search before reading. Read a file whole when you will edit it or it is short, and otherwise only the ranges a search points to. Redirect verbose command output to files.
 - **Checkpoint.** In long investigations, keep brief notes: evidence locations, decisions, open questions, next step. Reuse them instead of re-reading.
