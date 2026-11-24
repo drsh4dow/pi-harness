@@ -1,11 +1,12 @@
 import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import * as FileSystem from "effect/FileSystem";
 import * as Schedule from "effect/Schedule";
 
+import { eventually } from "#src/primitives/eventually.ts";
 import { ran, startCore } from "./core.ts";
 import { layoutOf } from "./world.ts";
 
@@ -21,20 +22,38 @@ const isAlive = (pid: number) => {
 	}
 };
 
-test("a timeout around ran ends a command that ignores SIGTERM", () =>
-	Effect.runPromise(
-		Effect.gen(function* () {
-			const command = {
-				argv: ["sh", "-c", "trap '' TERM; sleep 30"] as const,
-				env: { PATH: path },
-				cwd: "/",
-			};
+test(
+	"interrupting ran ends a command that ignores SIGTERM",
+	() =>
+		Effect.runPromise(
+			Effect.gen(function* () {
+				const fs = yield* FileSystem.FileSystem;
+				const tmp = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
+				const pidFile = `${tmp}/command.pid`;
 
-			const [took] = yield* Effect.timed(ran(command).pipe(Effect.timeout("100 millis"), Effect.ignore));
+				const command = {
+					argv: [
+						"sh",
+						"-c",
+						`trap '' TERM; echo $$ >${pidFile}.part && mv ${pidFile}.part ${pidFile}; exec sleep 30`,
+					] as const,
+					env: { PATH: path },
+					cwd: "/",
+				};
 
-			expect(took.pipe(Duration.toMillis)).toBeLessThan(4000);
-		}).pipe(Effect.provide(NodeServices.layer)),
-	));
+				const running = yield* Effect.forkChild(ran(command));
+
+				yield* eventually(fs.exists(pidFile), "5 seconds");
+
+				const pid = yield* Effect.map(fs.readFileString(pidFile), Number);
+
+				yield* Fiber.interrupt(running);
+
+				expect(isAlive(pid)).toBe(false);
+			}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+		),
+	15_000,
+);
 
 test.skipIf(Bun.which("hc") === null)("closing the core's scope ends the terminals it runs", () =>
 	Effect.runPromise(
