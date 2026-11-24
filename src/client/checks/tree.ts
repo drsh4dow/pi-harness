@@ -7,8 +7,12 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
-/** Where a check ran: the worktree's root, the folder inside it, and the tree it would commit with every file added. */
+/**
+ * Where a check ran: the repository's shared git folder, the worktree's root, the folder inside it, and the tree it
+ * would commit with every file added.
+ */
 export interface Worktree {
+	readonly repo: string;
 	readonly root: string;
 	readonly prefix: string;
 	readonly tree: string;
@@ -61,7 +65,15 @@ const treeOf = ({ root, index }: { readonly root: string; readonly index: string
 		return Option.map(written, Str.trim);
 	});
 
-const locate = ["rev-parse", "--path-format=absolute", "--show-toplevel", "--show-prefix", "--git-path", "index"];
+const locate = [
+	"rev-parse",
+	"--path-format=absolute",
+	"--show-toplevel",
+	"--show-prefix",
+	"--git-path",
+	"index",
+	"--git-common-dir",
+];
 
 /**
  * The tree of the worktree at `cwd` with every tracked, modified and untracked file added, and ignored files left out.
@@ -82,10 +94,10 @@ export const worktreeAt = (
 				return Option.none();
 			}
 
-			const [root, prefix = "", index = ""] = Str.split(found.value, "\n");
+			const [root, prefix = "", index = "", repo = ""] = Str.split(found.value, "\n");
 
 			const tree = yield* treeOf({ root, index });
 
-			return Option.map(tree, (written) => ({ root, prefix, tree: written }));
+			return Option.map(tree, (written) => ({ repo, root, prefix, tree: written }));
 		}),
 	);

@@ -173,6 +173,30 @@ test(
 );
 
 test(
+	"a second worktree of the same repo at the same tree gets the first one's receipt",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { repo, check, runs } = yield* world("worktrees");
+				const other = `${repo}-worktree`;
+
+				yield* spawned(["git", "worktree", "add", "-q", "--detach", other], {
+					cwd: repo,
+					home: `${scratch}/worktrees`,
+				});
+				yield* check(passing);
+
+				const second = yield* check(passing, [], other);
+				const count = yield* runs;
+
+				expect(count).toBe(1);
+				expect(second.err).toContain(`in ${repo}`);
+			}),
+		),
+	spawnLimit,
+);
+
+test(
 	"a clone with the same tree runs the check in its own folder",
 	() =>
 		run(

@@ -27,8 +27,9 @@ import {
 /** One check slot per four cores, and never fewer than two. */
 export const checkSlotsFor = (cores: number) => Math.max(2, Math.floor(cores / 4));
 
-const receiptKey = ({ tree, root, prefix }: Worktree, command: ReadonlyArray<string>) => {
-	const bytes = new TextEncoder().encode(Arr.join([tree, root, prefix, ...command], "\0"));
+/** Worktrees of one repository share receipts, and separate clones do not. */
+const receiptKey = ({ tree, repo, prefix }: Worktree, command: ReadonlyArray<string>) => {
+	const bytes = new TextEncoder().encode(Arr.join([tree, repo, prefix, ...command], "\0"));
 
 	return Effect.map(
 		Effect.promise(() => crypto.subtle.digest("SHA-256", bytes)),
@@ -92,11 +93,11 @@ const shellWord = (word: string) =>
 /** The command as a shell would take it. */
 const shownOf = (command: ReadonlyArray<string>) => Arr.join(Arr.map(command, shellWord), " ");
 
-const served = (key: string, { command, stdout, stderr, passedAt, seconds }: Receipt) =>
+const served = (key: string, { command, root, tree, stdout, stderr, passedAt, seconds }: Receipt) =>
 	Effect.andThen(
 		replay({ stdout, stderr }),
 		Console.error(
-			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on this tree at ${passedAt} in ${String(seconds)} s, so it did not run again. \`check --fresh -- ${shownOf(command)}\` runs it again.`,
+			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on this tree, ${idOf(tree)}, in ${root} at ${passedAt}, taking ${String(seconds)} s, so it did not run again. \`check --fresh -- ${shownOf(command)}\` runs it again.`,
 		),
 	);
 
@@ -129,7 +130,7 @@ const recordPass = (
 		yield* recordReceipt(receiptsFolder(home))(key, { ...worktree, ...ran.output.value, command, passedAt, seconds });
 
 		return yield* Console.error(
-			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on tree ${idOf(worktree.tree)} in ${String(seconds)} s.`,
+			`check: receipt ${idOf(key)}: \`${shownOf(command)}\` passed on tree ${idOf(worktree.tree)} in ${worktree.root}, taking ${String(seconds)} s.`,
 		);
 	});
 

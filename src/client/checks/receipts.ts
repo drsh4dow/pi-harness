@@ -5,6 +5,7 @@ import * as Schema from "effect/Schema";
 /** A check that passed on one tree: its command, where it ran, and what it printed to each stream. */
 export const Receipt = Schema.Struct({
 	command: Schema.Array(Schema.String),
+	repo: Schema.String,
 	root: Schema.String,
 	prefix: Schema.String,
 	tree: Schema.String,
