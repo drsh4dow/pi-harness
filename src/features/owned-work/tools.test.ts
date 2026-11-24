@@ -269,7 +269,10 @@ test("a wait returns once the human queues a message, with the jobs still runnin
 
 	return Effect.runPromise(
 		Effect.map(contentOf(reply), (content) => {
-			expect(content).toEqual([...stillRunning, { type: "text", text: message }]);
+			expect(content).toEqual([
+				{ type: "text", text: "watch-1 still run, and each result wakes you once you end your turn." },
+				{ type: "text", text: message },
+			]);
 		}),
 	);
 });
