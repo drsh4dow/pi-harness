@@ -1,10 +1,11 @@
 import type { StopReason } from "@earendil-works/pi-ai";
 import * as Data from "effect/Data";
+import type * as Effect from "effect/Effect";
 
 import type { TerminalEnd } from "#src/client/hc/index.ts";
 import type { ReviewTarget } from "#src/features/pr/index.ts";
 import type { Role } from "./child.ts";
-import type { HeldSpawn } from "./world.fixture.ts";
+import type { HeldSpawn, World } from "./world.fixture.ts";
 
 export type Act = Data.TaggedEnum<{
 	Hook: { readonly event: "run starts" | "goes idle" | "parent dies" | "pi reloads" };
@@ -39,7 +40,6 @@ export type Act = Data.TaggedEnum<{
 	Group: { readonly refs: ReadonlyArray<string>; readonly expect: string };
 	Cancel: { readonly refs: ReadonlyArray<string>; readonly expect: string };
 	Running: { readonly expect: ReadonlyArray<string> };
-	Waking: { readonly expect: ReadonlyArray<string> };
 	TurnEnds: { readonly expect: string };
 	Wakes: { readonly expect: ReadonlyArray<string> };
 	Delivered: { readonly expect: (sessionIdOf: (terminal: string) => string) => ReadonlyArray<object> };
@@ -57,6 +57,8 @@ export type Act = Data.TaggedEnum<{
 	Timers: { readonly expect: number };
 	WallClockSteps: { readonly backMs: number };
 	Pause: { readonly ms: number };
+	/** A step a row's own fixture drives, given `perform` for the acts it runs itself. */
+	Drive: { readonly run: (world: World, perform: (act: Act) => Effect.Effect<void>) => Effect.Effect<void> };
 }>;
 
 export { recordsAre } from "./verdict.fixture.ts";

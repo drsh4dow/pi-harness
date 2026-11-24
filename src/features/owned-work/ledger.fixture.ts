@@ -253,7 +253,7 @@ const perform = (world: World, act: Act): Effect.Effect<void> =>
 		Group: (grouping) => group(world, grouping),
 		Cancel: (cancelling) => cancel(world, cancelling),
 		Running: ({ expect: expected }) => Effect.flatMap(world.ledger.running, (got) => checked(() => got, expected)),
-		Waking: ({ expect: expected }) => Effect.flatMap(world.ledger.waking, (got) => checked(() => got, expected)),
+		Drive: ({ run }) => run(world, (each) => perform(world, each)),
 		TurnEnds: ({ expect: expected }) => turnEnds(world, expected),
 		Wakes: ({ expect: expected }) => checked(() => world.wakes.splice(0), [...expected]),
 		Delivered: ({ expect: expected }) =>

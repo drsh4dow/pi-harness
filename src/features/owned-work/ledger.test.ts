@@ -22,7 +22,12 @@ const rows: ReadonlyArray<Row> = [
 			runs,
 			Start({
 				kind: "watch",
-				handle: { ref: "watch-1", kind: "watch", terminal: "t1", next: "end your turn; watch-1 wakes you" },
+				handle: {
+					ref: "watch-1",
+					kind: "watch",
+					terminal: "t1",
+					next: "call wait, or end your turn and watch-1 wakes you",
+				},
 			}),
 			Start({
 				kind: "delegate",
@@ -30,7 +35,7 @@ const rows: ReadonlyArray<Row> = [
 					ref: "delegate-2",
 					kind: "delegate",
 					terminal: "t2",
-					next: "end your turn; delegate-2 wakes you",
+					next: "call wait, or end your turn and delegate-2 wakes you",
 				},
 			}),
 			Start({ kind: "serve", handle: { ref: "serve-3", kind: "serve", terminal: "t3", ready: true } }),

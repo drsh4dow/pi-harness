@@ -152,7 +152,11 @@ test("a continuation hands the ledger its ref, message and group, and starts the
 			(outcome) => {
 				expect(outcome).toEqual({
 					isError: false,
-					details: { ref: "delegate-1", kind: "delegate", next: "end your turn; delegate-1 wakes you" },
+					details: {
+						ref: "delegate-1",
+						kind: "delegate",
+						next: "call wait, or end your turn and delegate-1 wakes you",
+					},
 					continued: [{ ref: "delegate-1", message: "Also update the docs.", group: "review" }],
 					started: [{ model: "openai/gpt-6-luna", message: "Also update the docs." }],
 				});
