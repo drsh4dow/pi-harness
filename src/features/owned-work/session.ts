@@ -8,7 +8,6 @@ import type {
 	SessionBeforeSwitchEvent,
 	SessionShutdownEvent,
 	SessionStartEvent,
-	ToolResultEvent,
 } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -35,7 +34,6 @@ import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";
 import { hostLayer, messageOf, type Relay } from "./host.ts";
 import { Ledger, ledgerLayer } from "./ledger.ts";
-import { warnPolling } from "./polling.ts";
 import { firstRefAfter } from "./recorded.ts";
 import { Tools, type ToolServices } from "./tools.ts";
 import type { Settled } from "./work.ts";
@@ -260,7 +258,6 @@ export const ownedWork =
 			beforeSettle: (event: AgentBeforeSettleEvent, ctx: ExtensionContext) =>
 				withLedger((session) => settle(session, event, ctx)),
 			settled: () => withLedger(() => (ledger) => ledger.wentIdle),
-			toolResult: (event: ToolResultEvent) => withLedger(() => warnPolling(event)),
 			beforeSwitch: (_event: SessionBeforeSwitchEvent, ctx: ExtensionContext) =>
 				withLedger(() => (ledger) => cancelUnless(ledger, ctx)),
 			beforeFork: (event: SessionBeforeForkEvent, ctx: ExtensionContext) =>

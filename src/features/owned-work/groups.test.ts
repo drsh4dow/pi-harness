@@ -17,7 +17,7 @@ const reviewing = (ref: string, terminal: string, group: string) =>
 	Start({
 		kind: "delegate",
 		group: "review",
-		handle: { ref, kind: "delegate", terminal, group, next: `end your turn; ${group} wakes you` },
+		handle: { ref, kind: "delegate", terminal, group, next: `call wait, or end your turn and ${group} wakes you` },
 	});
 
 const rows: ReadonlyArray<Row> = [

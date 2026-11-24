@@ -169,7 +169,7 @@ const resultOut = (settled: Settled): ResultJson => {
 
 /** How to wait for the work. A serve's end never wakes the agent, so its handle has none. */
 const nextOf = (kind: WorkKind, waker: WorkRef) =>
-	kind === "serve" ? {} : { next: `end your turn; ${waker} wakes you` };
+	kind === "serve" ? {} : { next: `call wait, or end your turn and ${waker} wakes you` };
 
 const handleOut = ({ ref, kind, terminal, group, ready }: Handle) => ({
 	ref,

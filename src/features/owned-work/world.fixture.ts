@@ -41,6 +41,8 @@ export interface World extends Pacing {
 	readonly spawns: Array<HeldSpawn>;
 	readonly gate: Semaphore.Semaphore;
 	readonly pending: Array<Fiber.Fiber<string>>;
+	/** Each wait's reply, and the latch whose opening stops it. */
+	readonly waits: Array<{ readonly reply: Fiber.Fiber<string>; readonly stop: Latch.Latch }>;
 	readonly scope: Scope.Closeable;
 	readonly sessions: Map<string, ChildSession>;
 	readonly delivered: Array<Settled>;
@@ -173,6 +175,7 @@ const blankWorld = (
 	...seed,
 	spawns: [],
 	pending: [],
+	waits: [],
 	sessions: new Map(),
 	delivered: [],
 	owed: [],

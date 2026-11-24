@@ -45,8 +45,27 @@ export const GroupParams = Type.Object({
 	of: Refs,
 });
 
+/**
+ * Seconds. The default keeps a wait that runs out inside the 5-minute prompt cache, so the next call reads it warm. The
+ * cap bounds one call; a longer wait is a turn's end, which costs no call.
+ */
+export const waitTimeout = { default: 240, max: 3600 } as const;
+
+const WaitRefs = Type.Array(HandleRef, {
+	minItems: 1,
+	description: "Wait only for these jobs. Without it, for any job you hold.",
+});
+
+const WaitSeconds = Type.Number({
+	exclusiveMinimum: 0,
+	maximum: waitTimeout.max,
+	description: `Seconds, ${String(waitTimeout.default)} by default.`,
+});
+
+export const WaitParams = Type.Object({ of: Type.Optional(WaitRefs), timeout: Type.Optional(WaitSeconds) });
+
 export const promptGuidelines = [
-	"Starting work returns a handle at once. To wait, end your turn; each result wakes you.",
+	"Starting work returns a handle at once. Its result reaches you as a wake once you end your turn, or in the reply of a `wait` call, never while another tool call runs.",
 ];
 
 /** Only an agent that may start delegates gets these, since pi shows a tool's guidelines only while the tool is active. */

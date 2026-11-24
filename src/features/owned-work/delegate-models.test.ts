@@ -172,7 +172,7 @@ const calledFrom = (parent: Model<Api>, session: string, call: DelegateCall) => 
 	);
 };
 
-const handedTo = "end your turn; delegate-1 wakes you";
+const handedTo = "call wait, or end your turn and delegate-1 wakes you";
 
 const relaunched = (model: string, pinnedFirst: Array<string> = []) => ({
 	isError: false,

@@ -170,4 +170,4 @@ const cancel = (state: LedgerState, refs: ReadonlyArray<WorkRef>): Result.Result
 	return Result.succeed(Draft.finish(draft, handed));
 };
 
-export const Groups = { group, join, cancel, showInGroup };
+export const Groups = { group, join, cancel, showInGroup, refused };

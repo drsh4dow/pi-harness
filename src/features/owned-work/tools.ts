@@ -35,10 +35,13 @@ import {
 	promptGuidelines,
 	RefsParams,
 	ServeParams,
+	WaitParams,
 	WatchParams,
+	waitTimeout,
 } from "./params.ts";
 import { stdoutRedirectOf } from "./redirect.ts";
 import { withReview } from "./review.ts";
+import { Waiting } from "./waiting.ts";
 import { BadDelegate, StartRequest, WorkRef } from "./work.ts";
 
 const resultOf = (json: JsonValue, isError: boolean) =>
@@ -228,6 +231,29 @@ const cancelTool = (runtime: Runtime) =>
 			),
 	});
 
+const waitTool = (runtime: Runtime) =>
+	({
+		name: "wait",
+		label: "wait",
+		description:
+			"Wait in this turn for jobs you hold to settle. Each result comes back in the reply as its wake would bring it, and does not wake you again. It returns at once when a result already waits or nothing you hold runs, early when the human sends a message or presses Escape, and on timeout with the jobs that still run.",
+		exposure: "model-only",
+		parameters: WaitParams,
+		execute: (_id, { of, timeout }, signal, _update, ctx: Pick<ExtensionContext, "hasPendingMessages">) => {
+			const scope = Option.map(Option.fromUndefinedOr(of), refsOf);
+			const stop = Waiting.stop({ after: Duration.seconds(timeout ?? waitTimeout.default), signal, ctx });
+
+			const tool = Effect.flatMap(Ledger, (ledger) => ledger.wait(scope, stop)).pipe(
+				Effect.matchEffect({
+					onFailure: (error) => resultOf(Out.error(error), true),
+					onSuccess: (waited) => Waiting.reply(waited, ctx.hasPendingMessages()),
+				}),
+			);
+
+			return runtime.run(tool);
+		},
+	}) satisfies ToolDefinition<typeof WaitParams, JsonValue>;
+
 const register = (
 	pi: Pick<ExtensionAPI, "registerTool">,
 	runtime: Runtime,
@@ -239,6 +265,7 @@ const register = (
 	pi.registerTool(watchTool(runtime, place));
 	pi.registerTool(groupTool(runtime));
 	pi.registerTool(cancelTool(runtime));
+	pi.registerTool(waitTool(runtime));
 
 	const roles = childRoles(self);
 
@@ -258,5 +285,6 @@ export const Tools = {
 	delegate: delegateTool,
 	serve: serveTool,
 	watch: watchTool,
+	wait: waitTool,
 	layer: Layer.mergeAll(ghLayer, briefSourcesLayer, claudeUsageFetchLayer),
 };

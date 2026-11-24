@@ -110,7 +110,7 @@ test.each(Arr.map(levelRows, (row) => ({ ...row, starts: startsOf(row) })))(
 			roles: startableRoles(tools),
 			lastLevelLine: Arr.some(guidelines, Str.includes("cannot start delegates of their own")),
 			ownerLine: Arr.some(guidelines, Str.includes("one owner per slice")),
-		}).toEqual({ rest: ["serve", "watch", "group", "cancel"], ...row.expect });
+		}).toEqual({ rest: ["serve", "watch", "group", "cancel", "wait"], ...row.expect });
 	},
 );
 
@@ -174,6 +174,7 @@ const commandRuntime = piHost(
 
 					return startedHandle;
 				}),
+			wait: (_scope, stop) => Effect.as(stop, { results: [], running: [WorkRef("watch-1")] }),
 		}),
 		Layer.mock(Gh)({}),
 		Layer.mock(PhiRouter)({}),
@@ -232,5 +233,45 @@ test.each([
 		}),
 	),
 );
+
+const waitStopped = (signal: AbortSignal, queued: () => boolean) =>
+	Tools.wait(commandRuntime).execute("call", {}, signal, undefined, { hasPendingMessages: queued });
+
+const stillRunning = [
+	{ type: "text" as const, text: "watch-1 still run. Call wait again, or end your turn and each result wakes you." },
+];
+
+const contentOf = (reply: ReturnType<typeof waitStopped>) =>
+	Effect.map(
+		Effect.promise(() => reply),
+		({ content }) => content,
+	);
+
+test("a wait returns when the human presses Escape, with the jobs still running", () => {
+	const escape = new AbortController();
+	const reply = waitStopped(escape.signal, () => false);
+
+	escape.abort();
+
+	return Effect.runPromise(
+		Effect.map(contentOf(reply), (content) => {
+			expect(content).toEqual(stillRunning);
+		}),
+	);
+});
+
+test("a wait returns once the human queues a message, with the jobs still running", () => {
+	const queued = { message: false };
+	const reply = waitStopped(noAbort, () => queued.message);
+	const message = "A message from the human is queued. If it does not follow this reply, end your turn to receive it.";
+
+	queued.message = true;
+
+	return Effect.runPromise(
+		Effect.map(contentOf(reply), (content) => {
+			expect(content).toEqual([...stillRunning, { type: "text", text: message }]);
+		}),
+	);
+});
 
 afterAll(() => Effect.runPromise(Effect.promise(() => Bun.$`rm -rf ${commandPlace.dir}`.quiet())));

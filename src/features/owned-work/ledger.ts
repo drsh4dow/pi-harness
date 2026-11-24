@@ -7,10 +7,10 @@ import * as Layer from "effect/Layer";
 import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
-import * as Ref from "effect/Ref";
 import * as Result from "effect/Result";
 import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
+import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { Hc, type HcError, type RunSpec, terminalNameOf } from "#src/client/hc/index.ts";
 import { PiCli } from "#src/client/pi-cli/index.ts";
@@ -23,6 +23,7 @@ import { type CommandRequest, framedArgv, serveReady, startTimeNow, watchTail } 
 import { liveDelegates } from "./lifetime.ts";
 import { Command, Draft, type LedgerState, type Step, type Verdict } from "./step.ts";
 import { Transitions } from "./transitions.ts";
+import { type Wait, Waiting } from "./waiting.ts";
 import {
 	type ContinueRequest,
 	type DelegateStart,
@@ -66,9 +67,9 @@ export class Ledger extends Context.Service<
 		readonly cancel: (refs: ReadonlyArray<WorkRef>) => Effect.Effect<ReadonlyArray<Settled>, LedgerError>;
 		readonly runStarted: Effect.Effect<void>;
 		readonly turnEnded: Effect.Effect<Verdict>;
+		readonly wait: Wait;
 		readonly wentIdle: Effect.Effect<void>;
 		readonly running: Effect.Effect<ReadonlyArray<WorkRef>>;
-		readonly waking: Effect.Effect<ReadonlyArray<WorkRef>>;
 		/** The state, for the next load of this extension after a reload. The ledger makes no more changes, so nothing it does after reaches the agent twice. */
 		readonly freeze: Effect.Effect<LedgerState>;
 	}
@@ -92,7 +93,7 @@ interface Kit {
 	readonly sessions: (typeof PiSessions)["Service"];
 	readonly cli: (typeof PiCli)["Service"];
 	readonly verdictServices: Context.Context<VerdictServices>;
-	readonly state: Ref.Ref<LedgerState>;
+	readonly state: SubscriptionRef.SubscriptionRef<LedgerState>;
 	readonly lock: Semaphore.Semaphore;
 	readonly fibers: FiberSet.FiberSet;
 	readonly deadlines: FiberMap.FiberMap<WorkRef>;
@@ -179,10 +180,10 @@ const attempt = <Reply, Failure>(
 		kit.lock,
 		Effect.gen(function* () {
 			const now = yield* monotonicNow;
-			const current = yield* Ref.get(kit.state);
+			const current = yield* SubscriptionRef.get(kit.state);
 			const step = yield* Effect.fromResult(transition({ ...current, now }));
 
-			yield* Ref.set(kit.state, step.state);
+			yield* SubscriptionRef.set(kit.state, step.state);
 			yield* Effect.forEach(step.commands, (command) =>
 				Command.$is("Append")(command) ||
 				Command.$is("ArmDeadline")(command) ||
@@ -263,7 +264,7 @@ export const ledgerLayer = (
 				sessions: yield* PiSessions,
 				cli: yield* PiCli,
 				verdictServices: yield* Effect.context<VerdictServices>(),
-				state: yield* Ref.make(
+				state: yield* SubscriptionRef.make(
 					Option.getOrElse(options.carried, () => Transitions.initial(options.self.role, options.firstRef, now)),
 				),
 				lock: yield* Semaphore.make(1),
@@ -279,15 +280,17 @@ export const ledgerLayer = (
 			return {
 				start: (request) => start(kit, request),
 				continuation: (request) =>
-					Effect.flatMap(Ref.get(kit.state), (state) => Effect.fromResult(continuationOf(state)(request))),
+					Effect.flatMap(SubscriptionRef.get(kit.state), (state) =>
+						Effect.fromResult(continuationOf(state)(request)),
+					),
 				group: (request) => attempt(kit, (current) => Transitions.group(current, request)),
 				cancel: (refs) => attempt(kit, (current) => Transitions.cancel(current, refs)),
 				runStarted: Effect.asVoid(apply(kit, Transitions.runStarted)),
 				turnEnded: apply(kit, Transitions.turnEnded),
+				wait: Waiting.waitOn(kit.state, (scope) => apply(kit, (current) => Waiting.take(current, scope))),
 				wentIdle: Effect.asVoid(apply(kit, Transitions.wentIdle)),
-				running: Effect.map(Ref.get(kit.state), Transitions.running),
-				waking: Effect.map(Ref.get(kit.state), Transitions.waking),
-				freeze: Effect.andThen(Semaphore.take(kit.lock, 1), Ref.get(kit.state)),
+				running: Effect.map(SubscriptionRef.get(kit.state), Transitions.running),
+				freeze: Effect.andThen(Semaphore.take(kit.lock, 1), SubscriptionRef.get(kit.state)),
 			};
 		}),
 	);
