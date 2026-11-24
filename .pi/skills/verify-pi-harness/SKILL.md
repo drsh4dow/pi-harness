@@ -13,7 +13,7 @@ Pick the path by the fact you need:
 - **A whole run under a prompt**, such as which delegates a root starts, whether it finishes without asking, or what it writes, gets a headless root.
 - **The text an agent gets**, with no model call, gets `bun run prompts [project-dir]`. See [`features/prompts.md`](features/prompts.md).
 
-A scenario and a headless root spend real model calls on the one account every agent on this machine shares. Run one at a time.
+A scenario and a headless root spend real model calls on the one account every agent on this machine shares. Run them once, at the code-ready head: between edit rounds, iterate on `bun run prompts` and unit tests. Run at most 3 at once. A mechanism check takes 1 trial, and a claim about agent behavior takes at least 3.
 
 ## Launch
 
