@@ -32,14 +32,14 @@ Before naming anything or writing code, read the parts covering your area. Use g
 Codemode combines operations: one script calls tools in parallel or in sequence within one turn and returns only the output you select, so a multi-call step costs one round trip and leaves no unread output in context. When a step needs several calls, use one script, not several tool calls in one response. In the script, start independent calls together, not awaited one at a time.
 
 - **Gather context**: read files and run searches in one script with `Promise.allSettled`, not separate `read` calls or a Bash chain of `cat`, `sed -n`, `grep`.
-- **Search**: return each relevant match's surrounding lines or section from the same script, not search in one turn and read line ranges in the next. Read small files whole.
+- **Search**: return each relevant match's surrounding lines or section from the same script, not search in one turn and read line ranges in the next.
 - **Narrow large output**: filter, count, or extract in the script, not `| head` or `| tail`, which keep lines by position, not relevance. `tools.bash` gives the script up to 1 MiB to reduce.
 - **Run mechanical chains**, where each result determines the next call without judgment: list files → read matches; fetch issue list → fetch each issue; run tests → read failing files; measure drafts against a limit → apply those that fit. Compute lengths, counts, and parsed JSON in the script, not a separate Python or jq call.
 - **Repeat one operation** across many items, once it works on one representative.
 
 Issue every call you already know you need in the same turn. Wait for a result before the next call only when that result decides what the next call is. A script wrapping one `tools.bash` command saves nothing.
 
-When filtering, keep failure details, source references, and truncation markers. Output is capped at 10,000 tokens by default; longer output loses its middle. For full file contents, raise `max_output_tokens` in the `// @options` line or split reads across scripts. A script completes even when `tools.bash` exits non-zero, so judge each operation by its result, e.g. `exit_code`. `ALL_TOOLS` holds `{ name, description }` objects; the sandbox has no `Intl`.
+When filtering, keep failure details, source references, and truncation markers. Output is capped at 10,000 tokens by default; longer output loses its middle, so filter it or split the reads across scripts. A script completes even when `tools.bash` exits non-zero, so judge each operation by its result, e.g. `exit_code`. `ALL_TOOLS` holds `{ name, description }` objects; the sandbox has no `Intl`.
 </codemode>
 
 <git>
@@ -55,7 +55,7 @@ Keep history linear, readable commit by commit. Your own unpushed commits are yo
 </guardrails>
 
 <context>
-- **Bound inputs.** Search before reading. Read only relevant line ranges, excerpts, and screenshots. Redirect verbose command output to files.
+- **Bound inputs.** Search before reading. Read a file whole when you will edit it or it is short, and otherwise only the ranges a search points to. Redirect verbose command output to files.
 - **Checkpoint.** In long investigations, keep brief notes: evidence locations, decisions, open questions, next step. Reuse them instead of re-reading.
 - **Guard context.** If you can spawn a delegate, send it bulk (long transcripts, large artifacts, many files) and keep only its summary. Cap each phase's files and turns so its reads fit.
 </context>
