@@ -4,7 +4,7 @@ import * as Str from "effect/String";
 
 import type { Answer } from "./work.ts";
 
-const answerCap = 6000;
+const answerCap = 20_000;
 
 const paragraphBreak = "\n\n";
 
