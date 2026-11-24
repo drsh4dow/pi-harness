@@ -5,7 +5,7 @@
 # ///
 """Voice a script and lay every line on one clock: the narration step for capture cuts and composed films alike.
 
-    narrate.py SCRIPT.json [--out DIR] [--cache DIR] [--voice gemini:Iapetus,eleven:Mark,captions] [--style S]
+    narrate.py SCRIPT.json [--out DIR] [--cache DIR] [--voice gemini:Iapetus,eleven:Mark] [--style S]
                [--offline] [--fps 30] [--lead-in 0.45] [--gap 0.25] [--chapter-gap 0.4] [--tail 1.0]
                [--caption-chars 70]
     narrate.py SCRIPT.json --voices gemini:Iapetus,gemini:Charon,eleven:Mark [--chapter ID]
@@ -15,9 +15,10 @@ SCRIPT.json lists the lines in speaking order: [{"id", "chapter", "show", "say"?
 text; say is how the voice should say it (default show) and keeps show's clause punctuation, so each caption
 starts on its own first spoken word. gap overrides the quiet before that one line. A chapter's lines are consecutive.
 --voice is a fallback chain of tts.py voices: the first that voices every line voices all of them, so one video
-never mixes voices. "captions" is no voice at all: each line is one caption, its words timed so it stays up 1.5 s
-plus 0.3 s a word. A voiced line's captions split at its clauses. --voices instead voices one chapter (default the
-first) in each voice into DIR/<chapter>-<voice>.wav, to pick a voice by ear; a voice that fails is skipped. Gaps are
+never mixes voices, and the run fails when none does. "captions", never in the default chain, is no voice at all:
+each line is one caption, its words timed so it stays up 1.5 s plus 0.3 s a word. A voiced line's captions split
+at its clauses. --voices instead voices one chapter (default the first) in each voice into
+DIR/<chapter>-<voice>.wav, to pick a voice by ear; a voice that fails is skipped. Gaps are
 the quiet from one line's last sound to the next line's first word; the lead-in is the first word's time. Quiet
 inside a line is cut to at most 0.4 s, and the word times after the cut move with it.
 
@@ -306,6 +307,15 @@ def self_test() -> int:
         except SystemExit:
             if len(calls) != n:
                 fails.append("a clause mismatch was found only after voicing")
+        def no_voice(*_, **__):
+            raise tts.ProviderError("HTTP 401")
+        tts.synth = no_voice
+        try:
+            run()
+            fails.append("the default chain went on with no voice when no key voiced")
+        except SystemExit:
+            pass
+        tts.synth = fake_synth
         n = len(calls)
         run("--voices", "gemini:Iapetus,gemini:Broken,eleven:Mark", "--chapter", "main")
         one, two = d / "main-gemini-Iapetus.wav", d / "main-eleven-Mark.wav"
@@ -345,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--out", type=Path)
     p.add_argument("--cache", type=Path, help="default: tts/ beside SCRIPT")
-    p.add_argument("--voice", default="gemini:Iapetus,eleven:Mark,captions")
+    p.add_argument("--voice", default="gemini:Iapetus,eleven:Mark")
     p.add_argument("--voices")
     p.add_argument("--chapter")
     p.add_argument("--style", default=tts.STYLE)

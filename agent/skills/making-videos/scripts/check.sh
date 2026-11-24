@@ -73,8 +73,9 @@ setup() {
     compgen -G "$hub/models--Systran--faster-whisper-$m/snapshots/*/model.bin" > /dev/null || miss+=("faster-whisper $m (video)")
   [ ${#miss[@]} = 0 ] || { echo "Missing or too old: ${miss[*]}. Install each per $doc, then run check.sh --setup again."; rc=1; }
   [ -n "${GEMINI_API_KEY:-}${ELEVENLABS_API_KEY:-}" ] || { rc=1; echo "No voice key: GEMINI_API_KEY and" \
-    "ELEVENLABS_API_KEY are both unset. Stop and ask the user one question: go on without a voice (captions only)," \
-    "set up a Gemini key, or set up an ElevenLabs key. $doc says how to get and set each."; }
+    "ELEVENLABS_API_KEY are both unset. Stop and ask the user one question: set up a Gemini key (recommended," \
+    "its free tier voices short videos), set up an ElevenLabs key, or go on without a voice (captions only)." \
+    "$doc says how to get and set each."; }
   [ "$rc" = 1 ] || echo "setup: ready"
   return "$rc"
 }
