@@ -4,6 +4,8 @@ status: accepted
 
 # Settle the destination in align, then run on your own
 
+Amended in part by ADR 0025, which re-syncs architect with pstack's upstream and drops its opt-in checkpoint.
+
 The harness carried two families, ported from two upstreams, that never named each other. The alignment skills (grilling, domain-modeling, to-spec, to-tickets) interview the human until both agree. The build skills and playbooks (architect, interrogate, prototype, feature) decide alone. The root role took the build family's default, "Don't wait for confirmation", so a vague build request started at once and the agent's guess became the destination. The alignment skills ran only when the human typed their names, and the build skills never read what they wrote.
 
 So the harness runs one contract. The human owns the destination and the agent owns the approach. The agent does not run on its own until it can write the work's acceptance criteria, checks it can run or observe, without guessing a product call. Until then the root runs the `align` playbook, the only place it questions the human unprompted. Once they are settled it runs to done without stopping, except at a stop the human asked for or one the next playbook names, such as the go a plan waits for. An audit, a report or a fully specified edit needs no alignment. At the start of a task the gate holds even under a grant. Mid-run under a grant, the agent applies its pick for a product call and logs it. Every role works in the language of three shared documents: `GLOSSARY.md` for what a word means, `CODING_STANDARDS.md` for the mechanical rules, and `docs/adr/` for the why. The root, with the human, settles what a term means, and a delegate edits the glossary only when its task says to.
