@@ -102,6 +102,7 @@ const extensionsFolder = `${import.meta.dirname}/../../../agent/extensions`;
 
 export const childExtensions: ReadonlyArray<string> = [
 	`${extensionsFolder}/owned-work/index.ts`,
+	`${extensionsFolder}/checks/index.ts`,
 	`${extensionsFolder}/prompt/index.ts`,
 	`${extensionsFolder}/web/index.ts`,
 	`${extensionsFolder}/claude-accounts/index.ts`,
@@ -109,7 +110,6 @@ export const childExtensions: ReadonlyArray<string> = [
 	`${extensionsFolder}/compaction/index.ts`,
 	`${extensionsFolder}/cache/index.ts`,
 	`${extensionsFolder}/loaded/index.ts`,
-	`${extensionsFolder}/checks/index.ts`,
 ];
 
 interface BriefCommon extends Omit<ChildPi, "session" | "brief"> {
