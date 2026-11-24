@@ -18,11 +18,11 @@ const answerFile = (session: string) => `${sessionRoot}/delegates/${session}.ans
 const paragraph = (number: number) => Str.padEnd(998, "x")(`Paragraph ${String(number)}: `);
 
 const longAnswer = Arr.join(
-	Arr.map(Arr.range(1, 20), (number) => `${paragraph(number)}\n\n`),
+	Arr.map(Arr.range(1, 60), (number) => `${paragraph(number)}\n\n`),
 	"",
 );
 
-const firstFive = Arr.join(Arr.map(Arr.range(1, 5), paragraph), "\n\n");
+const firstNineteen = Arr.join(Arr.map(Arr.range(1, 19), paragraph), "\n\n");
 
 const rows: ReadonlyArray<Row> = [
 	{
@@ -106,7 +106,7 @@ const rows: ReadonlyArray<Row> = [
 		],
 	},
 	{
-		name: "a 20,000-character answer wakes cut at a paragraph inside 6,000 characters, and its file holds it whole",
+		name: "a 60,000-character answer wakes cut at a paragraph inside 20,000 characters, and its file holds it whole",
 		role: "root",
 		acts: [
 			runs,
@@ -123,7 +123,7 @@ const rows: ReadonlyArray<Row> = [
 						session: sessionIdOf("t1"),
 						outcome: {
 							status: "done",
-							text: `${firstFive}\n\n[The answer is cut at 4,998 of 20,000 characters. Read the whole answer in ${answerFile(sessionIdOf("t1"))}]`,
+							text: `${firstNineteen}\n\n[The answer is cut at 18,998 of 60,000 characters. Read the whole answer in ${answerFile(sessionIdOf("t1"))}]`,
 							cut: true,
 							answer: answerFile(sessionIdOf("t1")),
 						},
