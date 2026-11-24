@@ -102,8 +102,10 @@ const stop = ({
 	readonly ctx: Pick<ExtensionContext, "hasPendingMessages">;
 }): Effect.Effect<void> => Effect.raceAll([Effect.sleep(after), messageQueued(ctx), aborted(signal)]);
 
-const runningNote = (running: ReadonlyArray<WorkRef>) =>
-	`${Arr.join(running, ", ")} still run. Call wait again, or end your turn and each result wakes you.`;
+const runningNote = (running: ReadonlyArray<WorkRef>, messagePending: boolean) =>
+	messagePending
+		? `${Arr.join(running, ", ")} still run, and each result wakes you once you end your turn.`
+		: `${Arr.join(running, ", ")} still run. Call wait again, or end your turn and each result wakes you.`;
 
 const messageNote =
 	"A message from the human is queued. If it does not follow this reply, end your turn to receive it.";
@@ -112,7 +114,7 @@ const notesOf = ({ results, running }: Waited, messagePending: boolean): Array<s
 	const notes = messagePending ? [messageNote] : [];
 
 	if (Arr.isReadonlyArrayNonEmpty(running)) {
-		return [runningNote(running), ...notes];
+		return [runningNote(running, messagePending), ...notes];
 	}
 
 	return Arr.isReadonlyArrayNonEmpty(results)
