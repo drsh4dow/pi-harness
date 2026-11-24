@@ -22,38 +22,34 @@ const isAlive = (pid: number) => {
 	}
 };
 
-test(
-	"interrupting ran ends a command that ignores SIGTERM",
-	() =>
-		Effect.runPromise(
-			Effect.gen(function* () {
-				const fs = yield* FileSystem.FileSystem;
-				const tmp = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
-				const pidFile = `${tmp}/command.pid`;
+test("interrupting ran ends a command that ignores SIGTERM", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const tmp = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
+			const pidFile = `${tmp}/command.pid`;
 
-				const command = {
-					argv: [
-						"sh",
-						"-c",
-						`trap '' TERM; echo $$ >${pidFile}.part && mv ${pidFile}.part ${pidFile}; exec sleep 30`,
-					] as const,
-					env: { PATH: path },
-					cwd: "/",
-				};
+			const command = {
+				argv: [
+					"sh",
+					"-c",
+					`trap '' TERM; echo $$ >${pidFile}.part && mv ${pidFile}.part ${pidFile}; exec sleep 30`,
+				] as const,
+				env: { PATH: path },
+				cwd: "/",
+			};
 
-				const running = yield* Effect.forkChild(ran(command));
+			const running = yield* Effect.forkChild(ran(command));
 
-				yield* eventually(fs.exists(pidFile), "5 seconds");
+			yield* eventually(fs.exists(pidFile), "5 seconds");
 
-				const pid = yield* Effect.map(fs.readFileString(pidFile), Number);
+			const pid = yield* Effect.map(fs.readFileString(pidFile), Number);
 
-				yield* Fiber.interrupt(running);
+			yield* Fiber.interrupt(running);
 
-				expect(isAlive(pid)).toBe(false);
-			}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
-		),
-	15_000,
-);
+			expect(isAlive(pid)).toBe(false);
+		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+	));
 
 test.skipIf(Bun.which("hc") === null)("closing the core's scope ends the terminals it runs", () =>
 	Effect.runPromise(
