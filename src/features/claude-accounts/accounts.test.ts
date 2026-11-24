@@ -3,14 +3,14 @@ import { afterEach, expect, test } from "bun:test";
 import { createModels } from "@earendil-works/pi-ai/models";
 import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import * as Arr from "effect/Array";
+import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Function from "effect/Function";
 import * as Predicate from "effect/Predicate";
 import * as Rec from "effect/Record";
 
-import { type Account, accountProvider, accounts, anthropicOf } from "./accounts.ts";
-import { targetOf } from "./index.ts";
+import { type Account, type AccountId, accountProvider, accounts, anthropicOf } from "./accounts.ts";
 
 type Store = NonNullable<NonNullable<Parameters<typeof createModels>[0]>["credentials"]>;
 
@@ -52,14 +52,27 @@ const anthropicEnv = new Map([
 
 const anthropic = anthropicOf();
 
-const modelsWith = (credentials: Readonly<Record<string, Credential>>) => {
+const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
+
+const modelsWith = (
+	credentials: Readonly<Record<string, Credential>>,
+	limited: (account: AccountId, back: DateTime.Utc) => void = Function.constVoid,
+) => {
 	const models = createModels({
 		credentials: memoryStore(credentials),
 		authContext: { env: (name) => Promise.resolve(anthropicEnv.get(name)), fileExists: () => Promise.resolve(false) },
 	});
 
 	for (const account of accounts) {
-		models.setProvider(accountProvider({ anthropic, account }));
+		models.setProvider(
+			accountProvider({
+				anthropic,
+				account,
+				limited: (back) => {
+					limited(account.id, back);
+				},
+			}),
+		);
 	}
 
 	return models;
@@ -99,7 +112,7 @@ test("ent never offers Fable, which the Enterprise org cannot serve, while the p
 	const offersFable = (account: Account) => {
 		const models = createModels({ credentials: memoryStore({}) });
 
-		models.setProvider(accountProvider({ anthropic: withFable, account }));
+		models.setProvider(accountProvider({ anthropic: withFable, account, limited: Function.constVoid }));
 
 		return Arr.some(models.getModels(account.id), ({ id }) => id === "claude-fable-5-2");
 	};
@@ -182,7 +195,7 @@ test("ultra-b refuses an API key at login and stores nothing", () =>
 
 test("the OAuth accounts log in through Anthropic's flow, and ultra-b only by pasting a token", () => {
 	const logins = Arr.map(accounts, (account) => {
-		const { auth } = accountProvider({ anthropic, account });
+		const { auth } = accountProvider({ anthropic, account, limited: Function.constVoid });
 
 		return { id: account.id, oauth: auth.oauth?.name, apiKey: auth.apiKey?.name };
 	});
@@ -200,23 +213,29 @@ afterEach(() => {
 	globalThis.fetch = realFetch;
 });
 
-/** The requests a call on the provider's Opus sends, answered with an error so nothing leaves the machine. */
-const sentRequests = Effect.fn("sentRequests")(function* (
-	credentials: Readonly<Record<string, Credential>>,
-	provider: string,
-) {
+const sentRequests = Effect.fn("sentRequests")(function* ({
+	credentials,
+	provider,
+	reply = () => Response.json({ error: { message: "stop here" } }, { status: 400 }),
+	limited,
+}: {
+	readonly credentials: Readonly<Record<string, Credential>>;
+	readonly provider: string;
+	readonly reply?: () => Response;
+	readonly limited?: (account: AccountId, back: DateTime.Utc) => void;
+}) {
 	const requests: Array<{ readonly url: string; readonly headers: Headers }> = [];
 
 	globalThis.fetch = Object.assign(
 		(...[url, init]: Parameters<typeof fetch>) => {
 			requests.push({ url: url instanceof Request ? url.url : url.toString(), headers: new Headers(init?.headers) });
 
-			return Promise.resolve(Response.json({ error: { message: "stop here" } }, { status: 400 }));
+			return Promise.resolve(reply());
 		},
 		{ preconnect: realFetch.preconnect },
 	);
 
-	const models = modelsWith(credentials);
+	const models = modelsWith(credentials, limited);
 	const model = models.getModel(provider, "claude-opus-5-5");
 
 	if (model === undefined) {
@@ -233,10 +252,7 @@ const sentRequests = Effect.fn("sentRequests")(function* (
 test("a request on an account goes to Anthropic with that account's token as a subscription login", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const [request] = yield* sentRequests(
-				{ "ultra-b": { type: "api_key", key: "sk-ant-oat01-ultra-b" } },
-				"ultra-b",
-			);
+			const [request] = yield* sentRequests({ credentials: ultraB, provider: "ultra-b" });
 
 			expect(request?.url).toStartWith("https://api.anthropic.com/");
 			expect(request?.headers.get("authorization")).toBe("Bearer sk-ant-oat01-ultra-b");
@@ -244,25 +260,37 @@ test("a request on an account goes to Anthropic with that account's token as a s
 		}),
 	));
 
-const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
+const ultraB = { "ultra-b": { type: "api_key", key: "sk-ant-oat01-ultra-b" } } satisfies Readonly<
+	Record<string, Credential>
+>;
 
-const find = (provider: string, id: string) => modelsWith({}).getModel(provider, id);
+const weeklyLimitHit = () =>
+	Response.json(
+		{ type: "error", error: { type: "rate_limit_error", message: "limit" } },
+		{
+			status: 429,
+			headers: {
+				"anthropic-ratelimit-unified-status": "rejected",
+				"anthropic-ratelimit-unified-7d-status": "rejected",
+				"anthropic-ratelimit-unified-7d-reset": "1794438000",
+			},
+		},
+	);
 
-test("/account keeps the model and moves it to the named account", () => {
-	const target = targetOf({ name: "ent", current: { ...opus, provider: "ultra-a" }, find });
+test("a 429 on an account tells when that account is back, from the reply's headers", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const backs: Array<readonly [AccountId, DateTime.Utc]> = [];
 
-	expect(target).toMatchObject({ kind: "switch", model: { provider: "ent", id: "claude-opus-5-5" } });
-});
+			yield* sentRequests({
+				credentials: ultraB,
+				provider: "ultra-b",
+				reply: weeklyLimitHit,
+				limited: (account, back) => {
+					backs.push([account, back]);
+				},
+			});
 
-const refusals = [
-	{ name: "an account that does not exist", request: { name: "ultra-c", current: opus } },
-	{ name: "no model yet", request: { name: "ent", current: undefined } },
-	{
-		name: "a model no account offers",
-		request: { name: "ent", current: { ...opus, provider: "openai", id: "gpt-6.1-sol" } },
-	},
-];
-
-test.each(refusals)("/account refuses $name", ({ request }) => {
-	expect(targetOf({ ...request, find }).kind).toBe("refuse");
-});
+			expect(backs).toEqual([["ultra-b", DateTime.makeUnsafe(1_794_438_000_000)]]);
+		}),
+	));

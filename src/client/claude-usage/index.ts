@@ -11,6 +11,7 @@ import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
+import * as Str from "effect/String";
 
 /** How much of one rate-limit window an account has used. */
 export interface Window {
@@ -128,10 +129,13 @@ const planOf = ({ limits, spend }: PlanWire): PlanUsage => ({
 	spend: Option.map(Option.fromNullOr(spend), spendOf),
 });
 
+/** The name of the window that resets each week, on the usage page and in a probe's headers. */
+export const weeklyWindow = "weekly";
+
 /** The claims Anthropic names in its headers, such as `5h` and `7d`, in the words the usage page uses. */
 const claimNames = new Map([
 	["5h", "5-hour"],
-	["7d", "weekly"],
+	["7d", weeklyWindow],
 	["overage", "extra usage"],
 ]);
 
@@ -159,6 +163,31 @@ const windowOfHeader = (headers: HeadersWire, [name, value]: readonly [string, s
 /** Every unified rate-limit claim on a reply, from headers such as `anthropic-ratelimit-unified-7d-utilization: 1.0`. */
 const windowsOf = (headers: HeadersWire): ReadonlyArray<Window> =>
 	Arr.getSomes(Arr.map(Rec.toEntries(headers), (entry) => windowOfHeader(headers, entry)));
+
+const rejectedStatus = /^anthropic-ratelimit-unified-(?:.+-)?status$/u;
+
+const secondsOf = (text: string | null) => Option.filter(Option.map(Option.fromNullOr(text), Number), Number.isFinite);
+
+const resetOf429 = (headers: Headers, status: string) => {
+	const seconds = secondsOf(headers.get(Str.replace(/status$/u, "reset")(status)));
+
+	return Option.flatMap(seconds, (at) => DateTime.make(at * 1000));
+};
+
+const unnamedResetWait = { minutes: 1 };
+
+/**
+ * When an account that answered 429 takes requests again: the latest of each reset its headers name for a `rejected`
+ * claim and of `retry-after`, else a minute from `now`.
+ */
+export const backAt = ({ headers, now }: { readonly headers: Headers; readonly now: DateTime.Utc }): DateTime.Utc => {
+	const rejected = Arr.filter([...headers], ([name, value]) => rejectedStatus.test(name) && value === "rejected");
+	const resets = Arr.getSomes(Arr.map(rejected, ([name]) => resetOf429(headers, name)));
+	const retryAfter = Option.map(secondsOf(headers.get("retry-after")), (seconds) => DateTime.add(now, { seconds }));
+	const named = [...resets, ...Option.toArray(retryAfter)];
+
+	return Arr.isReadonlyArrayNonEmpty(named) ? Arr.max(named, DateTime.Order) : DateTime.add(now, unnamedResetWait);
+};
 
 const oauthBeta = "oauth-2025-04-20";
 

@@ -1,28 +1,66 @@
 import type { Api, AssistantMessage, Model } from "@earendil-works/pi-ai";
 import type { AgentEndEvent, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
+import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as Order from "effect/Order";
 
 import { accountOf, fallbackChain } from "./accounts.ts";
 
+/** When each account that answered 429 takes requests again, by account id. */
+export type Limits = ReadonlyMap<string, DateTime.Utc>;
+
+/** Where a rate-limited session goes: an account open now, or the account back first once it is back. */
+export type Failover =
+	| { readonly kind: "move"; readonly model: Model<Api> }
+	| { readonly kind: "wait"; readonly model: Model<Api>; readonly until: DateTime.Utc };
+
 interface FailoverRequest {
 	readonly current: Model<Api> | undefined;
-	readonly find: (provider: string, id: string) => Model<Api> | undefined;
+	readonly runnableModel: (provider: string, id: string) => Option.Option<Model<Api>>;
+	readonly limits: Limits;
+	readonly now: DateTime.Utc;
 }
 
-/** The session's model on each account of its own account's fallback chain, so a rate limit tries each once and never leaves a BAA account. */
-export const failoverTargets = ({ current, find }: FailoverRequest) => {
-	if (current === undefined) {
-		return [];
+const failoverFrom = ({
+	model,
+	chain,
+	limits,
+	now,
+}: {
+	readonly model: Model<Api>;
+	readonly chain: ReadonlyArray<Model<Api>>;
+	readonly limits: Limits;
+	readonly now: DateTime.Utc;
+}): Failover => {
+	const backAt = (on: Model<Api>) => limits.get(on.provider) ?? now;
+	const open = Arr.findFirst(chain, (on) => !DateTime.isGreaterThan(backAt(on), now));
+
+	if (Option.isSome(open)) {
+		return { kind: "move", model: open.value };
 	}
 
-	const chain = Option.match(accountOf(current.provider), {
-		onNone: () => [],
-		onSome: ({ id }) => fallbackChain(id),
-	});
+	const soonest = Arr.min([model, ...chain], Order.mapInput(DateTime.Order, backAt));
 
-	return Arr.flatMap(chain, ({ id }) => Option.toArray(Option.fromUndefinedOr(find(id, current.id))));
+	return { kind: "wait", model: soonest, until: backAt(soonest) };
+};
+
+/**
+ * The session's model on the first account of its fallback chain that is not rate-limited, else on whichever account it
+ * may use, its own included, is back first. A BAA account's chain is empty, so a session there only waits. None for a
+ * session on no Claude account, such as `phi/auto`, which its router moves.
+ */
+export const failoverOf = ({ current, runnableModel, limits, now }: FailoverRequest): Option.Option<Failover> => {
+	if (current === undefined) {
+		return Option.none();
+	}
+
+	return Option.map(accountOf(current.provider), ({ id }) => {
+		const chain = Arr.flatMap(fallbackChain(id), (account) => Option.toArray(runnableModel(account.id, current.id)));
+
+		return failoverFrom({ model: current, chain, limits, now });
+	});
 };
 
 /** Anthropic's SDK starts a failed request's error message with its HTTP status, and pi records no status of its own. */
@@ -34,23 +72,100 @@ export const isRateLimited = (message: AssistantMessage) =>
 export const endedOnRateLimit = (messages: AgentEndEvent["messages"]) =>
 	Option.exists(Arr.last(messages), (message) => message.role === "assistant" && isRateLimited(message));
 
-/** Moves a rate-limited session to the first other account that takes it, so pi's own retry of the failed request goes there. */
-export const failOver = Effect.fn("failOver")(function* (pi: ExtensionAPI, ctx: ExtensionContext) {
-	const from = ctx.model;
-	const level = pi.getThinkingLevel();
-	const find = (provider: string, id: string) => ctx.modelRegistry.find(provider, id);
+type Pi = Pick<ExtensionAPI, "getThinkingLevel" | "setModel" | "setThinkingLevel">;
 
-	const moved = yield* Effect.findFirst(failoverTargets({ current: from, find }), (model) =>
-		Effect.promise(() => pi.setModel(model)),
+type Session = Pick<ExtensionContext, "model" | "signal"> & {
+	readonly ui: Pick<ExtensionContext["ui"], "notify" | "setStatus">;
+	readonly modelRegistry: Pick<ExtensionContext["modelRegistry"], "find" | "hasConfiguredAuth">;
+};
+
+const abortOf = (signal: AbortSignal | undefined) =>
+	Effect.callback<boolean>((resume) => {
+		const aborted = () => {
+			resume(Effect.succeed(false));
+		};
+
+		if (signal?.aborted === true) {
+			aborted();
+		}
+
+		signal?.addEventListener("abort", aborted, { once: true });
+
+		return Effect.sync(() => {
+			signal?.removeEventListener("abort", aborted);
+		});
+	});
+
+const statusKey = "claude-accounts";
+
+const clockOf = (at: DateTime.Utc) =>
+	DateTime.formatLocal(at, { weekday: "short", hour: "2-digit", minute: "2-digit" });
+
+const waitFor = (ctx: Session, model: Model<Api>, until: DateTime.Utc) =>
+	Effect.gen(function* () {
+		const now = yield* DateTime.now;
+		const clock = clockOf(until);
+		const backIn = Effect.as(Effect.sleep(DateTime.distance(now, until)), true);
+
+		ctx.ui.notify(
+			`Every Claude account this session may use is rate-limited. Waiting until ${clock}, when ${model.provider} is back.`,
+			"warning",
+		);
+		ctx.ui.setStatus(statusKey, `rate-limited until ${clock}`);
+
+		return yield* Effect.raceFirst(backIn, abortOf(ctx.signal));
+	}).pipe(
+		Effect.ensuring(
+			Effect.sync(() => {
+				ctx.ui.setStatus(statusKey, undefined);
+			}),
+		),
 	);
 
-	if (Option.isNone(moved)) {
+const moveTo = Effect.fn("moveTo")(function* (pi: Pi, ctx: Session, model: Model<Api>) {
+	const from = ctx.model?.provider ?? "This account";
+	const level = pi.getThinkingLevel();
+	const moved = yield* Effect.promise(() => pi.setModel(model));
+
+	if (!moved) {
+		ctx.ui.notify(`${model.provider} has no login yet. Run /login ${model.provider}.`, "error");
+
 		return;
 	}
 
 	pi.setThinkingLevel(level);
-	ctx.ui.notify(
-		`${from?.provider ?? "This account"} is rate-limited. Now on ${moved.value.provider}/${moved.value.id}.`,
-		"warning",
+	ctx.ui.notify(`${from} is rate-limited. Now on ${model.provider}/${model.id}.`, "warning");
+});
+
+const runnableIn = (ctx: Session) => (provider: string, id: string) =>
+	Option.filter(Option.fromUndefinedOr(ctx.modelRegistry.find(provider, id)), (model) =>
+		ctx.modelRegistry.hasConfiguredAuth(model),
 	);
+
+/**
+ * Moves a rate-limited session to an open account, or waits for the account back first, so pi's own retry of the failed
+ * request goes there.
+ */
+export const failOver = Effect.fn("failOver")(function* ({
+	pi,
+	ctx,
+	limits,
+}: {
+	readonly pi: Pi;
+	readonly ctx: Session;
+	readonly limits: Limits;
+}) {
+	const now = yield* DateTime.now;
+	const failover = failoverOf({ current: ctx.model, runnableModel: runnableIn(ctx), limits, now });
+
+	if (Option.isNone(failover)) {
+		return;
+	}
+
+	const { model } = failover.value;
+	const waited = failover.value.kind === "wait" ? yield* waitFor(ctx, model, failover.value.until) : true;
+
+	if (waited && model.provider !== ctx.model?.provider) {
+		yield* moveTo(pi, ctx, model);
+	}
 });

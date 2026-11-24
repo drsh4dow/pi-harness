@@ -1,11 +1,12 @@
 import type { Api, Model } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
+import type * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { accountOf, accountProvider, accounts, accountsHost, anthropicOf } from "./accounts.ts";
+import { type AccountId, accountOf, accountProvider, accounts, accountsHost, anthropicOf } from "./accounts.ts";
 import { endedOnRateLimit, failOver } from "./failover.ts";
 
 export { type AccountId, accountOf, accounts, type Login } from "./accounts.ts";
@@ -96,13 +97,22 @@ const switchAccount = (pi: ExtensionAPI) => (args: string, ctx: ExtensionCommand
 
 export const claudeAccounts = (pi: ExtensionAPI) => {
 	const anthropic = anthropicOf();
+	const limits = new Map<AccountId, DateTime.Utc>();
 
 	for (const account of accounts) {
-		pi.registerProvider(accountProvider({ anthropic, account }));
+		pi.registerProvider(
+			accountProvider({
+				anthropic,
+				account,
+				limited: (back) => {
+					limits.set(account.id, back);
+				},
+			}),
+		);
 	}
 
 	pi.on("agent_end", (event, ctx) =>
-		endedOnRateLimit(event.messages) ? accountsHost.run(failOver(pi, ctx)) : Promise.resolve(),
+		endedOnRateLimit(event.messages) ? accountsHost.run(failOver({ pi, ctx, limits })) : Promise.resolve(),
 	);
 
 	pi.registerCommand("account", {
