@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
+snapshot=$(mktemp -d)
+trap 'rm -rf "$snapshot"' EXIT
+git checkout-index --all --prefix="$snapshot/"
+ln -s "$PWD/node_modules" "$snapshot/node_modules"
 git diff --cached --name-only --diff-filter=ACMR -z |
-	xargs -0 -r node_modules/.bin/oxfmt --check --no-error-on-unmatched-pattern
+	(cd "$snapshot" && xargs -0 -r node_modules/.bin/oxfmt --check --no-error-on-unmatched-pattern)
 git diff --cached --name-only --diff-filter=ACMR -z -- src tools agent/extensions agent/bin |
-	xargs -0 -r node_modules/.bin/oxlint --no-error-on-unmatched-pattern
+	(cd "$snapshot" && xargs -0 -r node_modules/.bin/oxlint --no-error-on-unmatched-pattern)
