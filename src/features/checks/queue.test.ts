@@ -1,8 +1,10 @@
 import { afterAll, expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
+import * as Str from "effect/String";
 
 import { eventually } from "#src/primitives/eventually.ts";
 
@@ -24,7 +26,7 @@ const tickets = (dir: string, count: number) =>
 	Effect.flatMap(FileSystem.FileSystem, (fs) => {
 		const names = Effect.orElseSucceed(fs.readDirectory(`${dir}/.local/state/pi-agent/queues/lane`), () => []);
 
-		return Effect.map(names, ({ length }) => length === count);
+		return Effect.map(names, (found) => Arr.filter(found, Str.endsWith(".json")).length === count);
 	});
 
 const twoInLine = (dir: string) =>
