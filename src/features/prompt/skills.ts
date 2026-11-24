@@ -57,7 +57,9 @@ Rank: the rest of this prompt outranks a skill. A step that asks the user follow
 
 No reason to skip: a small task, a familiar skill (the description is not the workflow), hurry, or a step already done (record its result).
 
-A skill's file is \`<dir>/<name>/SKILL.md\`, with the \`dir\` its list names, or the path in parentheses after its name. Relative paths in a skill resolve against its directory. Tool calls take absolute paths.`;
+A skill's file is \`<dir>/<name>/SKILL.md\`, with the \`dir\` its list names, or the path in parentheses after its name. Relative paths in a skill resolve against its directory. Tool calls take absolute paths.
+
+A user message naming \`/skill:<name>\` or \`/skills:<name>\` asks for that skill, listed or not: find \`<name>/SKILL.md\` in each listed \`dir\`, then anywhere on disk, and load and run it as if listed. Say it is missing only when no such file exists.`;
 
 type Listed = Pick<Skill, "name" | "description" | "filePath" | "disableModelInvocation">;
 
