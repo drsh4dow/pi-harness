@@ -7,16 +7,15 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as Order from "effect/Order";
 import * as Redacted from "effect/Redacted";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
-import { ClaudeUsage, claudeUsageFetchLayer, type Window } from "#src/client/claude-usage/index.ts";
+import { type ClaudeUsage, claudeUsageFetchLayer, type Window } from "#src/client/claude-usage/index.ts";
 import { OpencodeGo, opencodeGoFetchLayer } from "#src/client/opencode-go/index.ts";
 import { piHost } from "#src/client/pi-host/index.ts";
 import { spendSince } from "#src/client/pi-sessions/index.ts";
-import { accounts, type Login } from "#src/features/claude-accounts/index.ts";
+import { type Account, accounts, type Login, planOf } from "#src/features/claude-accounts/index.ts";
 import { type Block, blockOf, Card, type Meter, type Outcome, readAtOf } from "./card.ts";
 import { cardComponent, liveCard } from "./view.ts";
 
@@ -45,60 +44,21 @@ const keyOf = (ctx: ExtensionCommandContext, provider: string) =>
 				: Effect.succeed(Redacted.make(key)),
 	);
 
-const byInputPrice = Order.mapInput(
-	Order.Number,
-	({ cost }: { readonly cost: { readonly input: number } }) => cost.input,
-);
-
-/** The account's cheapest model, so a probe that gets through costs the least. */
-const cheapestModel = (ctx: ExtensionCommandContext, provider: string) => {
-	const models = Arr.filter(ctx.modelRegistry.getAll(), (model) => model.provider === provider);
-	const cheapest = Arr.head(Arr.sort(models, byInputPrice));
-
-	return Option.match(cheapest, {
-		onNone: () => Effect.fail(`${provider} has no models to probe with.`),
-		onSome: ({ id }) => Effect.succeed(id),
-	});
-};
-
-const planMeters = (ctx: ExtensionCommandContext, provider: string) =>
-	Effect.gen(function* () {
-		const token = yield* keyOf(ctx, provider);
-		const claude = yield* ClaudeUsage;
-		const plan = yield* Effect.mapError(claude.plan(token), ({ message }) => message);
+const planMeters = (ctx: ExtensionCommandContext, account: Account) =>
+	Effect.map(planOf({ registry: ctx.modelRegistry, account }), (plan) => {
 		const extra = Option.map(plan.spend, (spend): Meter => ({ kind: "extra", spend }));
 
 		return [...windowMeters(plan.windows), ...Option.toArray(extra)];
 	});
 
-const probeMeters = (ctx: ExtensionCommandContext, provider: string) =>
-	Effect.gen(function* () {
-		const token = yield* keyOf(ctx, provider);
-		const model = yield* cheapestModel(ctx, provider);
-		const claude = yield* ClaudeUsage;
-		const windows = yield* Effect.mapError(claude.probe({ token, model }), ({ message }) => message);
-
-		return windowMeters(windows);
-	});
-
 /** An OAuth login can read the usage page. A setup-token lacks the `user:profile` scope, so only a probe's headers tell. */
-const claudeSource = ({ id, login }: { readonly id: string; readonly login: Login }): Source => {
-	switch (login) {
-		case "oauth": {
-			return { account: id, via: "usage page", read: (ctx) => planMeters(ctx, id) };
-		}
+const claudeVia = { oauth: "usage page", "setup-token": "one-token probe" } satisfies Record<Login, string>;
 
-		case "setup-token": {
-			return { account: id, via: "one-token probe", read: (ctx) => probeMeters(ctx, id) };
-		}
-
-		default: {
-			const unhandled: never = login;
-
-			return unhandled;
-		}
-	}
-};
+const claudeSource = (account: Account): Source => ({
+	account: account.id,
+	via: claudeVia[account.login],
+	read: (ctx) => planMeters(ctx, account),
+});
 
 const opencodeGo: Source = {
 	account: "opencode-go",

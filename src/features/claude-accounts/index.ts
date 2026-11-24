@@ -9,9 +9,11 @@ import * as Str from "effect/String";
 import { type AccountId, accountOf, accountProvider, accounts, accountsHost, anthropicOf } from "./accounts.ts";
 import { endedOnRateLimit, failOver } from "./failover.ts";
 
-export { type AccountId, accountOf, accounts, type Login } from "./accounts.ts";
+export { type Account, type AccountId, accountOf, accounts, type Login } from "./accounts.ts";
 
 export { isRateLimited } from "./failover.ts";
+
+export { type PlanReader, planOf, roomiestAccount } from "./quota.ts";
 
 const accountIds = Arr.map(accounts, ({ id }) => id);
 

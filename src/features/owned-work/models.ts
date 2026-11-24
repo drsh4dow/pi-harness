@@ -7,6 +7,7 @@ import * as Rec from "effect/Record";
 import * as Str from "effect/String";
 
 import { PhiRouter } from "#src/client/phi-router/index.ts";
+import { accountOf, type PlanReader, roomiestAccount } from "#src/features/claude-accounts/index.ts";
 import { baaProviders, isBaa, isPhi, phiProvider, sealedId } from "#src/features/phi/index.ts";
 import { BadDelegate } from "./work.ts";
 
@@ -73,7 +74,7 @@ const panel: ReadonlyArray<keyof typeof aliases> = ["fable", "worker", "investig
 export const modelTable: ModelTable = { aliases, panel };
 
 export type ModelCaller = Pick<ExtensionContext, "model" | "cwd"> & {
-	readonly modelRegistry: Pick<ExtensionContext["modelRegistry"], "getAll">;
+	readonly modelRegistry: PlanReader;
 	readonly sessionManager: Pick<ExtensionContext["sessionManager"], "getSessionId">;
 };
 
@@ -190,6 +191,21 @@ const runs = (model: string, source: string, pin: boolean): Placement => ({
 	substitution: Option.none(),
 });
 
+const openPlacement = Effect.fn("openPlacement")(function* (
+	ctx: ModelCaller,
+	{ spelled, model, id, source }: Resolved,
+) {
+	const account = accountOf(Arr.headNonEmpty(Str.split(model, "/")));
+
+	if (Option.isSome(spelled) || Option.isNone(account)) {
+		return runs(model, source, false);
+	}
+
+	const roomiest = yield* roomiestAccount({ registry: ctx.modelRegistry, from: account.value, id });
+
+	return runs(`${roomiest.id}/${id}`, source, false);
+});
+
 /** The whole run on `phi/sealed`, since nothing that may hold PHI carries the model `naming` names. */
 const substituted = (naming: string): Placement => {
 	const model = `${phiProvider}/${sealedId}`;
@@ -232,7 +248,7 @@ export const modelOf = Effect.fn("modelOf")(function* (ctx: ModelCaller, table: 
 	const standing = yield* standingOf(ctx);
 
 	const placement =
-		standing === "open" ? runs(resolved.model, resolved.source, false) : protectedPlacement(ctx, standing, resolved);
+		standing === "open" ? yield* openPlacement(ctx, resolved) : protectedPlacement(ctx, standing, resolved);
 
 	if (!isRegistered(ctx)(placement.model)) {
 		return yield* BadDelegate.make({
