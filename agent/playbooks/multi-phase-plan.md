@@ -63,6 +63,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 - [ ] Use `gh` for every PR operation, and `gh stack` for a stack.
 - [ ] Open the PR ready, never draft, per **Opening a PR**. Use `gh pr create --base <base-branch>`. A stack child targets its parent branch.
 - [ ] Run the repo's lint and typecheck once before the PR-facing push. Push with hooks on.
+- [ ] Run the repo's full test suite once per pushed head, and only the tests the change affects in fix rounds. When CI runs the same command, CI is the gate.
 - [ ] Run `playbooks/code-simplification.md` before each commit and the **no-comments** skill before review.
 - [ ] Triage every review bot comment per `playbooks/references/review-bot-triage.md`.
 - [ ] Rebase onto current trunk before the code-ready report and babysit. Keep that merge base in fix rounds. Rebase again only at merge prep, on a `git merge-tree` conflict with trunk, on a CI failure that comes from a change on trunk, or when a known concurrent change to the same files lands.
