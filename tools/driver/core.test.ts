@@ -36,7 +36,7 @@ test("a timeout around ran ends a command that ignores SIGTERM", () =>
 		}).pipe(Effect.provide(NodeServices.layer)),
 	));
 
-test("closing the core's scope ends the terminals it runs", () =>
+test.skipIf(Bun.which("hc") === null)("closing the core's scope ends the terminals it runs", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
 			const fs = yield* FileSystem.FileSystem;
@@ -72,4 +72,5 @@ test("closing the core's scope ends the terminals it runs", () =>
 
 			expect(isAlive(terminal)).toBe(false);
 		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
-	));
+	),
+);
