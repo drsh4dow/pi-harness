@@ -2,7 +2,7 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Schema from "effect/Schema";
 
-/** A check that passed on one tree: its command, where it ran, and the end of its output. */
+/** A check that passed on one tree: its command, where it ran, and what it printed to each stream. */
 export const Receipt = Schema.Struct({
 	command: Schema.Array(Schema.String),
 	root: Schema.String,
@@ -10,7 +10,8 @@ export const Receipt = Schema.Struct({
 	tree: Schema.String,
 	passedAt: Schema.String,
 	seconds: Schema.Finite,
-	tail: Schema.String,
+	stdout: Schema.String,
+	stderr: Schema.String,
 });
 
 export type Receipt = typeof Receipt.Type;

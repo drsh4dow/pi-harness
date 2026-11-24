@@ -78,7 +78,8 @@ test(
 				const afterSub = yield* runs;
 
 				expect({ afterTwo, afterSub, code: second.code }).toEqual({ afterTwo: 1, afterSub: 2, code: 0 });
-				expect(second.out).toMatch(/tests ok[\s\S]*did not run again/u);
+				expect(second.out).toBe("tests ok\n");
+				expect(second.err).toContain("did not run again");
 			}),
 		),
 	spawnLimit,
@@ -127,6 +128,65 @@ test(
 
 				expect({ code: failed.code, count }).toEqual({ code: 3, count: 4 });
 				expect(wrote.err).toContain("the tree changed while it ran");
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"a check's own stdout and stderr stay apart, the same on a receipt as on the run, with the receipt on stderr",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { check } = yield* world("streams");
+				const printing = `echo run >> "$RUNS"; printf '{"a":1}\\n'; echo warned >&2`;
+
+				const first = yield* check(printing);
+				const second = yield* check(printing);
+
+				expect([first.out, second.out]).toEqual(['{"a":1}\n', '{"a":1}\n']);
+				expect(first.err).toStartWith("warned\n");
+				expect(second.err).toStartWith("warned\n");
+				expect(second.err).toContain("did not run again");
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"a pass that printed more than a receipt keeps has no receipt",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { check, runs } = yield* world("long-output");
+				const long = `echo run >> "$RUNS"; head -c 1100000 /dev/zero`;
+
+				yield* check(long);
+
+				const second = yield* check(long);
+				const count = yield* runs;
+
+				expect({ count, printed: second.out.length }).toEqual({ count: 2, printed: 1_100_000 });
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"a clone with the same tree runs the check in its own folder",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { repo, check, runs } = yield* world("clones");
+				const clone = `${repo}-clone`;
+
+				yield* seeded(clone, `${scratch}/clones`);
+				yield* check(passing);
+				yield* check(passing, [], clone);
+
+				const count = yield* runs;
+
+				expect(count).toBe(2);
 			}),
 		),
 	spawnLimit,
