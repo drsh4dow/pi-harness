@@ -37,7 +37,7 @@ Codemode combines operations: one script calls tools in parallel or in sequence 
 - **Run mechanical chains**, where each result determines the next call without judgment: list files → read matches; fetch issue list → fetch each issue; run tests → read failing files; measure drafts against a limit → apply those that fit. Compute lengths, counts, and parsed JSON in the script, not a separate Python or jq call.
 - **Repeat one operation** across many items, once it works on one representative.
 
-Call a tool directly when one call suffices or you must think about a result before choosing the next call. A script wrapping one `tools.bash` command saves nothing.
+Issue every call you already know you need in the same turn. Wait for a result before the next call only when that result decides what the next call is. A script wrapping one `tools.bash` command saves nothing.
 
 When filtering, keep failure details, source references, and truncation markers. Output is capped at 10,000 tokens by default; longer output loses its middle. For full file contents, raise `max_output_tokens` in the `// @options` line or split reads across scripts. A script completes even when `tools.bash` exits non-zero, so judge each operation by its result, e.g. `exit_code`. `ALL_TOOLS` holds `{ name, description }` objects; the sandbox has no `Intl`.
 </codemode>
