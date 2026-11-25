@@ -18,7 +18,6 @@ const every: ReadonlyArray<Role> = ["root", "owner", "leaf"];
 
 const kinds: ReadonlyArray<Kind> = ["principles", "playbooks"];
 
-/** A leaf does one bounded task, so a playbook without `for` skips it, and a principle fits every role. */
 const withoutFor: Record<Kind, ReadonlyArray<Role>> = { principles: every, playbooks: ["root", "owner"] };
 
 const rows: ReadonlyArray<{ name: string; file: string; text: string; roles?: ReadonlyArray<Role> | "default" }> = [
@@ -144,7 +143,6 @@ const principleReferences = (text: string) => {
 	return Arr.dedupe(Arr.map(found, (match) => match.groups?.["name"] ?? ""));
 };
 
-/** The names `text` points at as `playbooks/<name>.md`. A file in a playbook's subfolder names no playbook. */
 const playbookReferences = (text: string) => {
 	const found = [...Str.matchAll(/\bplaybooks\/(?<name>[a-z][a-z0-9-]*)\.md\b/gu)(text)];
 

@@ -12,7 +12,6 @@ import { agentFileText } from "#src/client/pi/index.ts";
 import { Role, Roles } from "#src/features/owned-work/index.ts";
 import type { Problem } from "./kinds.ts";
 
-/** The one key of a skill's frontmatter the prompt reads. pi reads the rest. */
 const Audience = Schema.Struct({ for: Schema.optionalKey(Roles) });
 
 const decodeAudience = Schema.decodeUnknownEffect(Audience);
@@ -26,7 +25,6 @@ const rolesOf = Effect.fn("rolesOf")(function* (filePath: string) {
 	return roles;
 });
 
-/** The skills `role` may load: each whose frontmatter `for` names the role, every role when absent. A broken file is left out and reported. */
 export const skillsFor = <Found extends Pick<Skill, "filePath">>({
 	role,
 	skills,
@@ -65,7 +63,6 @@ type Listed = Pick<Skill, "name" | "description" | "filePath" | "disableModelInv
 
 const oneLine = Function.flow(Str.replaceAll(/\s+/gu, " "), Str.trim);
 
-/** The skill's line under its folder when its file is `<dir>/<name>/SKILL.md`, or a line naming its file when pi found it elsewhere. */
 const located = ({ name, description, filePath }: Listed) => {
 	const tail = `/${name}/SKILL.md`;
 
@@ -77,7 +74,6 @@ const located = ({ name, description, filePath }: Listed) => {
 const list = (attribute: string, lines: ReadonlyArray<string>) =>
 	`<available_skills${attribute}>\n${Arr.join(lines, "\n")}\n</available_skills>`;
 
-/** The `<skills>` section, in place of pi's: the rule for loading and running skills, then each skill the model may invoke, one list per folder. */
 export const skillsSection = (skills: ReadonlyArray<Listed>) => {
 	const shown = Arr.filter(skills, (skill) => !skill.disableModelInvocation);
 	const [placed, unplaced] = Arr.partition(shown, located);

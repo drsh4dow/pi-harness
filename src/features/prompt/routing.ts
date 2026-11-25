@@ -4,12 +4,6 @@ import * as Order from "effect/Order";
 import * as Record from "effect/Record";
 import * as Str from "effect/String";
 
-/**
- * A lexical stand-in for how pi routes a prompt to a skill, ported from the Tier-2 eval in addyosmani/agent-skills:
- * stemmed TF-IDF over each skill's name and description. It cannot judge meaning, but it catches a description that
- * lacks the words users say, one that outranks the skill a prompt belongs to, and two descriptions that read alike. A
- * playbook's name and `when` count as a skill's name and description, since the model picks among both lists.
- */
 export interface Skill {
 	readonly name: string;
 	readonly description: string;
@@ -41,7 +35,6 @@ const stopWords = new Set(
 
 const suffixes = ["ally", "ing", "ations", "ation", "ed", "es", "al"];
 
-/** Forms users type that share no stem with the word a description uses: clipped forms, and verbs built on a noun. */
 const aliases = new Map([
 	["doc", "document"],
 	["docs", "document"],
@@ -100,7 +93,6 @@ const termFrequency = (tokens: ReadonlyArray<string>) => {
 	return frequency;
 };
 
-/** A skill's document is its name, counted twice, then its description. */
 export const corpusOf = (skills: ReadonlyArray<Skill>): Corpus => {
 	const entries = Arr.map(skills, ({ name, description }) => {
 		const nameTokens = tokenize(Str.replaceAll("-", " ")(name));
@@ -133,7 +125,6 @@ const cosine = (left: Vector, right: Vector) => {
 
 const byScore = Order.mapInput(Order.Number, ({ score }: Ranked) => score);
 
-/** Every skill in the corpus, best match for `prompt` first. */
 export const rank = ({ prompt, corpus }: { prompt: string; corpus: Corpus }): ReadonlyArray<Ranked> => {
 	const query = weigh(termFrequency(tokenize(prompt)), corpus.idf);
 	const scored = Arr.map([...corpus.docs], ([name, doc]) => ({ name, score: cosine(query, weigh(doc, corpus.idf)) }));
@@ -195,10 +186,6 @@ export const routingFailures = ({
 
 const collisionLimit = 0.75;
 
-/**
- * Each name two skills share, which one corpus document cannot tell apart, then each pair of skills whose name and
- * description vectors are at least `collisionLimit` alike.
- */
 export const collisions = (skills: ReadonlyArray<Skill>) => {
 	const names = Arr.map(skills, ({ name }) => name);
 	const shared = Arr.dedupe(Arr.filter(names, (name, index) => names.indexOf(name) !== index));

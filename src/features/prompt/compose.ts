@@ -24,7 +24,6 @@ const bullets = (lines: ReadonlyArray<string>) =>
 		"\n",
 	);
 
-/** Built-in tools whose guidelines restate their own schema description, or `<codemode>` in `SYSTEM.md`. */
 const restating = ["edit", "codemode"];
 
 const rulesSection = (options: NormalizedBuildSystemPromptOptions) => {
@@ -42,7 +41,6 @@ const rulesSection = (options: NormalizedBuildSystemPromptOptions) => {
 	return bullets(rules);
 };
 
-/** How an agent uses the playbooks index. It goes out only with the index, so an agent with no playbooks never reads it. */
 export const playbooksWorkflow = `<playbooks-workflow>
 Playbooks, listed under \`<playbooks>\` as \`name: when\`, are the workflows for each kind of work. A playbook's file is \`<name>.md\` in the \`dir\` that \`<playbooks>\` names, and \`playbooks/<name>.md\` in any skill or playbook is that file.
 

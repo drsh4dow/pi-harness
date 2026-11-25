@@ -41,7 +41,6 @@ const promptFolders = [
 
 const isPromptFile = (file: string) => Str.endsWith(".md")(file) && !Str.includes("node_modules")(file);
 
-/** Every hit in the prompt files under `root`. A missing folder has no files. */
 const hitsUnder = Effect.fn("hitsUnder")(function* (root: string) {
 	const fs = yield* FileSystem.FileSystem;
 

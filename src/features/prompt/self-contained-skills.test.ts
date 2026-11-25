@@ -22,7 +22,6 @@ const hitsIn = (file: string, text: string) =>
 
 const isText = (file: string) => !/\.(?:ttf|woff2|pyc)$|__pycache__|node_modules/u.test(file);
 
-/** Every hit in one entry of a skill's folder. A folder has none. */
 const hitsInEntry = Effect.fn("hitsInEntry")(function* (entry: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const info = yield* fs.stat(`${skills}${entry}`);

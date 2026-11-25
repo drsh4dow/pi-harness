@@ -9,21 +9,17 @@ import * as Str from "effect/String";
 import { agentFileText, type MarkdownFile, markdownIn } from "#src/client/pi/index.ts";
 import { Role, Roles } from "#src/features/owned-work/index.ts";
 
-/** A kind of prompt file the prompt lists by name and trigger: its folder under the agent dir, and the tag of its index. */
 export type Kind = "principles" | "playbooks";
 
-/** The roles a file fits when its frontmatter has no `for`: a leaf does one bounded task, so it runs no playbook. */
 const defaultRoles: Record<Kind, ReadonlyArray<Role>> = {
 	principles: Role.literals,
 	playbooks: ["root", "owner"],
 };
 
-/** One line the agent matches against its task. No angle brackets, since it renders inside the index tag. */
 const When = Schema.NonEmptyString.pipe(Schema.check(Schema.isPattern(/^[^\n<>]+$/u)));
 
 const Frontmatter = Schema.Struct({
 	when: When,
-	/** The roles the file fits, its kind's `defaultRoles` when absent. */
 	for: Schema.optionalKey(Roles),
 });
 
@@ -31,7 +27,6 @@ const decodeFrontmatter = Schema.decodeUnknownEffect(Frontmatter, { onExcessProp
 
 const EntryName = Schema.String.pipe(Schema.check(Schema.isPattern(/^[a-z][a-z0-9-]*$/u)));
 
-/** One `<name>.md` directly in a kind's folder. The file name is its only name. */
 export interface Entry {
 	readonly name: string;
 	readonly when: string;
@@ -79,7 +74,6 @@ export const loadEntries = Effect.fn("loadEntries")(function* (kind: Kind, dir: 
 
 const line = ({ name, when }: Entry) => `- ${name}: ${when}`;
 
-/** The index of `kind` for `role`: the folder once, then each fitting entry's name and trigger, never its body. */
 export const entryIndex = ({
 	kind,
 	role,

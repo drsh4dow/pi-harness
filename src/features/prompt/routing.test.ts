@@ -28,18 +28,12 @@ const Triggers = Schema.fromJsonString(Schema.Record(Schema.String, Cases));
 
 const ownerOf = ({ owner }: typeof Negative.Type): ReadonlyArray<string> => (owner === undefined ? [] : [owner]);
 
-/**
- * Prompts keyed by the skill or playbook each must route to: addyosmani/agent-skills' `evals/cases/`, pstack's quoted
- * trigger phrases, and paraphrases of the owner's own first prompts.
- */
 const triggerFile = `${import.meta.dirname}/triggers.json`;
 
 const agentDir = `${import.meta.dirname}/../../../agent`;
 
-/** The web feature's skills, which pi lists beside the agent dir's. */
 const webSkillsDir = `${import.meta.dirname}/../web`;
 
-/** The skills whose description pi shows the model, which are the ones that compete for a prompt. */
 const modelSkills = Effect.fn("modelSkills")(function* (skillsDir: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const dirs = yield* fs.readDirectory(skillsDir);
@@ -59,7 +53,6 @@ const modelSkills = Effect.fn("modelSkills")(function* (skillsDir: string) {
 	return Arr.flatten(found);
 });
 
-/** Every name and trigger the model picks among: each skill's description and each playbook's `when`. */
 const modelTriggers = Effect.fn("modelTriggers")(function* (dir: string, ...skillDirs: ReadonlyArray<string>) {
 	const skills = yield* Effect.forEach([`${dir}/skills`, ...skillDirs], modelSkills);
 	const { entries } = yield* loadEntries("playbooks", `${dir}/playbooks`);
