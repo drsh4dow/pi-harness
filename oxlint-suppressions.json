@@ -14,11 +14,6 @@
       "count": 1
     }
   },
-  "src/features/owned-work/brief/brief.ts": {
-    "max-params": {
-      "count": 3
-    }
-  },
   "src/features/owned-work/brief/design.scenario.ts": {
     "max-params": {
       "count": 1

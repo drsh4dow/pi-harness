@@ -107,7 +107,7 @@ export const stagedLaunches = Effect.fn("stagedLaunches")(function* (
 
 	const launches = Effect.forEach([...withInstructions, ...bareDelegates], ({ level, role, design, ...staged }) =>
 		Effect.gen(function* () {
-			const roleFields = yield* roleFieldsFor(state, Option.some(state), role, design);
+			const roleFields = yield* roleFieldsFor({ cwd: state, state: Option.some(state), role, design });
 			const brief: Brief = { ...staged, message, goal, state: Option.some(state), ...workFiles, ...roleFields };
 
 			const spec = yield* launch(cli)({

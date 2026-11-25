@@ -151,7 +151,7 @@ const delegateTool = (
 
 						const fresh = yield* freshCall(call);
 						const inherited = yield* ownBrief(ownSession);
-						const { brief, cwd, substitution, pin } = yield* parseCall(ctx, table, roles, inherited, fresh);
+						const { brief, cwd, substitution, pin } = yield* parseCall({ ctx, table, roles, inherited }, fresh);
 						const reviewed = yield* withReview(fresh.reviews)(brief);
 						const childSession = { ...place, cwd: Option.getOrElse(cwd, () => place.cwd), id: uuidv7() };
 

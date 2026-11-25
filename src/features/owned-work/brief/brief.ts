@@ -157,12 +157,14 @@ const designOf = Effect.fn("designOf")(function* (cwd: string, named: string) {
 });
 
 /** What a brief holds by role: project facts for every delegate, and the owner rules and a design for an owner only. Each call reads them from the state folder, so no task message has to repeat them. */
-export const roleFieldsFor = Effect.fn("roleFieldsFor")(function* (
-	cwd: string,
-	state: Option.Option<string>,
-	role: ChildRole,
-	design: Option.Option<string>,
-) {
+interface RoleChoice {
+	readonly cwd: string;
+	readonly state: Option.Option<string>;
+	readonly role: ChildRole;
+	readonly design: Option.Option<string>;
+}
+
+export const roleFieldsFor = Effect.fn("roleFieldsFor")(function* ({ cwd, state, role, design }: RoleChoice) {
 	const facts = yield* stateFile(state, "facts.md");
 
 	if (role === "leaf") {
@@ -185,14 +187,17 @@ const goalMissing = BadDelegate.make({
 	why: "name a `goal`: the user's goal in one sentence. A root's call must name it, and every delegate below inherits it",
 });
 
-type Inherited = Option.Option<Pick<StagedBrief, "goal" | "state">>;
+interface Parent {
+	readonly ctx: Caller;
+	readonly table: ModelTable;
+	readonly roles: ReadonlyArray<ChildRole>;
+	readonly inherited: Option.Option<Pick<StagedBrief, "goal" | "state">>;
+}
 
 const workOf = Effect.fn("workOf")(function* (
-	ctx: Caller,
-	cwd: Option.Option<string>,
-	inherited: Inherited,
+	{ ctx, inherited }: Parent,
 	call: Static<DelegateParams>,
-	role: ChildRole,
+	cwd: Option.Option<string>,
 ) {
 	const goal = yield* Effect.fromOption(
 		Option.orElse(Option.fromUndefinedOr(call.goal), () => Option.map(inherited, (own) => own.goal)),
@@ -212,9 +217,8 @@ const workOf = Effect.fn("workOf")(function* (
 
 	const workFolder = Option.getOrElse(cwd, () => ctx.cwd);
 	const files = yield* workFilesOf(workFolder, state);
-	const roleFields = yield* roleFieldsFor(ctx.cwd, state, role, Option.fromUndefinedOr(call.design));
 
-	return { goal, state, ...files, ...roleFields };
+	return { goal, state, ...files };
 });
 
 const roleOf = (named: Option.Option<ChildRole>, roles: ReadonlyArray<ChildRole>) =>
@@ -228,12 +232,11 @@ const roleOf = (named: Option.Option<ChildRole>, roles: ReadonlyArray<ChildRole>
 	);
 
 export const parseCall = Effect.fn("parseCall")(function* (
-	ctx: Caller,
-	table: ModelTable,
-	roles: ReadonlyArray<ChildRole>,
-	inherited: Inherited,
+	parent: Parent,
 	call: Static<DelegateParams> & { readonly name: string; readonly message: string },
 ) {
+	const { ctx, table, roles } = parent;
+
 	const cwd = yield* Effect.transposeOption(
 		Option.map(Option.fromUndefinedOr(call.cwd), (folder) => folderOf(ctx.cwd, folder, "cannot start in cwd")),
 	);
@@ -258,12 +261,20 @@ export const parseCall = Effect.fn("parseCall")(function* (
 	);
 
 	const { model, substitution, pin } = yield* modelOf(ctx, table, wanted);
-	const work = yield* workOf(ctx, cwd, inherited, call, role);
+	const work = yield* workOf(parent, call, cwd);
+
+	const roleFields = yield* roleFieldsFor({
+		cwd: ctx.cwd,
+		state: work.state,
+		role,
+		design: Option.fromUndefinedOr(call.design),
+	});
 
 	const brief: Brief = {
 		name: call.name,
 		message: call.message,
 		...work,
+		...roleFields,
 		model,
 		thinking: Option.orElseSome(
 			Option.flatMap(profile, (own) => own.thinking),
