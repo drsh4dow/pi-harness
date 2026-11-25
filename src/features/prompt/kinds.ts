@@ -54,10 +54,6 @@ const parseEntry = Effect.fn("parseEntry")(function* (kind: Kind, file: string, 
 
 const byPath = Order.mapInput(Order.String, ({ path }: MarkdownFile) => path);
 
-/**
- * Every entry of `kind` in `dir`, by name: none when the folder is missing. Files in its subfolders are reference files, not
- * entries. A broken file is left out and reported, so one typo never drops the rest.
- */
 export const loadEntries = Effect.fn("loadEntries")(function* (kind: Kind, dir: string) {
 	const listed = yield* markdownIn(dir);
 	const files = Arr.sort(listed, byPath);

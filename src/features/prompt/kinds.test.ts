@@ -108,6 +108,26 @@ test("a file in a playbook's subfolder is a reference file: neither listed nor r
 		}),
 	));
 
+test("a folder's entries load in name order, and a broken file is reported while the rest still load", () =>
+	run(
+		Effect.gen(function* () {
+			const dir = `${scratch}/several/principles`;
+
+			yield* write(dir, "b-second.md", "---\nwhen: Second.\n---\nBody.");
+			yield* write(dir, "broken.md", "No frontmatter at all.");
+			yield* write(dir, "a-first.md", "---\nwhen: First.\n---\nBody.");
+
+			const { entries, problems } = yield* loadEntries("principles", dir);
+
+			expect({ names: Arr.map(entries, ({ name }) => name), broken: Arr.map(problems, ({ file }) => file) }).toEqual(
+				{
+					names: ["a-first", "b-second"],
+					broken: [`${dir}/broken.md`],
+				},
+			);
+		}),
+	));
+
 test("a missing folder holds no entries and no problems", () =>
 	run(
 		Effect.gen(function* () {
