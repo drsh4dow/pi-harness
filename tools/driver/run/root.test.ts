@@ -5,6 +5,8 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
+import type * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
+import type * as Scope from "effect/Scope";
 import * as Str from "effect/String";
 
 import { eventually } from "#src/primitives/eventually.ts";
@@ -56,7 +58,7 @@ test.each(rows)("lfLines: $name", ({ carried, chunk, expected }) => {
 });
 
 const fakePi = `#!/usr/bin/env bun
-import { appendFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
 const print = (...records) => {
 	const text = records.map((record) => JSON.stringify(record) + "\\n").join("");
 	appendFileSync("stdout.jsonl", text);
@@ -64,6 +66,7 @@ const print = (...records) => {
 };
 let text;
 for await (const line of console) {
+	if (line === "") continue;
 	console.error(line);
 	const command = JSON.parse(line);
 	if (command.type === process.env.FAKE_IGNORES) continue;
@@ -90,6 +93,8 @@ for await (const line of console) {
 	if (process.env.FAKE_NEVER_SETTLES !== undefined) continue;
 	setTimeout(() => print(settled()), 200);
 }
+await Bun.sleep(100);
+writeFileSync("exited", "");
 `;
 
 const fakeWorld = (env: Readonly<Record<string, string>>) =>
@@ -114,18 +119,21 @@ const fakeWorld = (env: Readonly<Record<string, string>>) =>
 
 const started = (world: World) => startRoot({ world, model: "a/b", progress: () => Effect.void });
 
+const run = <Value, Failure>(
+	effect: Effect.Effect<Value, Failure, Scope.Scope | FileSystem.FileSystem | ChildProcessSpawner.ChildProcessSpawner>,
+) => Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(NodeServices.layer)));
+
 const withRoot = <Value, Failure>(
 	env: Readonly<Record<string, string>>,
 	use: (root: RootProcess, layout: Layout) => Effect.Effect<Value, Failure, FileSystem.FileSystem>,
 ) =>
-	Effect.runPromise(
+	run(
 		Effect.gen(function* () {
 			const world = yield* fakeWorld(env);
-
 			const root = yield* started(world);
 
 			return yield* use(root, world.layout);
-		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+		}),
 	);
 
 test("startRoot returns the session pi reports to get_state", () =>
@@ -241,5 +249,19 @@ test("root.out.jsonl holds all of pi's stdout, the records the driver drops incl
 
 			expect(logged).toContain('{"type":"agent_start"}');
 			expect(logged).toBe(written);
+		}),
+	));
+
+test("closing the root's scope waits for pi to exit after its stdin ends", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const world = yield* fakeWorld({});
+
+			yield* Effect.scoped(started(world));
+
+			const exited = yield* fs.exists(`${world.layout.project}/exited`);
+
+			expect(exited).toBe(true);
 		}),
 	));

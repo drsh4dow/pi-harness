@@ -94,10 +94,6 @@ interface Channels {
 	readonly ended: Deferred.Deferred<number>;
 }
 
-/**
- * Spawns the root through the `bin/pi` wrapper and feeds stdout records to `records`, stderr to its log, and the exit
- * code to `ended`. The scope ends stdin, waits a minute for pi to exit, then signals pi if it still runs.
- */
 const spawned = Effect.fn("spawned")(function* ({
 	world: { layout, env },
 	model,
