@@ -25,7 +25,6 @@ export const ModelName = Data.taggedEnum<ModelName>();
 export const modelNameOf = (name: string): ModelName =>
 	isModelKey(name) ? ModelName.Spelled({ key: name }) : ModelName.Alias({ alias: name });
 
-/** A model and the work it is for. It runs on the caller's provider when that provider has the model id, so a delegate stays on its parent's account, and on `provider` otherwise. */
 export interface Alias {
 	readonly provider: string;
 	readonly id: string;
@@ -91,7 +90,6 @@ export const modelDescription = (table: ModelTable) => {
 	return Arr.join(sentences, " ");
 };
 
-/** `provider/id` of the alias's model on the caller's provider when that provider has it, so a delegate stays on its parent's account. */
 const aliasedModel = (ctx: ModelCaller, { provider: home, id }: Alias) => {
 	const registry = ctx.modelRegistry.getAll();
 
@@ -110,7 +108,6 @@ export const modelChoices = (table: ModelTable) => {
 	return `an alias (${Arr.join(named, ", ")}) or a \`provider/id\`, your own included`;
 };
 
-/** The model a call names: its id, the provider a spelled `provider/id` names, and the model an open parent's delegate runs. */
 const resolvedOf = (ctx: ModelCaller, table: ModelTable, name: ModelName) =>
 	ModelName.$match(name, {
 		Spelled: ({ key }) => {

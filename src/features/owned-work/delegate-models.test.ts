@@ -31,13 +31,11 @@ const registry = [
 	on("elsewhere", opus.id),
 ];
 
-/** What a delegate runs: a model, pinned or not, a model with the sentence its tool result carries, or a refusal. */
 type Runs = string | { readonly model: string; readonly substituted: string };
 
 interface Row {
 	readonly from: string;
 	readonly parent: Model<Api>;
-	/** The parent's session id. The fake phi-router holds `held-parent` pinned. */
 	readonly session?: string;
 	readonly name: string;
 	readonly runs: Runs;
@@ -148,7 +146,6 @@ test.each(rows)("a delegate of $from that names $name runs on $runs", (row) =>
 
 type DelegateCall = Parameters<typeof delegate.execute>[1];
 
-/** What the delegate tool returns and starts for one call, and which sessions it had phi-router pin first. */
 const calledFrom = (parent: Model<Api>, session: string, call: DelegateCall) => {
 	const caller = {
 		...callerOf(() => registry),

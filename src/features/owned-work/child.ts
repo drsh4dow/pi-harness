@@ -18,7 +18,6 @@ export const Role = Schema.Literals(["root", "owner", "leaf"]);
 
 export type Role = typeof Role.Type;
 
-/** The roles a parent can give a delegate: an owner carries one slice and may delegate, a leaf does one bounded task and never does. */
 export const ChildRole = Schema.Literals(["owner", "leaf"]);
 
 export type ChildRole = typeof ChildRole.Type;
