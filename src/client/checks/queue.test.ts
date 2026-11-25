@@ -15,7 +15,6 @@ const run = <Value, Failure>(body: Effect.Effect<Value, Failure, FileSystem.File
 
 afterAll(() => run(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(folder, { recursive: true }))));
 
-/** A file system whose ticket writes wait for the latch to open. */
 const lateTickets = (fs: FileSystem.FileSystem, latch: Latch.Latch): FileSystem.FileSystem => ({
 	...fs,
 	writeFileString: (path, data, options) => {
@@ -25,7 +24,6 @@ const lateTickets = (fs: FileSystem.FileSystem, latch: Latch.Latch): FileSystem.
 	},
 });
 
-/** Holds the only place until `leave` opens, and opens `settled` once it waits or holds. */
 const holder = (counts: { holding: number; most: number }, settled: Latch.Latch, leave: Latch.Latch) =>
 	Effect.scoped(
 		Effect.gen(function* () {

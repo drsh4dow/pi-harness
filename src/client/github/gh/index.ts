@@ -33,7 +33,6 @@ export class Gh extends Context.Service<
 		/** `pr` is a number, a URL or a branch, as gh resolves it in the current directory. */
 		readonly view: (pr: string) => Effect.Effect<PrView, GhError>;
 		readonly patchId: (pr: string) => Effect.Effect<string, GhError>;
-		/** The pull requests of the stack numbered `ceiling`, or else of the stack that holds pull request `ceiling`, bottom first. */
 		readonly stackOf: (ceiling: string) => Effect.Effect<ReadonlyArray<StackMember>, GhError>;
 	}
 >()("pi-harness/client/github/gh/Gh") {}

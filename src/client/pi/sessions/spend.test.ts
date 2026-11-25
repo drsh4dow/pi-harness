@@ -41,11 +41,9 @@ interface Reply {
 	readonly cost: number;
 }
 
-/** One line as pi writes an assistant reply, with the fields that do not matter here cut. */
 const replyLine = ({ provider, timestamp, cost }: Reply) =>
 	`{"type":"message","id":"a1","message":{"role":"assistant","provider":"${provider}","model":"m","timestamp":${timestamp},"usage":{"cost":{"total":${cost}}}}}`;
 
-/** A sessions folder holding the given files, each a list of lines. */
 const sessionsWith = (name: string, files: Readonly<Record<string, ReadonlyArray<string>>>) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;

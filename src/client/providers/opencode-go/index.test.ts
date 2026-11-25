@@ -10,7 +10,6 @@ import * as Redacted from "effect/Redacted";
 
 import { OpencodeGo, opencodeGoLayer } from "./index.ts";
 
-/** Answers each request with the next reply in line, and the last reply from then on. */
 const answering = (replies: ReadonlyArray<() => Response>) => {
 	let asked = 0;
 

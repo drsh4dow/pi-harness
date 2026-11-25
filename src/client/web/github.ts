@@ -18,7 +18,6 @@ import { fetched } from "./guard.ts";
 import { type Found, rendered, type Source, unlessGone, type WebError } from "./page.ts";
 import { decoded, type Fetched, textOf } from "./text.ts";
 
-/** Unauthenticated API reads are capped at 60 an hour, 5000 with a token. */
 const GithubToken = Context.Reference<Effect.Effect<Option.Option<Redacted.Redacted>>>(
 	"pi-harness/client/web/GithubToken",
 	{ defaultValue: () => Effect.succeedNone },
@@ -171,7 +170,6 @@ const read = (url: URL) =>
 		onSome: unlessGone,
 	});
 
-/** Read through the API, because github.com's HTML hides the middle of long issue threads and wraps files in chrome. */
 export const github = {
 	via: "github",
 	skipsVerdict: true,

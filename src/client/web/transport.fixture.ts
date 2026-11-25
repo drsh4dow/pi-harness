@@ -6,7 +6,6 @@ import * as Layer from "effect/Layer";
 import * as Match from "effect/Match";
 import * as Str from "effect/String";
 
-/** A function, because a Response body can be read only once. */
 export type Reply = (body: string, headers: Headers.Headers) => Response;
 
 export type Routes = Readonly<Record<string, Reply>>;
@@ -52,7 +51,6 @@ export const dropsMidBody = () =>
 		}),
 	);
 
-/** A web Response refuses a status outside 200-599, so this sets one on the object, as Node's client reports LinkedIn's 999. */
 export const oddStatus = (status: number) => () => {
 	const response = new Response("");
 

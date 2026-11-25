@@ -213,7 +213,6 @@ const socketPath = Effect.map(Effect.orDie(socketConfig), ({ socket, runtimeDir,
 	Option.getOrElse(socket, () => `${runtimeDir}/herdr-core/${session}.sock`),
 );
 
-/** Sets labels on any terminal, outside the owned-work service, which needs an agent key. An empty value removes one. */
 export const labelTerminal = ({
 	terminal,
 	labels,

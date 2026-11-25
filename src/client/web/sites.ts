@@ -39,7 +39,6 @@ const npmHosts: ReadonlySet<string> = new Set(["npmjs.com", "www.npmjs.com"]);
 
 const readmeNames = ["README.md", "readme.md", "Readme.md"];
 
-/** The npmjs.com site answers scripts with a Cloudflare challenge, and the registry's readme field is empty for some large packages such as typescript, so the README file comes from jsDelivr. */
 const npmRead = (url: URL) => {
 	const groups = npmPath.exec(url.pathname)?.groups;
 	const at = `${groups?.["name"] ?? ""}@${groups?.["version"] ?? "latest"}`;
@@ -132,7 +131,6 @@ interface XmlNode {
 	readonly querySelectorAll: (selector: string) => Iterable<XmlNode>;
 }
 
-/** The part of linkedom's DOMParser this file uses. Its own types lean on the DOM lib, which this project leaves out, so they read as any. */
 interface XmlParser {
 	readonly parseFromString: (xml: string, type: "text/xml") => XmlNode;
 }

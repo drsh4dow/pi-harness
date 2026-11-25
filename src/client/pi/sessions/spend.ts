@@ -29,7 +29,6 @@ export class SessionsUnreadable extends Schema.TaggedError<SessionsUnreadable, {
 
 const Usage = Schema.Struct({ cost: Schema.Struct({ total: Schema.Finite }) });
 
-/** Only the fields `spend` reads from a session line. */
 const PricedReply = Schema.Struct({
 	type: Schema.Literal("message"),
 	message: Schema.Struct({
@@ -60,7 +59,6 @@ const sessionFiles = ({ root, since }: SpendRequest) =>
 		);
 	});
 
-/** Session files run to gigabytes, so a line is parsed only when it names the provider. */
 const costOf =
 	({ provider, since }: SpendRequest) =>
 	(line: string): Option.Option<number> => {
@@ -97,7 +95,6 @@ export const spendSince = (request: SpendRequest) =>
 				onSuccess: (text) => spendIn(text, request),
 			});
 
-		// A few files at a time, so the gigabytes never sit in memory at once.
 		const spends = yield* Effect.forEach(files, read, { concurrency: 8 });
 
 		return total(spends);

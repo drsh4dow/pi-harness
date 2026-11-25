@@ -93,7 +93,6 @@ const lastReply = ({ cwd, id, dir }: SessionAddress) =>
 		replyOf(assistantMessages(file, dir), `${dir}/${id}.answer.md`),
 	);
 
-/** A second manager on the same file, since `createBranchedSession` moves its manager to the copy. */
 const branchOf = ({ source, dir, leaf, note }: BranchRequest) => {
 	const manager = SessionManager.open(source, dir);
 	const copy = manager.createBranchedSession(leaf);

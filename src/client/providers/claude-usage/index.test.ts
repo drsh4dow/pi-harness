@@ -18,7 +18,6 @@ interface Sent {
 	readonly body: string;
 }
 
-/** Answers every request with one reply, and keeps what was sent, which is what Anthropic would see. */
 const answering = (reply: () => Response) => {
 	const sent: Array<Sent> = [];
 
@@ -42,7 +41,6 @@ const token = Redacted.make("sk-ant-oat01-test");
 
 const resets = DateTime.makeUnsafe("2026-11-11T22:59:59.645534+00:00");
 
-/** A Claude Ultra account's usage page, cut to the fields it is read for plus a few it is not. */
 const ultraPage = `{
 	"five_hour": null,
 	"seven_day": { "utilization": 100.0, "resets_at": "2026-11-11T22:59:59.645534+00:00" },
@@ -59,7 +57,6 @@ const ultraPage = `{
 	}
 }`;
 
-/** A Claude Enterprise account's usage page: no plan windows, and extra usage on. */
 const enterprisePage = `{
 	"limits": [],
 	"spend": {

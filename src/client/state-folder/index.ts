@@ -16,7 +16,6 @@ export class StateFolder extends Context.Service<
 		readonly fingerprint: (folder: string) => Effect.Effect<Fingerprint>;
 		readonly bytes: (path: string) => Effect.Effect<Uint8Array, PlatformError.PlatformError>;
 		readonly text: (path: string) => Effect.Effect<string, PlatformError.PlatformError>;
-		/** Whether `path` is a regular file now. A path that cannot be read is not. */
 		readonly isFile: (path: string) => Effect.Effect<boolean>;
 	}
 >()("pi-harness/client/state-folder/StateFolder") {}

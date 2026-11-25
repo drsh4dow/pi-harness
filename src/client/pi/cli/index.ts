@@ -20,7 +20,6 @@ const briefFields = {
 	instructions: Schema.OptionFromOptionalKey(Schema.String),
 };
 
-/** Who settled an owner's design: a sketch the parent made, which the owner builds to, or the owner itself. */
 export const Design = Schema.TaggedUnion({ Sketch: { path: Schema.String }, Yours: {} });
 
 export type Design = typeof Design.Type;
@@ -71,7 +70,6 @@ export class PiCli extends Context.Service<
 	}
 >()("pi-harness/client/pi/cli/PiCli") {}
 
-/** One argv word holds at most 128 KiB, so the message goes in a file beside the child's session. */
 const stagedFiles = ({ dir, id }: Pick<SessionAddress, "dir" | "id">) => ({
 	message: `${dir}/${id}.message`,
 	brief: `${dir}/${id}.brief.json`,

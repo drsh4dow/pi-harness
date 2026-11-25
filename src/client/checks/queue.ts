@@ -17,7 +17,6 @@ export type Holder = typeof Holder.Type;
 
 const holderJson = Schema.fromJsonString(Holder);
 
-/** Who holds the places, and how many wait ahead of this process. */
 export interface Wait {
 	readonly holders: ReadonlyArray<Holder>;
 	readonly ahead: number;

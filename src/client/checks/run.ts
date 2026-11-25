@@ -7,7 +7,6 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Stdio from "effect/Stdio";
 import * as Stream from "effect/Stream";
 
-/** What a command printed to each stream. */
 export interface Output {
 	readonly stdout: string;
 	readonly stderr: string;
