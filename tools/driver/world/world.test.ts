@@ -1,14 +1,20 @@
 import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as Arr from "effect/Array";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
+import type * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
+import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
+import type * as Scope from "effect/Scope";
+import * as Str from "effect/String";
 
-import { modelsOf, type Setup, settingsOf, setupOf } from "./setup.ts";
-import { layoutOf, openWorld, runEnv } from "./world.ts";
+import { startRoot } from "#tools/driver/run/index.ts";
+import { modelsOf, type RunSetup, settingsOf, setupOf } from "./setup.ts";
+import { layoutOf, openWorld, runEnv, type World } from "./world.ts";
 
 const layout = layoutOf({ tmp: "/t", name: "smoke", stamp: "20260514-101010", pid: 42, tag: "0abc12" });
 
@@ -71,6 +77,11 @@ test("layoutOf: a reused pid gets another core session under another tag", () =>
 	const again = layoutOf({ tmp: "/t", name: "smoke", stamp: "20260514-101010", pid: 42, tag: "0def34" });
 
 	expect(again.coreSession).not.toBe(layout.coreSession);
+});
+
+test("layoutOf: the project folder is named for the run id, so a state folder named for it is the run's", () => {
+	expect(layout.project).toStartWith(`${layout.folder}/`);
+	expect(layout.project).toEndWith(`/${layout.id}`);
 });
 
 const settingsRows = [
@@ -146,66 +157,279 @@ test("modelsOf: contextWindow's override merges into the human's custom provider
 	).toEqual({ providers: { local: { ...local, modelOverrides: { big: { maxTokens: 1, contextWindow: 40_000 } } } } });
 });
 
-const opened = (setup: Setup) =>
+const path = Bun.env["PATH"] ?? "";
+
+const fakePi = `#!/usr/bin/env bun
+const argv = process.argv.slice(2);
+if (argv[0] === "--version") {
+	console.log(" 9.9.9 ");
+} else {
+	console.log(JSON.stringify({ argv, cwd: process.cwd() }));
+	const sessionDir = argv[argv.indexOf("--session-dir") + 1];
+	for await (const line of console) {
+		const { id } = JSON.parse(line);
+		const data = { sessionId: process.cwd(), sessionFile: sessionDir };
+		console.log(JSON.stringify({ type: "response", id, success: true, data }));
+	}
+}
+`;
+
+const fakeCore = `#!/bin/sh
+echo $$ >"$FAKE_CORE_PID"
+mkdir -p "$(dirname "$HC_SOCKET")" && : >"$HC_SOCKET"
+exec sleep 600
+`;
+
+const fakesIn = Effect.fn("fakesIn")(function* (tmp: string) {
+	const fs = yield* FileSystem.FileSystem;
+
+	yield* Effect.forEach([`${tmp}/human/.pi/agent`, `${tmp}/fakes`, `${tmp}/real`, `${tmp}/pi-driver`], (folder) =>
+		fs.makeDirectory(folder, { recursive: true }),
+	);
+	yield* fs.writeFileString(`${tmp}/human/.pi/agent/auth.json`, "{}");
+	yield* fs.writeFileString(`${tmp}/human/.gitconfig`, "");
+	yield* fs.writeFileString(`${tmp}/real/pi`, fakePi, { mode: 0o755 });
+	yield* fs.symlink(`${tmp}/real/pi`, `${tmp}/fakes/pi`);
+	yield* fs.writeFileString(`${tmp}/fakes/herdr-core`, fakeCore, { mode: 0o755 });
+	yield* fs.writeFileString(`${tmp}/fakes/hc`, "#!/bin/sh\n", { mode: 0o755 });
+});
+
+type Needs = FileSystem.FileSystem | ChildProcessSpawner.ChildProcessSpawner | Scope.Scope;
+
+const inWorld = <Value, Failure>(input: {
+	readonly setup?: RunSetup;
+	readonly during: (world: World) => Effect.Effect<Value, Failure, Needs>;
+}) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const tmp = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
-		const human = ConfigProvider.fromUnknown({ HOME: `${tmp}/human`, XDG_RUNTIME_DIR: `${tmp}/runtime` });
+		const humanEnv = ConfigProvider.fromUnknown({ HOME: `${tmp}/human`, XDG_RUNTIME_DIR: `${tmp}/human-run` });
 
-		yield* fs.makeDirectory(`${tmp}/pi-driver`);
-		yield* fs.makeDirectory(`${tmp}/fake`);
-		yield* fs.writeFileString(`${tmp}/fake/pi`, "#!/bin/sh\necho 0.0.0\n", { mode: 0o755 });
+		yield* fakesIn(tmp);
 
-		return yield* openWorld({
-			layout: layoutOf({ tmp, name: "world", stamp: "t", pid: process.pid, tag: "0abc12" }),
-			setup,
-			own: { PATH: `${tmp}/fake:${Bun.env["PATH"] ?? ""}` },
-		}).pipe(Effect.provideService(ConfigProvider.ConfigProvider, human));
+		const opened = Effect.gen(function* () {
+			const world = yield* openWorld({
+				layout: layoutOf({ tmp, name: "world", stamp: "t", pid: process.pid, tag: "0abc12" }),
+				setup: input.setup ?? {},
+				own: { PATH: `${tmp}/fakes:${path}`, FAKE_CORE_PID: `${tmp}/core.pid` },
+			}).pipe(Effect.provideService(ConfigProvider.ConfigProvider, humanEnv));
+
+			return { world, seen: yield* input.during(world) };
+		});
+
+		return { ...(yield* Effect.scoped(opened)), tmp };
 	});
+
+const run = <Value, Failure>(effect: Effect.Effect<Value, Failure, Needs>) =>
+	Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(NodeServices.layer)));
+
+const isAlive = (pid: number) => {
+	try {
+		process.kill(pid, 0);
+
+		return true;
+	} catch {
+		return false;
+	}
+};
+
+test("openWorld: the agent folder links into agentDir, but auth.json, which links to the human's", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			const { seen, world, tmp } = yield* inWorld({
+				during: ({ layout: { agent } }) =>
+					Effect.flatMap(fs.readDirectory(agent), (names) =>
+						Effect.forEach(names, (name) =>
+							Effect.map(Effect.option(fs.readLink(`${agent}/${name}`)), (target) => [name, target] as const),
+						),
+					),
+			});
+
+			const links = Rec.getSomes(Rec.fromEntries(seen));
+			const { "auth.json": auth, ...shipped } = links;
+
+			expect(auth).toBe(`${tmp}/human/.pi/agent/auth.json`);
+			expect(shipped["extensions"]).toBe(`${world.agentDir}/extensions`);
+			expect(Arr.filter(Rec.values(shipped), (target) => !Str.startsWith(`${world.agentDir}/`)(target))).toEqual([]);
+		}),
+	));
+
+test("openWorld: closing the world removes the auth.json link and runtime folder and stops the core, keeping the rest", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const { world, tmp } = yield* inWorld({ during: () => Effect.void });
+			const core = yield* Effect.map(fs.readFileString(`${tmp}/core.pid`), Number);
+
+			const after = yield* Effect.all({
+				link: fs.exists(`${world.layout.agent}/auth.json`),
+				humanAuth: fs.exists(`${tmp}/human/.pi/agent/auth.json`),
+				runtime: fs.exists(world.layout.runtime),
+				folder: fs.exists(world.layout.folder),
+			});
+
+			expect({ ...after, core: isAlive(core) }).toEqual({
+				link: false,
+				humanAuth: true,
+				runtime: false,
+				folder: true,
+				core: false,
+			});
+		}),
+	));
+
+test("openWorld: pi is the real path of the pi on the run's PATH, with its version", () =>
+	run(
+		Effect.gen(function* () {
+			const { world, tmp } = yield* inWorld({ during: () => Effect.void });
+
+			expect(world.pi).toEqual({ version: "9.9.9", path: `${tmp}/real/pi` });
+		}),
+	));
+
+test("openWorld: pi in the run folder runs the real pi with the probe", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const probe = Str.replace(/\/world$/u, "/sessions/probe.ts")(import.meta.dirname);
+
+			const { seen } = yield* inWorld({
+				during: ({ exec, layout: { project } }) =>
+					Effect.all({ ran: exec(["pi", "a"]), cwd: fs.realPath(project) }),
+			});
+
+			expect(seen.ran).toEqual({ code: 0, output: `{"argv":["-e","${probe}","a"],"cwd":"${seen.cwd}"}\n` });
+		}),
+	));
+
+test("openWorld: pi outside the run folder exits 2 without starting, and each refused folder is a line", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			const { seen, world } = yield* inWorld({
+				during: ({ exec }) =>
+					Effect.forEach(["/", "/tmp"], (outside) =>
+						Effect.map(exec(["sh", "-c", 'cd "$1" && pi a', "sh", outside]), ({ code, output }) => ({
+							code,
+							started: Str.includes('"argv"')(output),
+						})),
+					),
+			});
+
+			const refused = yield* fs.readFileString(world.layout.refused);
+
+			expect(seen).toEqual([
+				{ code: 2, started: false },
+				{ code: 2, started: false },
+			]);
+			expect(refused).toBe("/\n/tmp\n");
+		}),
+	));
+
+test("openWorld: the project folder is empty, and the root starts in it with the sessions folder as its session dir", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			const { seen } = yield* inWorld({
+				during: (world) =>
+					Effect.gen(function* () {
+						const before = yield* fs.readDirectory(world.layout.project);
+						const root = yield* startRoot({ world, model: "a/b", progress: () => Effect.void });
+
+						return { before, session: root.session, project: yield* fs.realPath(world.layout.project), world };
+					}),
+			});
+
+			expect(seen.before).toEqual([]);
+			expect(seen.session).toEqual({ id: seen.project, file: seen.world.layout.sessions });
+		}),
+	));
+
+test("openWorld: the run borrows only the human's git and gh config that exist, and links their systemd folder", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			const { seen, world, tmp } = yield* inWorld({
+				during: ({ layout: { runtime } }) => fs.readLink(`${runtime}/systemd`),
+			});
+
+			expect(world.env["GIT_CONFIG_GLOBAL"]).toBe(`${tmp}/human/.gitconfig`);
+			expect(world.env).not.toHaveProperty("GH_CONFIG_DIR");
+			expect(seen).toBe(`${tmp}/human-run/systemd`);
+		}),
+	));
 
 const decodeJson = Schema.decodeEffect(Schema.fromJsonString(Schema.Json));
 
-const readJson = Effect.fn("readJson")(function* (path: string) {
+const readJson = Effect.fn("readJson")(function* (file: string) {
 	const fs = yield* FileSystem.FileSystem;
-	const text = yield* fs.readFileString(path);
+
+	const text = yield* fs.readFileString(file);
 
 	return yield* decodeJson(text);
 });
 
-const noCore = Bun.which("herdr-core") === null;
-
-test.skipIf(noCore)("openWorld writes the setup's settings and models into the run's agent folder", () =>
-	Effect.runPromise(
+test("openWorld: the setup's settings and models land in the run's agent folder", () =>
+	run(
 		Effect.gen(function* () {
-			const world = yield* opened({ settings: { compaction: { enabled: false } }, models: { "ultra-a": override } });
-			const settings = yield* readJson(`${world.layout.agent}/settings.json`);
-			const models = yield* readJson(`${world.layout.agent}/models.json`);
+			const { seen } = yield* inWorld({
+				setup: { settings: { compaction: { enabled: false } }, models: { "ultra-a": override } },
+				during: ({ layout: { agent } }) =>
+					Effect.all({ settings: readJson(`${agent}/settings.json`), models: readJson(`${agent}/models.json`) }),
+			});
 
-			expect({ settings, models }).toEqual({
+			expect(seen).toEqual({
 				settings: { compaction: { enabled: false } },
 				models: { providers: { "ultra-a": override } },
 			});
-		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
-	),
-);
+		}),
+	));
 
-test.skipIf(noCore)("openWorld writes a setup file under HOME by its path, owner-only, in owner-only folders", () =>
-	Effect.runPromise(
+const configRows = [
+	{ name: "no models.json when neither the human nor the setup has one", setup: {}, models: false },
+	{ name: "models.json when the setup has one", setup: { models: { local: { baseUrl: "http://l" } } }, models: true },
+] as const;
+
+test.each(configRows)("openWorld: settings.json, and $name", ({ setup, models }) =>
+	run(
 		Effect.gen(function* () {
 			const fs = yield* FileSystem.FileSystem;
-			const world = yield* opened({ files: ({ home }) => ({ ".config/phi-router/config.json": { home } }) });
-			const config = `${world.layout.home}/.config`;
-			const file = `${config}/phi-router/config.json`;
-			const json = yield* readJson(file);
 
-			const modes = yield* Effect.forEach([config, `${config}/phi-router`, file], (path) =>
-				Effect.map(fs.stat(path), ({ mode }) => mode % 0o1000),
-			);
-
-			expect({ json, modes }).toEqual({
-				json: { home: world.layout.home },
-				modes: [0o700, 0o700, 0o600],
+			const { seen } = yield* inWorld({
+				setup,
+				during: ({ layout: { agent } }) =>
+					Effect.all({ settings: fs.exists(`${agent}/settings.json`), models: fs.exists(`${agent}/models.json`) }),
 			});
-		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+
+			expect(seen).toEqual({ settings: true, models });
+		}),
 	),
 );
+
+test("openWorld: a setup file lands under HOME by its path, owner-only, in owner-only folders", () =>
+	run(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const modeOf = (file: string) => Effect.map(fs.stat(file), ({ mode }) => mode.toString(8));
+
+			const { seen, world } = yield* inWorld({
+				setup: { files: ({ home }) => ({ ".config/fake/config.json": { home } }) },
+				during: ({ layout: { home } }) =>
+					Effect.all({
+						json: readJson(`${home}/.config/fake/config.json`),
+						modes: Effect.all([
+							modeOf(`${home}/.config`),
+							modeOf(`${home}/.config/fake`),
+							modeOf(`${home}/.config/fake/config.json`),
+						]),
+					}),
+			});
+
+			expect(seen).toEqual({ json: { home: world.layout.home }, modes: ["40700", "40700", "100600"] });
+		}),
+	));

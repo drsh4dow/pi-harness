@@ -1,7 +1,3 @@
-/**
- * The run's isolated world: its folder layout, the environment every process in it gets, the scratch HOME whose
- * `.pi/agent` links to this worktree's `agent/`, and the `bin/pi` wrapper that loads the probe into every pi.
- */
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
@@ -23,20 +19,14 @@ type Env = Readonly<Record<string, string>>;
 
 export interface Layout {
 	readonly id: string;
-	/** `<tmp>/pi-driver/<id>`, kept as evidence after the run. */
 	readonly folder: string;
 	readonly home: string;
-	/** `PI_CODING_AGENT_DIR`, `<home>/.pi/agent`: links to the worktree's shipped entries and the human's `auth.json`. */
 	readonly agent: string;
-	/** First on the run's PATH. Holds the `pi` wrapper that adds the probe and refuses to start outside `folder`. */
 	readonly bin: string;
-	/** Each working folder outside `folder` that the wrapper refused, one per line. */
 	readonly refused: string;
 	/** `PI_DRIVER_PROBE`: one JSON lines file per pi process. */
 	readonly probe: string;
-	/** The root's cwd, `<folder>/<id>`, so a session or state folder named for it holds `id`. Empty at the start. */
 	readonly project: string;
-	/** `--session-dir` of the root. owned-work puts delegates' sessions in `delegates/` under it. */
 	readonly sessions: string;
 	readonly coreSession: string;
 	readonly runtime: string;
@@ -117,13 +107,10 @@ export const runEnv = ({
 	};
 };
 
-/** What the run is, once built. Closing its scope unlinks the human's `auth.json` and stops the core. */
 export interface World {
 	readonly layout: Layout;
-	/** The worktree's `agent/`, the real folder the agent folder's links point into. */
 	readonly agentDir: string;
 	readonly env: Env;
-	/** The `pi` the human's PATH resolves, through links, and its version. The `bin/pi` wrapper runs it. */
 	readonly pi: { readonly version: string; readonly path: string };
 	readonly exec: (argv: Argv) => Effect.Effect<Exited, ScenarioFailed>;
 }
@@ -134,7 +121,6 @@ const encodeJson = Schema.encodeEffect(Schema.fromJsonString(Schema.JsonObject, 
 
 const worktree = Str.replace(/\/tools\/driver\/world$/u, "")(import.meta.dirname);
 
-/** Links the worktree's shipped entries and the human's credentials. Closing the scope removes the credentials link. */
 const linkAgent = Effect.fn("linkAgent")(function* (layout: Layout, humanAgent: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const gitignore = yield* fs.readFileString(`${worktree}/.gitignore`);
@@ -149,7 +135,6 @@ const linkAgent = Effect.fn("linkAgent")(function* (layout: Layout, humanAgent: 
 	}
 });
 
-/** Writes the run's `settings.json`, and its `models.json` when the human or the setup has one. */
 const writeConfig = Effect.fn("writeConfig")(function* (layout: Layout, setup: RunSetup, humanAgent: string) {
 	const fs = yield* FileSystem.FileSystem;
 
@@ -180,7 +165,6 @@ const writeConfig = Effect.fn("writeConfig")(function* (layout: Layout, setup: R
 	yield* fs.writeFileString(`${layout.agent}/models.json`, models);
 });
 
-/** Writes each of the setup's JSON files under the run's HOME, owner-only, in owner-only folders. */
 const writeFiles = Effect.fn("writeFiles")(function* (layout: Layout, setup: RunSetup) {
 	const fs = yield* FileSystem.FileSystem;
 
@@ -195,10 +179,6 @@ const writeFiles = Effect.fn("writeFiles")(function* (layout: Layout, setup: Run
 	);
 });
 
-/**
- * The `pi` on the run's PATH, through links, before the wrapper exists, and its version. pi names a session folder for
- * its working folder, so the wrapper starts pi only inside the run's folder, whose path holds the run's id.
- */
 const resolvePi = Effect.fn("resolvePi")(function* (layout: Layout, env: Env) {
 	const fs = yield* FileSystem.FileSystem;
 	const found = yield* ran({ argv: ["sh", "-c", "command -v pi"], env, cwd: layout.folder });
@@ -225,10 +205,6 @@ exit 2
 
 type Needs = Scope.Scope | FileSystem.FileSystem | ChildProcessSpawner.ChildProcessSpawner;
 
-/**
- * The run's environment from the driver's own, with the human's git and gh config when they exist, and the run's
- * runtime folder with its link to your `systemd/`. Closing the scope removes the folder.
- */
 const envOf = Effect.fn("envOf")(function* (layout: Layout, own: Readonly<Record<string, string | undefined>>) {
 	const fs = yield* FileSystem.FileSystem;
 	const humanHome = yield* Config.String("HOME");
