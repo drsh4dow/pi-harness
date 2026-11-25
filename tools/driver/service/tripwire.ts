@@ -1,11 +1,3 @@
-/**
- * The tripwire for a run's isolation. The run's service mounts the human's session and state folders read-only, but a
- * folder missing when the run starts stays unmounted, so the run could create it. What the run names outside its own
- * folder carries its run id or its core's session: pi names a session folder for its working folder, which the run's
- * `pi` wrapper keeps inside the run's folder, an agent names its state folder for its project, and the core names its
- * state folder for its session. So either name under the human's session or state folders is this run's write,
- * whoever else writes there meanwhile.
- */
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
@@ -17,7 +9,6 @@ import { type Layout, ran } from "#tools/driver/world/index.ts";
 
 type Names = readonly [string, ...Array<string>];
 
-/** `find`'s test for a name that holds any of `names`. */
 const holdingAny = ([first, ...rest]: Names) => [
 	"(",
 	"-name",
@@ -26,10 +17,8 @@ const holdingAny = ([first, ...rest]: Names) => [
 	")",
 ];
 
-/** The session and state folders under `home`, which a run must leave alone. */
 export const guardedFolders = (home: string) => [`${home}/.pi/agent/sessions`, `${home}/.local/state`];
 
-/** Every path under `home`'s session and state folders whose own name holds one of `names`. A linked root is followed. */
 export const strayed = Effect.fn("strayed")(function* (input: { readonly home: string; readonly names: Names }) {
 	const fs = yield* FileSystem.FileSystem;
 	const roots = yield* Effect.filter(guardedFolders(input.home), (folder) => fs.exists(folder));
@@ -48,10 +37,6 @@ export const strayed = Effect.fn("strayed")(function* (input: { readonly home: s
 	return Arr.filter(Str.split(found.output, "\n"), Str.isNonEmpty);
 });
 
-/**
- * Fails with `SetupFailed`, exit 2, naming each working folder outside the run's folder where the wrapper refused to
- * start pi, or else each path the run wrote under the human's session and state folders.
- */
 export const leftAlone = Effect.fn("leftAlone")(
 	function* (layout: Layout) {
 		const fs = yield* FileSystem.FileSystem;
