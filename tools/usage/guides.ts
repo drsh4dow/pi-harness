@@ -18,10 +18,9 @@ interface GuideText {
 	readonly text: string;
 }
 
-/** The guides on disk, and each line that marks one of them wherever its text lands. */
 export interface Library {
 	readonly guides: ReadonlyArray<GuideOnDisk>;
-	readonly owner: ReadonlyMap<string, GuideOnDisk>;
+	readonly guideByMarker: ReadonlyMap<string, GuideOnDisk>;
 }
 
 const minMarkerLength = 20;
@@ -93,5 +92,5 @@ export const libraryOf = ({
 		return { kind, name, ownLines: new Set(own).size, hidden: Str.includes(hiddenFlag)(frontmatter) };
 	});
 
-	return { guides, owner: ownerOf(holders, guides) };
+	return { guides, guideByMarker: ownerOf(holders, guides) };
 };

@@ -41,7 +41,7 @@ interface Named {
 
 interface Scan {
 	readonly byKey: ReadonlyMap<string, GuideOnDisk>;
-	readonly owner: ReadonlyMap<string, GuideOnDisk>;
+	readonly guideByMarker: ReadonlyMap<string, GuideOnDisk>;
 	readonly seen: Map<GuideOnDisk, Set<string>>;
 	readonly named: Map<GuideOnDisk, Named>;
 	readonly events: Set<GuideEvent>;
@@ -123,7 +123,7 @@ const see = (scan: Scan, shown: string) => {
 
 	for (const line of linesOf(shown)) {
 		const trimmed = Str.trim(line);
-		const guide = scan.owner.get(trimmed);
+		const guide = scan.guideByMarker.get(trimmed);
 
 		if (guide !== undefined) {
 			scan.seen.set(guide, (scan.seen.get(guide) ?? new Set()).add(trimmed));
@@ -261,7 +261,7 @@ const factsFrom = (scan: Scan): SessionFacts => {
 export const factsOf = ({ library, text }: { readonly library: Library; readonly text: string }) => {
 	const scan: Scan = {
 		byKey: new Map(Arr.map(library.guides, (guide) => [`${guide.kind}:${guide.name}`, guide])),
-		owner: library.owner,
+		guideByMarker: library.guideByMarker,
 		seen: new Map(),
 		named: new Map(),
 		events: new Set(),
