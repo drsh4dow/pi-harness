@@ -21,7 +21,6 @@ import { workFilesOf } from "#src/features/owned-work/work.ts";
 import { roleFieldsFor } from "./brief.ts";
 import { parseProfile } from "./profile.ts";
 
-/** One delegate as its parent would start it, minus the systemd scope and hc terminal around it. */
 export interface StagedLaunch {
 	readonly name: string;
 	readonly role: ChildRole;
@@ -34,7 +33,6 @@ const instructionsFolder = `${import.meta.dirname}/../../../../agent/instruction
 
 const keyOf = ({ provider, id }: Alias) => `${provider}/${id}`;
 
-/** An alias runs on its own provider, since no caller stands behind a staged delegate. */
 const stagedModel = (name: ModelName) =>
 	ModelName.$match(name, {
 		Spelled: ({ key }) => key,
@@ -86,11 +84,6 @@ const onInstructionsFile = Effect.fn("onInstructionsFile")(function* (file: stri
 	return staged;
 });
 
-/**
- * Stages, on `message`, one level-2 delegate per harness instructions file, in the role its profile names, and the bare
- * delegates above, with the same `launch` the ledger uses, so a tool can run each and see exactly what it receives. The
- * staged files live in `dir` until the caller's scope closes.
- */
 interface Staging {
 	readonly cwd: string;
 	readonly dir: string;
@@ -119,7 +112,6 @@ export const stagedLaunches = Effect.fn("stagedLaunches")(function* ({ cwd, dir,
 				passEnv: inheritedEnv(env),
 			});
 
-			// In a real launch the systemd client's `wrap` sets the slice. A child without one fails to start.
 			const launched: StagedLaunch = {
 				name: brief.name,
 				role,
