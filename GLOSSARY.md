@@ -144,7 +144,7 @@ Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
 
 - **Guide.** A skill, a principle or a playbook: a file of instructions an agent reads into its context when its trigger matches.
 - **Guide name.** A principle's or a playbook's file name without `.md`. Only a file directly in its folder has one. The files in its subfolders are **reference files**.
-- **In context.** A guide is in context when the lines of its body that no other guide shares appear in text the model sees now. It is **partial** when only some of them do.
+- **In context.** A guide is in context when at least three of the lines of its body that no other guide shares, or all of them when it has fewer, appear in text the model sees now. It is **full** from 90% of those lines, and **partial** below that.
 - **Context label.** The hc label on an agent's own terminal that lists the guides in its context.
 - **Marker.** A guide and one line of its body whose presence in a session shows the guide reached it.
 - **Guide event.** A moment, such as a commit or an edit of a `.ts` file, that the guides it names are written for.
