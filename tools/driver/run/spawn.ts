@@ -1,8 +1,3 @@
-/**
- * More pis in one run, each fresh and on its own folders, for a scenario that needs a clean session per case. Each one
- * shares the run's HOME, terminal core and probe, and has its own agent folder, so its `models.json` can point its
- * providers somewhere else.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -14,7 +9,6 @@ import { ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
 import { execIn, type Layout, modelsOf, type World } from "#tools/driver/world/index.ts";
 import { type Root, startRoot } from "./root.ts";
 
-/** What `run.spawn` takes: the pi's folder name under `<run>/pis/`, and the `models.json` providers it replaces. */
 export interface SpawnRequest {
 	readonly name: string;
 	readonly providers: Readonly<Record<string, Schema.JsonObject>>;
@@ -43,7 +37,6 @@ const layoutIn = (run: Layout, name: string): Layout => {
 	};
 };
 
-/** The run's `models.json` with `providers` replacing the entries of those names. */
 const modelsFor = Effect.fn("modelsFor")(function* (run: Layout, providers: SpawnRequest["providers"]) {
 	const fs = yield* FileSystem.FileSystem;
 	const file = `${run.agent}/models.json`;
@@ -54,7 +47,6 @@ const modelsFor = Effect.fn("modelsFor")(function* (run: Layout, providers: Spaw
 	return yield* encodeJson(modelsOf({ human: theirs, providers }));
 });
 
-/** Links every entry of the run's agent folder but `models.json`, which it writes. The scope removes its `auth.json` link. */
 const agentFolder = Effect.fn("agentFolder")(function* (run: Layout, layout: Layout, request: SpawnRequest) {
 	const fs = yield* FileSystem.FileSystem;
 	const entries = yield* fs.readDirectory(run.agent);
@@ -84,7 +76,6 @@ const spawnedWorld = Effect.fn("spawnedWorld")(function* (world: World, request:
 	return { ...world, layout, env, exec: yield* execIn({ env, cwd: layout.project }) } satisfies World;
 });
 
-/** `run.spawn` for the run's `world`, starting each pi on `model`. */
 export const spawnIn = Effect.fn("spawnIn")(function* (world: World, model: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
