@@ -15,7 +15,10 @@ const copyOf = (fixture: string, gate: string): Effect.Effect<string> =>
 			() => Bun.$`ln -s ${repo}/node_modules ${dir}/node_modules && cp ${repo}/tsconfig.json ${dir}/`,
 		);
 		yield* Effect.promise(() =>
-			Bun.write(`${dir}/package.json`, `{ "type": "module", "imports": { "#src/*": "./src/*" } }\n`),
+			Bun.write(
+				`${dir}/package.json`,
+				`{ "type": "module", "imports": { "#src/*": "./src/*", "#tools/*": "./tools/*" } }\n`,
+			),
 		);
 		yield* Effect.promise(() => Bun.write(`${dir}/.oxlintrc.json`, `{ "extends": ["${repo}/.oxlintrc.jsonc"] }\n`));
 
@@ -60,6 +63,28 @@ test("the boundary gate rejects a client that imports a type from a feature", ()
 		"boundaries",
 		[`${bin}/depcruise`, "src", "--config", `${repo}/.dependency-cruiser.json`, "--output-type", "err-long"],
 		["error client-imports: src/client/leaky/index.ts → src/features/sample/index.ts"],
+	));
+
+test("the boundary gate rejects an import three folders deep that reaches past an edge file in src", () =>
+	failsWith(
+		"edge-file",
+		"edge-file-src",
+		[`${bin}/depcruise`, "src", "--config", `${repo}/.dependency-cruiser.json`, "--output-type", "err-long"],
+		[
+			"error edge-file: src/features/sample/parts/deep/user.ts → src/features/sample/other/inner/leaf.ts",
+			"Import a folder from outside it only through its edge file, index.ts.",
+		],
+	));
+
+test("the boundary gate rejects an import three folders deep that reaches past an edge file in tools", () =>
+	failsWith(
+		"edge-file",
+		"edge-file-tools",
+		[`${bin}/depcruise`, "tools", "--config", `${repo}/.dependency-cruiser.json`, "--output-type", "err-long"],
+		[
+			"error tools-edge-file: tools/driver/guides/deep/user.ts → tools/driver/align/inner/leaf.ts",
+			"Import a folder from outside it only through its edge file, index.ts.",
+		],
 	));
 
 test("the bans reject an Effect runner, a disk import and Bun.env in a feature, and a fixed sleep in test code", () =>

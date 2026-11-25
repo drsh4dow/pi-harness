@@ -99,6 +99,35 @@
 			"to": {
 				"path": "\\.scenario\\.ts$"
 			}
+		},
+		{
+			"name": "edge-file",
+			"severity": "error",
+			"comment": "Import a folder from outside it only through its edge file, index.ts.",
+			"from": {
+				"path": "^(src/)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)(.*/|)[^/]+$",
+				"pathNot": "[\\[\\]()+*?^$|{}\\\\.][^/]*/"
+			},
+			"to": {
+				"path": "^src/",
+				"pathNot": [
+					"^$1(?:$2(?:$3(?:$4(?:$5(?:$6(?:$7(?:$8|)|)|)|)|)|)|)[^/]+(?:/index\\.tsx|/index\\.ts|)$",
+					"^src/(?:(?!features/|client/|primitives/)[^/]+/|)(?:features|client|primitives|shared)/[^/]+(?:/index\\.tsx|/index\\.ts|)$"
+				]
+			}
+		},
+		{
+			"name": "tools-edge-file",
+			"severity": "error",
+			"comment": "Import a folder from outside it only through its edge file, index.ts.",
+			"from": {
+				"path": "^(tools/)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)([^/]+/|)(.*/|)[^/]+$",
+				"pathNot": "[\\[\\]()+*?^$|{}\\\\.][^/]*/"
+			},
+			"to": {
+				"path": "^tools/",
+				"pathNot": ["^$1(?:$2(?:$3(?:$4(?:$5(?:$6(?:$7(?:$8|)|)|)|)|)|)|)[^/]+(?:/index\\.tsx|/index\\.ts|)$"]
+			}
 		}
 	],
 	"options": {
