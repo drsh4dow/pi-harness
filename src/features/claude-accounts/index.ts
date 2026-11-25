@@ -21,6 +21,13 @@ export type Target =
 	| { readonly kind: "switch"; readonly model: Model<Api> }
 	| { readonly kind: "refuse"; readonly why: string };
 
+type Pi = Pick<ExtensionAPI, "getThinkingLevel" | "setModel" | "setThinkingLevel">;
+
+type CommandSession = Pick<ExtensionCommandContext, "model"> & {
+	readonly ui: Pick<ExtensionCommandContext["ui"], "notify" | "select">;
+	readonly modelRegistry: Pick<ExtensionCommandContext["modelRegistry"], "find">;
+};
+
 interface TargetRequest {
 	readonly chosenAccount: string;
 	readonly current: Model<Api> | undefined;
@@ -50,8 +57,7 @@ export const targetOf = ({ chosenAccount, current, find }: TargetRequest): Targe
 	return { kind: "switch", model };
 };
 
-/** The account the user typed after `/account`, or the one they pick from a list when they typed none. */
-const nameOf = (args: string, ctx: ExtensionCommandContext) => {
+const chosenAccountOf = (args: string, ctx: CommandSession) => {
 	const typed = Str.trim(args);
 
 	if (typed !== "") {
@@ -64,7 +70,7 @@ const nameOf = (args: string, ctx: ExtensionCommandContext) => {
 	);
 };
 
-const moveTo = Effect.fn("moveTo")(function* (pi: ExtensionAPI, ctx: ExtensionCommandContext, model: Model<Api>) {
+const moveTo = Effect.fn("moveTo")(function* (pi: Pi, ctx: CommandSession, model: Model<Api>) {
 	const level = pi.getThinkingLevel();
 	const switched = yield* Effect.promise(() => pi.setModel(model));
 
@@ -78,16 +84,16 @@ const moveTo = Effect.fn("moveTo")(function* (pi: ExtensionAPI, ctx: ExtensionCo
 	ctx.ui.notify(`Now on ${model.provider}/${model.id}.`, "info");
 });
 
-const switchAccount = (pi: ExtensionAPI) => (args: string, ctx: ExtensionCommandContext) =>
+export const switchAccount = (pi: Pi) => (args: string, ctx: CommandSession) =>
 	Effect.gen(function* () {
-		const name = yield* nameOf(args, ctx);
+		const chosenAccount = yield* chosenAccountOf(args, ctx);
 
-		if (Option.isNone(name)) {
+		if (Option.isNone(chosenAccount)) {
 			return;
 		}
 
 		const find = (provider: string, id: string) => ctx.modelRegistry.find(provider, id);
-		const target = targetOf({ chosenAccount: name.value, current: ctx.model, find });
+		const target = targetOf({ chosenAccount: chosenAccount.value, current: ctx.model, find });
 
 		if (target.kind === "refuse") {
 			ctx.ui.notify(target.why, "error");
