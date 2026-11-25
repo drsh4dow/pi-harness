@@ -8,7 +8,6 @@ import { Host, Out } from "#src/features/owned-work/ledger/index.ts";
 import { entryKind } from "#src/features/owned-work/recorded.ts";
 import type { Settled } from "#src/features/owned-work/work.ts";
 
-/** Where a settle's results go: to the turn that waits on them, or as a wake when none does. */
 export interface Relay {
 	waiter: Option.Option<Deferred.Deferred<ReadonlyArray<Settled>>>;
 }
@@ -19,8 +18,13 @@ export const messageOf = (settled: Settled) => {
 	return Effect.map(Out.text(json), (content) => ({ customType: entryKind, content, display: true, details: json }));
 };
 
-/** The ledger's `Host`: a wake as a follow-up message that starts a turn, and an entry in the session. */
-export const hostLayer = ({ pi, relay }: { readonly pi: ExtensionAPI; readonly relay: Relay }) => {
+export const hostLayer = ({
+	pi,
+	relay,
+}: {
+	readonly pi: Pick<ExtensionAPI, "sendMessage" | "appendEntry">;
+	readonly relay: Relay;
+}) => {
 	const send = (settled: Settled) =>
 		Effect.map(messageOf(settled), (message) => {
 			pi.sendMessage(message, { deliverAs: "followUp", triggerTurn: true });
