@@ -3,12 +3,14 @@ import type {
 	ExtensionContext,
 	SessionEntry,
 	ToolCallEvent,
+	ToolExecutionEndEvent,
 	ToolResultEvent,
 	ToolResultEventResult,
 } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
+import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
@@ -21,6 +23,8 @@ import { type Fingerprint, StateFolder, stateFolderLayer } from "#src/client/sta
 import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
 import type { FormatProblem } from "./action-items.ts";
 import { checks, type Place } from "./checks.ts";
+
+type Env = Readonly<Record<string, string | undefined>>;
 
 export const labelKey = "pi.state";
 
@@ -186,30 +190,29 @@ const finish = Effect.fn("finish")(function* (
  * watching its own tool calls, and records each new folder in the session so `/resume`, `/reload` and `/tree` restore
  * it. No folder, no label. Outside herdr-core it only records.
  */
-export const stateFolder = (pi: Pick<ExtensionAPI, "on" | "appendEntry">) => {
+export const stateFolder = (env: Env) => (pi: Pick<ExtensionAPI, "appendEntry">) => {
 	const tracker: Tracker = { watched: new Map(), lastWritten: Option.none(), publishedLabel: "" };
-	const host = piHost(Layer.provide(stateFolderLayer, NodeServices.layer));
+	const config = ConfigProvider.layer(ConfigProvider.fromEnvRecord(env));
+	const host = piHost(Layer.provide(Layer.merge(stateFolderLayer, config), NodeServices.layer));
 
 	const run = <Value, Failure>(effect: Effect.Effect<Value, Failure, StateFolder>) =>
 		host.run(Effect.catchCause(effect, (cause) => Effect.logWarning(cause)));
 
-	const restore = (ctx: ExtensionContext) => {
-		tracker.lastWritten = lastFolder(ctx.sessionManager.getBranch());
+	return {
+		restore: (ctx: Pick<ExtensionContext, "sessionManager">) => {
+			tracker.lastWritten = lastFolder(ctx.sessionManager.getBranch());
 
-		return run(publish(tracker));
+			return run(publish(tracker));
+		},
+		toolCall: (event: ToolCallEvent) => run(watch(tracker, event)),
+		toolResult: (result: ToolResultEvent) => run(finish(tracker, { pi, result })),
+		endWatch: ({ toolCallId }: Pick<ToolExecutionEndEvent, "toolCallId">) => {
+			tracker.watched.delete(toolCallId);
+		},
+		shutdown: () => {
+			tracker.lastWritten = Option.none();
+
+			return run(publish(tracker));
+		},
 	};
-
-	pi.on("session_start", (_event, ctx) => restore(ctx));
-	pi.on("session_tree", (_event, ctx) => restore(ctx));
-	pi.on("tool_call", (event) => run(watch(tracker, event)));
-	pi.on("tool_result", (result) => run(finish(tracker, { pi, result })));
-	// Pi skips tool_result for a blocked or aborted call, so its watch ends here.
-	pi.on("tool_execution_end", ({ toolCallId }) => {
-		tracker.watched.delete(toolCallId);
-	});
-	pi.on("session_shutdown", () => {
-		tracker.lastWritten = Option.none();
-
-		return run(publish(tracker));
-	});
 };
