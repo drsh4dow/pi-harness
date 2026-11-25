@@ -7,7 +7,6 @@ import * as Schema from "effect/Schema";
 
 const encodeLine = Schema.encodeEffect(Schema.fromJsonString(Schema.Json));
 
-/** Prints to stdout and appends to `report.txt`, and counts seconds from the run's start. */
 export const reporter = Effect.fn("reporter")(function* (report: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const started = yield* Clock.currentTimeMillis;

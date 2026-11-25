@@ -1,4 +1,3 @@
-/** A false claim fails the run: it prints the claim and exits 1. Run it to see the driver's failure path. */
 import { scenario } from "./index.ts";
 
 scenario({

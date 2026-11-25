@@ -35,63 +35,26 @@ export type { Loaded, Session, Sessions } from "./sessions/index.ts";
 
 export type { Exited } from "./world/index.ts";
 
-/**
- * One scenario: what it changes about the run's world before the root starts, and `play`, what it does in the run.
- * Every pi in the run, delegates included, sees the setup.
- */
 export interface Scenario<Failure> extends Setup {
-	/** The environment of the process that runs the scenario, `process.env`. The run copies it, as `runEnv` describes. */
 	readonly env: Readonly<Record<string, string | undefined>>;
 	readonly model: `${string}/${string}`;
-	/**
-	 * Gives the root's model a context window of this many tokens, and replaces the human's compaction settings with a
-	 * reserve of a quarter of it and an eighth kept, so pi compacts once a session passes three quarters of it. A key of
-	 * `settings` or `models` the scenario also sets replaces what this sets.
-	 */
 	readonly contextWindow?: number;
-	/** Runs once the root answers. Any failure fails the scenario with exit 1 and prints the failure's message. */
 	readonly play: (run: Run) => Effect.Effect<void, Failure, Allowed>;
 }
 
-/**
- * One isolated pi world: a root pi in RPC mode, a private terminal core its delegates run in, and scratch folders.
- * It exists only while `play` runs. The driver stops every process in it afterwards, whatever the outcome.
- */
 export interface Run {
-	/** The pi every agent in the run executes: the `pi` on the human's PATH, resolved through links. */
 	readonly pi: { readonly version: string; readonly path: string };
-	/** This worktree's `agent/` folder. Every pi in the run loads extensions, prompts and `bin/` from it. */
 	readonly agentDir: string;
-	/** `HOME` for every process in the run. An agent's `~/.local/state/pi-agent/...` lands under it, never in the human's. */
 	readonly home: string;
-	/** The root pi, started and answering before `play` runs. */
 	readonly root: Root;
-	/**
-	 * Reads the root's and every delegate's session file once a second until `find` returns `Some`, prints
-	 * `<elapsed>  found <what>`, and returns the value.
-	 * Fails with `timed out after <within> waiting for <what>`, and at once if the root pi exits. Every session read goes
-	 * through here, because pi writes the files as it goes.
-	 */
 	readonly waitFor: <Found>(
 		what: string,
 		within: Duration.Input,
 		find: (sessions: Sessions) => Option.Option<Found>,
 	) => Effect.Effect<Found, ScenarioFailed>;
-	/**
-	 * Runs a command in the run's environment and the root's project folder: `hc` reaches the run's terminal core, `pi`
-	 * is `run.pi` with the probe, and HOME, the agent folder and the state folders are the run's. Fails only when the
-	 * command cannot start or runs past a minute. The scenario reads `code`.
-	 */
 	readonly exec: (argv: readonly [string, ...Array<string>]) => Effect.Effect<Exited, ScenarioFailed>;
-	/** Prints a line to stdout and `report.txt`. A string prints as is, anything else as one line of JSON. */
 	readonly say: (value: Schema.Json) => Effect.Effect<void>;
-	/** Fails the scenario with `claim` unless `condition` holds. State the claim as the expected fact plus what you saw. */
 	readonly check: (condition: boolean, claim: string) => Effect.Effect<void, ScenarioFailed>;
-	/**
-	 * Starts another pi on the scenario's `model`, fresh, in its own project, session and agent folders under
-	 * `<run>/pis/<name>`, with `providers` replacing the run's `models` entries of those names. It shares the run's HOME and
-	 * terminal core, prints no progress, and stops when the scope closes.
-	 */
 	readonly spawn: (request: SpawnRequest) => Effect.Effect<Spawned, ScenarioFailed, Scope.Scope>;
 }
 
@@ -100,10 +63,8 @@ type Allowed = FileSystem.FileSystem | Path.Path;
 const check = (condition: boolean, claim: string): Effect.Effect<void, ScenarioFailed> =>
 	condition ? Effect.void : Effect.fail(ScenarioFailed.make({ message: claim }));
 
-/** `src/features/owned-work/leaf-wake.scenario.ts` is `leaf-wake`. */
 const nameOf = (entry: string) => Str.replace(/^(?:.*\/)?(?<name>[^/]+?)(?:\.scenario)?\.ts$/u, "$<name>")(entry);
 
-/** `20260514-101010` from an ISO time. */
 const stampOf = Str.replace(
 	/^(?<year>\d{4})-(?<month>\d\d)-(?<day>\d\d)T(?<hour>\d\d):(?<minute>\d\d):(?<second>\d\d).*$/u,
 	"$<year>$<month>$<day>-$<hour>$<minute>$<second>",
@@ -129,7 +90,6 @@ const verdictOf = <Value, Failure>(name: string, exit: Exit.Exit<Value, Failure>
 		: `fail ${name}: ${messageOf(exit.cause)}`;
 };
 
-/** `waitFor` over the run's session files, raced against the root's exit. */
 const waiting =
 	(sessions: Effect.Effect<Sessions, ScenarioFailed>, root: RootProcess, report: Reporter) =>
 	<Found>(what: string, within: Duration.Input, find: (sessions: Sessions) => Option.Option<Found>) => {
@@ -152,7 +112,6 @@ const waiting =
 		);
 	};
 
-/** Builds the world, plays the scenario in it, and tears it all down when the scope closes. */
 const playIn = <Failure>({
 	spec,
 	layout,
@@ -194,7 +153,6 @@ const playIn = <Failure>({
 		yield* Effect.raceFirst(spec.play(run), root.exited);
 	}).pipe(Effect.scoped);
 
-/** A fresh run's layout under `$TMPDIR/pi-driver`, which must be the user's own: the run copies their config into it. */
 const freshLayout = Effect.fn("freshLayout")(function* (name: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const tmp = yield* Config.String("TMPDIR").pipe(Config.withDefault("/tmp"));
@@ -218,7 +176,6 @@ const freshLayout = Effect.fn("freshLayout")(function* (name: string) {
 	});
 });
 
-/** Plays the scenario, trips on anything it wrote under the human's folders, and prints the verdict and `evidence <folder>` last, after every cleanup. */
 const played = <Failure>({ name, spec }: { readonly name: string; readonly spec: Scenario<Failure> }) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -256,11 +213,6 @@ const codeOf = <Value, Failure>(exit: Exit.Exit<Value, Failure>): number => {
 	return Option.exists(Cause.findErrorOption(exit.cause), Schema.is(SetupFailed)) ? 2 : 1;
 };
 
-/**
- * Runs this file's scenario and exits: 0 passed, 1 failed (any error from `play`, a timeout, the root dying), 2 the run
- * could not be built, 130 interrupted. The scenario's name is the entry file's name without `.scenario.ts`. The first
- * call starts the file again as the run's service, where the second call plays it.
- */
 export const scenario = <Failure>(spec: Scenario<Failure>): void => {
 	const name = nameOf(process.argv[1] ?? "scenario");
 	const program = Effect.raceFirst(played({ name, spec }), stdinEnded);
