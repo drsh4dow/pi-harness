@@ -3,12 +3,12 @@ import { expect, test } from "bun:test";
 import * as Option from "effect/Option";
 
 import type { Loaded } from "./probe.ts";
-import { type Asked, unmetOf } from "./took.ts";
+import { type AskedOfRoot, unmetOf } from "./took.ts";
 
 const socket = "/t/pi-driver/pi-driver-42-0abc12/herdr-core/pi-driver-42-0abc12.sock";
 const compaction = { enabled: true, reserveTokens: 10_000, keepRecentTokens: 5000 };
 
-const asked: Asked = {
+const asked: AskedOfRoot = {
 	model: "p/m",
 	contextWindow: 40_000,
 	setup: { settings: { compaction }, models: { prov: { modelOverrides: { mod: { contextWindow: 40_000 } } } } },
@@ -27,7 +27,7 @@ const taken: Loaded = {
 
 const rows: ReadonlyArray<{
 	readonly name: string;
-	readonly asked?: Partial<Asked>;
+	readonly asked?: Partial<AskedOfRoot>;
 	readonly loaded?: Partial<Loaded>;
 	readonly expected: ReadonlyArray<string>;
 }> = [

@@ -14,8 +14,7 @@ import type { Setup } from "#tools/driver/world/index.ts";
 import { isJsonArray, type Loaded } from "./probe.ts";
 import type { Sessions } from "./sessions.ts";
 
-/** What the run asks of the root's pi. */
-export interface Asked {
+export interface AskedOfRoot {
 	readonly model: string;
 	readonly contextWindow?: number | undefined;
 	/** The scenario's own `models`, before `contextWindow` adds its entry. */
@@ -75,7 +74,7 @@ const setsWindow = (value: Schema.Json): boolean => {
  * for that file. The root's context window is confirmed only as `contextWindow`, so a window in `models` is refused. A
  * package the setup names counts as taken once the root loaded an extension from its folder.
  */
-export const unmetOf = ({ asked, loaded }: { readonly asked: Asked; readonly loaded: Loaded }) => {
+export const unmetOf = ({ asked, loaded }: { readonly asked: AskedOfRoot; readonly loaded: Loaded }) => {
 	const window = asked.contextWindow ?? loaded.contextWindow;
 	const settings = Rec.toEntries(asked.setup.settings ?? {});
 	const others = Arr.filter(settings, ([key]) => !confirmedKeys.has(key));
@@ -110,7 +109,7 @@ export const unmetOf = ({ asked, loaded }: { readonly asked: Asked; readonly loa
 /** Fails with `SetupFailed`, exit 2, naming each miss, unless the root's pi runs on everything the run asked of it. */
 export const tookSetup = Effect.fn("tookSetup")(function* (
 	sessions: Effect.Effect<Sessions, ScenarioFailed>,
-	asked: Asked,
+	asked: AskedOfRoot,
 ) {
 	const loaded = yield* sessions.pipe(
 		Effect.flatMap(({ root }) => Effect.fromOption(root.loaded)),
