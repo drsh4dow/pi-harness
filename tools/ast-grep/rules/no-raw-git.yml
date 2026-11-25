@@ -1,0 +1,30 @@
+id: no-raw-git
+language: TypeScript
+severity: error
+message: "Run git through `git` from #src/client/git/index.ts, which drops the caller's GIT_* variables."
+ignores:
+   - src/client/git/**
+   - "**/*.test.ts"
+   - "**/*.fixture.ts"
+   - "**/*.scenario.ts"
+   - tools/oxlint/anti-slop/**
+   - tools/oxlint/fixtures/**
+   - tools/gates/fixtures/**
+rule:
+   any:
+      - pattern: $SPAWN("git")
+      - pattern: $SPAWN("git", $$$)
+      - pattern: $SPAWN(["git", $$$])
+      - pattern: $SPAWN(["git", $$$], $$$)
+      - pattern: $SHELL($COMMAND)
+      - pattern: $SHELL($COMMAND, $$$)
+      - all:
+           - kind: call_expression
+           - regex: '^Bun\.\$`\s*git\s'
+constraints:
+   SPAWN:
+      regex: '(^|\.)(make|spawn|spawnSync|execFile|execFileSync)$'
+   SHELL:
+      regex: '(^|\.)(exec|execSync)$'
+   COMMAND:
+      regex: '^["''`]\s*git\s'

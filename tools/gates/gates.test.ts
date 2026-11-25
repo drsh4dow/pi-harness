@@ -83,6 +83,14 @@ test("the delegate model ban rejects a registry lookup in owned-work outside mod
 		["Call modelOf from src/features/owned-work/models.ts"],
 	));
 
+test("the git ban rejects a git spawned outside src/client/git", () =>
+	failsWith(
+		"raw-git",
+		"raw-git",
+		[`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "src"],
+		["Run git through `git` from #src/client/git/index.ts, which drops the caller's GIT_* variables."],
+	));
+
 test("the ast-grep checks reject a comment, a suppression, a dynamic import and a relative import without .ts", () =>
 	failsWith(
 		"comments",
