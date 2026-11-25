@@ -20,17 +20,17 @@ for (const account of accounts) {
 const find = (provider: string, id: string) => models.getModel(provider, id);
 
 test("/account keeps the model and moves it to the named account", () => {
-	const target = targetOf({ name: "ent", current: { ...opus, provider: "ultra-a" }, find });
+	const target = targetOf({ chosenAccount: "ent", current: { ...opus, provider: "ultra-a" }, find });
 
 	expect(target).toMatchObject({ kind: "switch", model: { provider: "ent", id: "claude-opus-5-5" } });
 });
 
 const refusals = [
-	{ name: "an account that does not exist", request: { name: "ultra-c", current: opus } },
-	{ name: "no model yet", request: { name: "ent", current: undefined } },
+	{ name: "an account that does not exist", request: { chosenAccount: "ultra-c", current: opus } },
+	{ name: "no model yet", request: { chosenAccount: "ent", current: undefined } },
 	{
 		name: "a model no account offers",
-		request: { name: "ent", current: { ...opus, provider: "openai", id: "gpt-6.1-sol" } },
+		request: { chosenAccount: "ent", current: { ...opus, provider: "openai", id: "gpt-6.1-sol" } },
 	},
 ];
 

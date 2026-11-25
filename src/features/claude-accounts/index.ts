@@ -22,17 +22,19 @@ export type Target =
 	| { readonly kind: "refuse"; readonly why: string };
 
 interface TargetRequest {
-	/** The account name the user typed or picked. */
-	readonly name: string;
+	readonly chosenAccount: string;
 	readonly current: Model<Api> | undefined;
 	readonly find: (provider: string, id: string) => Model<Api> | undefined;
 }
 
-export const targetOf = ({ name, current, find }: TargetRequest): Target => {
-	const account = accountOf(name);
+export const targetOf = ({ chosenAccount, current, find }: TargetRequest): Target => {
+	const account = accountOf(chosenAccount);
 
 	if (Option.isNone(account)) {
-		return { kind: "refuse", why: `No Claude account ${name}. The accounts are ${Arr.join(accountIds, ", ")}.` };
+		return {
+			kind: "refuse",
+			why: `No Claude account ${chosenAccount}. The accounts are ${Arr.join(accountIds, ", ")}.`,
+		};
 	}
 
 	if (current === undefined) {
@@ -85,7 +87,7 @@ const switchAccount = (pi: ExtensionAPI) => (args: string, ctx: ExtensionCommand
 		}
 
 		const find = (provider: string, id: string) => ctx.modelRegistry.find(provider, id);
-		const target = targetOf({ name: name.value, current: ctx.model, find });
+		const target = targetOf({ chosenAccount: name.value, current: ctx.model, find });
 
 		if (target.kind === "refuse") {
 			ctx.ui.notify(target.why, "error");
