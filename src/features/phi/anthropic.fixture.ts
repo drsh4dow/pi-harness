@@ -182,7 +182,6 @@ export const serveMock = (reply: Replier): MockAnthropic => {
 	};
 };
 
-/** A phrase from the harness compaction's system prompt, so a mock can tell a summary request apart. */
 export const compactionPrompt = "the narrative part of a coding agent";
 
 export const turnPrefixPrompt = "context summarization assistant";
