@@ -3,10 +3,8 @@ import * as Arr from "effect/Array";
 
 import { accounts } from "#src/features/claude-accounts/index.ts";
 
-/** The provider phi-router's pi package registers. Each of its models routes by content, `sealed` pins. */
 export const phiProvider = "phi";
 
-/** The `phi` model whose requests phi-router sends to a BAA account. */
 export const sealedId = "sealed";
 
 type Selection = Pick<Model<Api>, "provider" | "id">;

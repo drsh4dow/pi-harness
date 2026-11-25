@@ -11,7 +11,6 @@ import type { MockAnthropic } from "./anthropic.fixture.ts";
 import type { MockOpenAi } from "./openai.fixture.ts";
 import documented from "./phi-router.config.json" with { type: "json" };
 
-/** An account as `src/features/phi/phi-router.config.json` lists it, which the compiler checks the file against. */
 interface Account {
 	readonly name: string;
 	readonly vendor: string;

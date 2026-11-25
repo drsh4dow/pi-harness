@@ -23,7 +23,6 @@ export const rateLimited = "rate limited";
 type Replier = (asked: Asked) => Reply | typeof rateLimited;
 
 export interface MockAnthropic {
-	/** The provider's `baseUrl`: pi-ai posts to `<url>/v1/messages?beta=true`. */
 	readonly url: string;
 	readonly bodies: () => ReadonlyArray<string>;
 	readonly stop: Effect.Effect<void>;
@@ -59,7 +58,6 @@ const contentText = (content: typeof Content.Type): string => {
 	);
 };
 
-/** A pi-ai request ends with a `system` message that carries only settings, so the last turn is the last other message. */
 const lastTextOf = (request: typeof MessagesRequest.Type) =>
 	Effect.fromOption(
 		Option.map(

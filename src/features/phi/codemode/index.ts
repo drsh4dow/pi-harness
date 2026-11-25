@@ -35,10 +35,6 @@ const reachOf = (input: ToolCallEvent["input"]) =>
 		onSome: ({ code }) => unsafeReach(code),
 	});
 
-/**
- * Blocks a codemode script that can reach classifier or image models in a protected session. Those calls go to their
- * own provider with the session's credentials, so they never pass phi-router.
- */
 export const guardCodemode = ({
 	event,
 	ctx,
