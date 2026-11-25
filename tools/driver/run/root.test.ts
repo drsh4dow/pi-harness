@@ -5,7 +5,9 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
+import * as Str from "effect/String";
 
+import { eventually } from "#src/primitives/eventually.ts";
 import { type Layout, layoutOf, type World } from "#tools/driver/world/index.ts";
 import { lfLines } from "./lines.ts";
 import { type RootProcess, startRoot } from "./root.ts";
@@ -56,6 +58,7 @@ test.each(rows)("lfLines: $name", ({ carried, chunk, expected }) => {
 const fakePi = `#!/usr/bin/env bun
 let text;
 for await (const line of console) {
+	console.error(line);
 	const command = JSON.parse(line);
 	if (command.type === process.env.FAKE_IGNORES) continue;
 	if (command.type === process.env.FAKE_EXITS_ON) process.exit(3);
@@ -158,5 +161,31 @@ test("once the root pi exits, every call to it fails at once with its exit code"
 			expect(Arr.map(failures, (failure) => failure.message)).toEqual(
 				Arr.replicate(`the root pi exited 3, see ${layout.rootStderr}`, 4),
 			);
+		}),
+	));
+
+test("pi reads each command the root sends, as root.in.jsonl logs it, each with its own id", () =>
+	withRoot({}, (root, layout) =>
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			yield* root.prompt({ text: "hi", images: [] });
+			yield* root.steer("go");
+			yield* root.compact;
+
+			const logged = yield* fs.readFileString(layout.rpcIn);
+
+			yield* eventually(
+				Effect.map(root.stderr, (read) => read === logged),
+				"5 seconds",
+			);
+			expect(Str.split(logged, "\n")).toEqual([
+				'{"id":"c1","type":"get_state"}',
+				'{"id":"c2","type":"prompt","streamingBehavior":"followUp","message":"hi"}',
+				'{"id":"c3","type":"get_last_assistant_text"}',
+				'{"id":"c4","type":"steer","message":"go"}',
+				'{"id":"c5","type":"compact"}',
+				"",
+			]);
 		}),
 	));

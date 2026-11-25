@@ -12,7 +12,6 @@ export interface Image {
 /** What a prompt or a steering message carries: its text, or its text and images. */
 export type Message = string | { readonly text: string; readonly images: ReadonlyArray<Image> };
 
-/** A message as pi's RPC takes it, with `images` only when there are some. */
 export interface Sent {
 	readonly message: string;
 	readonly images?: ReadonlyArray<Image>;

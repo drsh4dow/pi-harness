@@ -21,7 +21,6 @@ import { type Message, type Sent, sentOf, textOf } from "./message.ts";
 
 export interface Root {
 	readonly prompt: (message: Message, within?: Duration.Input) => Effect.Effect<Option.Option<string>, ScenarioFailed>;
-	/** Queues `message` as steering while pi runs: pi delivers it after the current tool calls, before its next model call. */
 	readonly steer: (message: Message) => Effect.Effect<void, ScenarioFailed>;
 	/** Runs pi's manual compaction, as `/compact` does, and returns once pi answers. */
 	readonly compact: Effect.Effect<void, ScenarioFailed>;
@@ -89,7 +88,6 @@ interface Wire {
 	readonly stdoutRecords: PubSub.PubSub<Inbound>;
 	readonly stderr: Effect.Effect<string>;
 	readonly exited: Effect.Effect<never, ScenarioFailed>;
-	/** Writes the command with a fresh id to stdin and `root.in.jsonl`, and returns the id. */
 	readonly send: (command: Command) => Effect.Effect<string>;
 }
 
