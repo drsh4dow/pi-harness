@@ -26,7 +26,6 @@ import { guardedFolders } from "./tripwire.ts";
 
 const marker = "PI_DRIVER_SERVICE";
 
-/** Whether this process is the driver inside the run's service. */
 export const inService = (env: Readonly<Record<string, string | undefined>>): boolean => env[marker] === "1";
 
 /**
@@ -88,12 +87,6 @@ const exitCode: Runtime.Teardown = (exit, onExit) => {
 	}
 };
 
-/**
- * Runs `argv` as the run's service and exits with its code, or 2 when HOME is unset or systemd cannot start one.
- * Ctrl-C and SIGTERM end the service's stdin and wait for it to exit, then exit 130. The `systemd-run` client runs in a
- * session of its own, so Ctrl-C reaches only this process, and nothing here signals it: Effect's spawner would signal
- * its group after it exited.
- */
 export const runAsService = ({
 	name,
 	argv,

@@ -45,7 +45,6 @@ export const handsNothingBack = (reply: Option.Option<string>): Rule => {
 	];
 };
 
-/** Prints each rule as `held <claim>` or `broke <claim>`, then fails naming every rule that broke, not only the first. */
 export const judge = ({ run, rules }: { readonly run: Run; readonly rules: ReadonlyArray<Rule> }) =>
 	Effect.gen(function* () {
 		const broke = Arr.flatMap(rules, ([held, claim]) => (held ? [] : [claim]));

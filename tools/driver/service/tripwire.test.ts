@@ -12,7 +12,6 @@ import { strayed } from "./tripwire.ts";
 const run = "leak-20260514-101010-42";
 const core = "pi-driver-42-0abc12";
 
-/** Files a leaked run and another session leave under a home, by path from the home. */
 const written = [
 	`.pi/agent/sessions/--tmp-pi-driver-${run}-${run}--/s.jsonl`,
 	".pi/agent/sessions/--home-u-work--/other.jsonl",
@@ -28,7 +27,6 @@ const leaked = [
 	`.pi/agent/sessions/--tmp-pi-driver-${run}-${run}--`,
 ];
 
-/** Writes `written` under `root`, whose `.local/state` is a link to a folder outside it when `linked`. */
 const homeIn = (root: string, linked: boolean) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;

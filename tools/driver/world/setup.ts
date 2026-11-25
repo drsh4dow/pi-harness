@@ -70,7 +70,6 @@ export interface Setup {
 
 type Files = Readonly<Record<string, Schema.JsonObject>>;
 
-/** A scenario's setup as the run applies it. */
 export interface RunSetup extends Setup {
 	/** The provider whose `models` entry only `contextWindow` made. It merges into the human's, so a custom provider keeps its models. */
 	readonly windowed?: string | undefined;

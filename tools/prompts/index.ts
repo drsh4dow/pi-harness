@@ -86,7 +86,6 @@ const capture = Effect.fn("capture")(function* (run: Run, cwd: string, workDir: 
 /** The user's own agent folder, which holds what the harness does not ship: credentials, settings, sessions. */
 const userAgentDir = getAgentDir();
 
-/** Links to every entry of the user's agent folder the harness does not ship. Links, not copies, so an auth refresh lands in the real file. */
 const stockAgentDir = Effect.fn("stockAgentDir")(function* (harnessRoot: string, into: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const listed = yield* fs.readDirectory(userAgentDir);

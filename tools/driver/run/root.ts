@@ -1,7 +1,3 @@
-/**
- * The root pi in RPC mode. Owns the protocol: JSONL framing on LF only, command ids and responses, the settle rule, and
- * shutdown. Nothing of the wire leaves this file; the scenario sees `Root`.
- */
 import * as Arr from "effect/Array";
 import type * as Cause from "effect/Cause";
 import * as Deferred from "effect/Deferred";
@@ -25,12 +21,6 @@ import { type Message, type Sent, sentOf, textOf } from "./message.ts";
 
 /** The root pi a scenario talks to. Every call fails at once if the root has exited. */
 export interface Root {
-	/**
-	 * Sends `message` and waits for the `agent_settled` that follows pi's answer to it: no retry, compaction or queued
-	 * message left. Returns the root's last assistant text, or none (an extension command handled it, the run was aborted,
-	 * or it ended on an error). Sent as a follow-up, so a prompt while a wake turn runs queues behind it instead of failing.
-	 * Fails when pi rejects the prompt or `within` (default 10 minutes) passes first.
-	 */
 	readonly prompt: (message: Message, within?: Duration.Input) => Effect.Effect<Option.Option<string>, ScenarioFailed>;
 	/** Queues `message` as steering while pi runs: pi delivers it after the current tool calls, before its next model call. */
 	readonly steer: (message: Message) => Effect.Effect<void, ScenarioFailed>;
@@ -48,7 +38,6 @@ export interface RootProcess extends Root {
 	readonly exited: Effect.Effect<never, ScenarioFailed>;
 }
 
-/** The commands the driver sends. One list, so the protocol the driver depends on is visible in one place. */
 type Command =
 	| { readonly type: "get_state" }
 	| (({ readonly type: "prompt"; readonly streamingBehavior: "followUp" } | { readonly type: "steer" }) & Sent)

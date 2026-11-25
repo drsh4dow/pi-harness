@@ -1,10 +1,3 @@
-/**
- * `bun run usage [--since <date>] [--until <date>] [--sessions <dir>]` prints, as markdown, how often each guide on disk
- * was listed and loaded in the pi sessions that started in the window, how often each guide loaded at its event, and
- * the delegate calls. It reads every session in pi's own `sessions/` folder unless `--sessions` names another folder, and prints
- * counts and guide names only. The window starts 7 days ago by default, and `--until` leaves out sessions that started
- * at or after it.
- */
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";

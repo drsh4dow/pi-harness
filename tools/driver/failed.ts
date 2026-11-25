@@ -6,7 +6,6 @@ export class ScenarioFailed extends Schema.TaggedError<ScenarioFailed, { readonl
 	{ message: Schema.String },
 ) {}
 
-/** The driver could not build the run, so nothing about the harness was tested. Exit 2. */
 export class SetupFailed extends Schema.TaggedError<SetupFailed, { readonly brand: unique symbol }>()("SetupFailed", {
 	message: Schema.String,
 }) {}

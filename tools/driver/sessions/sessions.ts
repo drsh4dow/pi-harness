@@ -1,7 +1,3 @@
-/**
- * Reads a run's session files and probe records into `Sessions`. Read only, and never through pi's SessionManager,
- * which can rewrite a file it migrates while pi is still appending to it.
- */
 import { parseSessionEntries, type SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -34,7 +30,6 @@ export interface Session {
 	readonly requests: ReadonlyArray<string>;
 }
 
-/** Every session of one run. */
 export interface Sessions {
 	/** No entries until pi writes the file at the root's first message. */
 	readonly root: Session;
@@ -92,10 +87,6 @@ const sessionIn = ({
 
 const byName = Order.mapInput(Order.String, (file: string) => Str.replace(/^.*\//u, "")(file));
 
-/**
- * Reads the root's file, every `*.jsonl` below `<sessionDir>/delegates` sorted by file name (pi's timestamp), and the
- * probe folder. Fails only on an unreadable folder, which means the run itself broke.
- */
 export const readSessions = ({
 	root,
 	sessionDir,

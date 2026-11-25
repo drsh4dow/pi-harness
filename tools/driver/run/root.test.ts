@@ -75,7 +75,6 @@ for await (const line of console) {
 }
 `;
 
-/** Starts the fake pi as the root, with `env` added to its environment. */
 const fakeRoot = (env: Readonly<Record<string, string>>) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;

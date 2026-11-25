@@ -21,9 +21,7 @@ import { modelsOf, type RunSetup, settingsOf } from "./setup.ts";
 
 type Env = Readonly<Record<string, string>>;
 
-/** Where everything of one run lives. The one place that knows the layout; every other module asks it. */
 export interface Layout {
-	/** `<name>-<yyyymmdd-hhmmss>-<driver pid>`, the run's own name. Every folder the run names outside its own holds it. */
 	readonly id: string;
 	/** `<tmp>/pi-driver/<id>`, kept as evidence after the run. */
 	readonly folder: string;
@@ -43,12 +41,6 @@ export interface Layout {
 	readonly sessions: string;
 	/** `HC_SESSION` of the run's core, unique even when a pid is reused. */
 	readonly coreSession: string;
-	/**
-	 * `XDG_RUNTIME_DIR` of every process in the run, outside `folder` because a socket path holds at most 108 bytes. It
-	 * holds the core's socket and a link to your `systemd/`, but no `bus`. `systemd-run --user` reaches the user manager
-	 * through the link. Given this folder, hc and herdr-core start a core and its terminals as children of their caller,
-	 * not as systemd services of their own, so they stay in the run.
-	 */
 	readonly runtime: string;
 	readonly socket: string;
 	readonly report: string;
@@ -264,10 +256,6 @@ const envOf = Effect.fn("envOf")(function* (layout: Layout, own: Readonly<Record
 	return { humanHome, env: runEnv({ own, humanHome, layout, borrowed: Rec.fromEntries(borrowed) }) };
 });
 
-/**
- * Builds the world in order, each step's undo registered in the scope as it lands, so a failure at any step undoes
- * exactly the steps before it. Every failure is `SetupFailed`.
- */
 export const openWorld = (input: {
 	readonly layout: Layout;
 	readonly setup: RunSetup;

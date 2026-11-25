@@ -20,7 +20,6 @@ export interface SpawnRequest {
 	readonly providers: Readonly<Record<string, Schema.JsonObject>>;
 }
 
-/** A pi `run.spawn` started: its `Root`, its project folder, and its session. */
 export interface Spawned extends Root {
 	readonly project: string;
 	readonly session: { readonly id: string; readonly file: string };

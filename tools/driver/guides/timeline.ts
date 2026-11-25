@@ -59,7 +59,6 @@ export interface Marker {
 	readonly line: string;
 }
 
-/** The window of an event that only needs the guide read before it. */
 export const before = ({ at }: { readonly at: string }): Window => ({ opens: Option.none(), closes: at });
 
 const DelegateStarted = Schema.Struct({
@@ -154,7 +153,6 @@ const byTime = <Item extends { readonly at: string }>(items: ReadonlyArray<Item>
 		Order.mapInput(Order.String, (item: Item) => item.at),
 	);
 
-/** Pure. Every session of the run as one timeline, given each guide's marker line. */
 export const timelineOf = ({
 	sessions,
 	markers,
@@ -219,7 +217,6 @@ export const writesFile = ({ tool, text }: Call) => {
 	);
 };
 
-/** The first step, in any session, one of whose calls `matches` accepts. */
 export const firstStep = ({
 	timeline,
 	matches,

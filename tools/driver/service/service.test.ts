@@ -18,7 +18,6 @@ const isAlive = (pid: number) => {
 	}
 };
 
-/** Waits until every pid is gone, for at most `bound`. */
 const goneWithin = (pids: ReadonlyArray<number>, bound: Duration.Input) =>
 	Effect.sync(() => Arr.some(pids, isAlive)).pipe(
 		Effect.repeat({ until: (alive) => !alive, schedule: Schedule.spaced("20 millis") }),
@@ -26,7 +25,6 @@ const goneWithin = (pids: ReadonlyArray<number>, bound: Duration.Input) =>
 		Effect.ignore,
 	);
 
-/** A run that prints the pids of a child in a session of its own and of an orphan, then exits 7 once its stdin ends. */
 const run = ["sh", "-c", "setsid sleep 600 & echo $!; sh -c 'sleep 600 & echo $!'; cat >/dev/null; exit 7"];
 
 const driverOf = ({ argv, home }: { readonly argv: ReadonlyArray<string>; readonly home: string | undefined }) =>
@@ -46,7 +44,6 @@ const linesOf = (driver: ReturnType<typeof driverOf>) =>
 		Stream.splitLines,
 	);
 
-/** The run's two pids, once it printed them. */
 const pidsOf = (driver: ReturnType<typeof driverOf>) =>
 	linesOf(driver).pipe(Stream.take(2), Stream.map(Number), Stream.runCollect);
 

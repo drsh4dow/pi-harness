@@ -24,7 +24,6 @@ export interface Exited {
 	readonly output: string;
 }
 
-/** Runs `argv` to its end. */
 export const ran = Effect.fn("ran")(function* (command: {
 	readonly argv: Argv;
 	readonly env: Env;
@@ -95,7 +94,6 @@ export const startCore = Effect.fn("startCore")(
 			),
 		);
 
-		// Polls the socket file, not `hc ls`: hc starts a core of its own when it finds none.
 		yield* fs.exists(layout.socket).pipe(
 			Effect.repeat({ until: (exists) => exists, schedule: Schedule.spaced("100 millis") }),
 			Effect.timeoutOrElse({

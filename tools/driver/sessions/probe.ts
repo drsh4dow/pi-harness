@@ -33,7 +33,6 @@ export const Loaded = Schema.Struct({
 	extensions: Schema.Array(Schema.String),
 	/** The settings pi runs on, its global and project files merged. */
 	settings: Schema.JsonObject,
-	/** Why pi dropped `models.json` and runs without it, when it did. */
 	modelsError: Schema.OptionFromOptionalKey(Schema.String),
 	/** `HC_TERMINAL_SOCKET`, the terminal core this pi starts its delegates in. */
 	socket: Schema.OptionFromOptionalKey(Schema.String),

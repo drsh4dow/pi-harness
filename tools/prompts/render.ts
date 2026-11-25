@@ -1,7 +1,6 @@
 import * as Arr from "effect/Array";
 import * as Schema from "effect/Schema";
 
-/** An Anthropic request carries the system prompt as blocks. */
 const AnthropicPayload = Schema.Struct({
 	system: Schema.Array(Schema.Struct({ text: Schema.String })),
 });
@@ -11,7 +10,6 @@ const Instruction = Schema.Struct({
 	content: Schema.String,
 });
 
-/** An OpenAI Responses request carries the system prompt as developer or system messages among its other input items. */
 const InputItem = Schema.Union([Instruction, Schema.Struct({})]);
 
 const ResponsesPayload = Schema.Struct({ input: Schema.Array(InputItem) });

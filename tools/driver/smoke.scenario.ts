@@ -1,7 +1,3 @@
-/**
- * The run uses the pi on PATH, not this checkout's dev copy, and loads its extensions from this worktree's agent folder.
- * `contextWindow` is set so every smoke run passes through the driver's check that the root took it.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";

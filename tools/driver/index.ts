@@ -1,8 +1,3 @@
-/**
- * The runtime driver's whole interface. A `<fact>.scenario.ts` file calls `scenario` once, and `bun <file>` runs it
- * against the real pi on PATH, this worktree's `agent/`, and scratch HOME, session, state and terminal core. README.md
- * is the author's guide. The lint lets only `*.scenario.ts` files import this module, and lets nothing import theirs.
- */
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Cause from "effect/Cause";
@@ -101,7 +96,6 @@ export interface Run {
 	readonly spawn: (request: SpawnRequest) => Effect.Effect<Spawned, ScenarioFailed, Scope.Scope>;
 }
 
-/** What `play` may use besides `run`. No process spawner: `run.exec` is the only way to start a command. */
 type Allowed = FileSystem.FileSystem | Path.Path;
 
 const check = (condition: boolean, claim: string): Effect.Effect<void, ScenarioFailed> =>
@@ -251,7 +245,6 @@ const played = <Failure>({ name, spec }: { readonly name: string; readonly spec:
 		);
 	});
 
-/** The process boundary, so the one place that reads a failure's class: interrupt 130, `SetupFailed` 2, else 1. */
 const codeOf = <Value, Failure>(exit: Exit.Exit<Value, Failure>): number => {
 	if (Exit.isSuccess(exit)) {
 		return 0;

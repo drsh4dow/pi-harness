@@ -17,7 +17,6 @@ export interface GuideEvent {
 export interface Call {
 	readonly tool: string;
 	readonly args: string;
-	/** The `path` argument of an edit or a write. */
 	readonly path: string | undefined;
 }
 
@@ -79,7 +78,6 @@ const fires = (trigger: Trigger, each: Call, paths: ReadonlyArray<string>) => {
 	return trigger.kind === "edit" && Arr.some(paths, (path) => trigger.pattern.test(path));
 };
 
-/** The events one tool call fires. */
 export const firedBy = (each: Call): ReadonlyArray<GuideEvent> => {
 	const paths = editedPaths(each);
 
