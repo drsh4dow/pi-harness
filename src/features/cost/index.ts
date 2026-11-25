@@ -65,7 +65,6 @@ export const treeReader = (files: SessionTreeFiles) => {
 	const followed = new Map<string, Followed>();
 	const located = new Map<string, string>();
 
-	// A session file appears at its first reply, so one that is not there yet has spent nothing.
 	const advance = Effect.fn("advance")(function* (path: string) {
 		const before = followed.get(path) ?? unread;
 		const appended = yield* appendedLines({ path, offset: before.readOffset });

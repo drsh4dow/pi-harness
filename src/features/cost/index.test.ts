@@ -47,7 +47,6 @@ const usageOf = (usd: number) => ({
 
 const open = (dir: string) => SessionManager.create("/work", dir);
 
-/** A session file appears at its first reply, so every session here starts with one. */
 const reply = (session: SessionManager, usd: number) =>
 	session.appendMessage({
 		role: "assistant",
@@ -97,6 +96,22 @@ test("the label holds the session's own spend and each delegate's, at every leve
 					{ name: "review auth", usd: 0.5 },
 					{ name: "scout docs", usd: 0.125 },
 				],
+			});
+		}),
+	));
+
+test("a session with no reply yet has no file and has spent nothing", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir, delegates } = yield* sessionsDir;
+			const root = open(dir);
+			const written = yield* Effect.flatMap(FileSystem.FileSystem, (fs) => fs.exists(fileOf(root)));
+			const label = yield* readerOf(root, delegates).read;
+
+			expect({ inDir: Str.startsWith(dir)(fileOf(root)), written, label }).toEqual({
+				inDir: true,
+				written: false,
+				label: { own: 0, delegates: [] },
 			});
 		}),
 	));
