@@ -11,9 +11,8 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 
 import { piHost, PiSessions } from "#src/client/pi/index.ts";
 import { Hc, herdrAppLayer, type RunSpec, TerminalAddress } from "#src/client/terminals/index.ts";
+import { assistantReply } from "#src/primitives/assistant-reply.fixture.ts";
 import { forkInTab, forkPlanOf, restoreDraft } from "./fork.ts";
-
-const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 
 const conversation = () => {
 	const session = SessionManager.inMemory("/p");
@@ -22,16 +21,7 @@ const conversation = () => {
 
 	const first = session.appendMessage({ role: "user", content: "Find the bug.", timestamp: 0 });
 
-	const reply = session.appendMessage({
-		role: "assistant",
-		content: [{ type: "text", text: "It is in the parser." }],
-		api: "anthropic-messages",
-		provider: "anthropic",
-		model: "claude-opus-5-5",
-		usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
-		stopReason: "stop",
-		timestamp: 0,
-	});
+	const reply = session.appendMessage(assistantReply({ text: "It is in the parser." }));
 
 	const second = session.appendMessage({ role: "user", content: [{ type: "text", text: "Fix it." }], timestamp: 0 });
 

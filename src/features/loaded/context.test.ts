@@ -6,6 +6,7 @@ import * as Function from "effect/Function";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
+import { assistantReply } from "#src/primitives/assistant-reply.fixture.ts";
 import { guidesOf, indexOf, inContext } from "./context.ts";
 
 const body = (name: string) =>
@@ -135,8 +136,6 @@ test("a context edit that omits the read drops the guide", () => {
 	expect(loaded(session)).toEqual([]);
 });
 
-const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-
 test("a guide in a ! command's output is loaded by the person", () => {
 	const session = SessionManager.inMemory();
 	session.appendMessage({
@@ -154,16 +153,7 @@ test("a guide in a ! command's output is loaded by the person", () => {
 
 test("a guide the model quotes whole in its own reply is not in context", () => {
 	const session = SessionManager.inMemory();
-	session.appendMessage({
-		role: "assistant",
-		content: [{ type: "text", text: tdd.text }],
-		api: "anthropic-messages",
-		provider: "anthropic",
-		model: "claude-opus-5-5",
-		usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
-		stopReason: "stop",
-		timestamp: 0,
-	});
+	session.appendMessage(assistantReply({ text: tdd.text }));
 
 	expect(loaded(session)).toEqual([]);
 });

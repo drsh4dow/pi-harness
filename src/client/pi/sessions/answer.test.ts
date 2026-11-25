@@ -8,14 +8,13 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
+import { assistantReply } from "#src/primitives/assistant-reply.fixture.ts";
 import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { ChildReply, PiSessions, piSessionsLayer } from "./index.ts";
 
 const piSessions = Layer.provideMerge(piSessionsLayer, NodeServices.layer);
 
 const scratch = scratchFolder("pi-sessions-answer");
-
-const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 
 type Reply = { readonly text: string } & Pick<AssistantMessage, "stopReason" | "errorMessage">;
 
@@ -25,16 +24,7 @@ const sessionOf = (replies: ReadonlyArray<Reply>) => {
 	session.appendMessage({ role: "user", content: "Find the bug.", timestamp: 0 });
 
 	for (const { text, ...ending } of replies) {
-		session.appendMessage({
-			role: "assistant",
-			content: [{ type: "text", text }],
-			api: "anthropic-messages",
-			provider: "anthropic",
-			model: "claude-opus-5-5",
-			usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
-			timestamp: 0,
-			...ending,
-		});
+		session.appendMessage(assistantReply({ text, ...ending }));
 	}
 
 	return { id: session.getSessionId(), cwd: scratch, dir: scratch };

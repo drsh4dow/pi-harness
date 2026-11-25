@@ -22,6 +22,7 @@ import { type Hc, type HcNotice, type Slices, TerminalEnd } from "#src/client/te
 import { type ChildSession, type Role, Self } from "#src/features/owned-work/child.ts";
 import type { LedgerState, Verdict } from "#src/features/owned-work/step.ts";
 import { type FailReason, Outcome, type Settled, WorkEntry } from "#src/features/owned-work/work.ts";
+import { assistantReply } from "#src/primitives/assistant-reply.fixture.ts";
 import { Host, Ledger, ledgerLayer } from "./ledger.ts";
 import { Out } from "./out/index.ts";
 import { hcOf, slicesOf } from "./outside.fixture.ts";
@@ -114,22 +115,17 @@ export const writeAnswer =
 	(texts: ReadonlyArray<string>) =>
 	(session: ChildSession): void => {
 		const manager = SessionManager.create(session.cwd, session.dir, { id: session.id });
-		const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 
 		manager.appendMessage({ role: "user", content: "Review it.", timestamp: 0 });
 
 		for (const [index, text] of texts.entries()) {
-			manager.appendMessage({
-				role: "assistant",
-				content: [{ type: "text", text }],
-				api: "anthropic-messages",
-				provider: "anthropic",
-				model: "claude-opus-5-5",
-				usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
-				stopReason: index === texts.length - 1 ? lastStopReason : "stop",
-				errorMessage: "429 rate limit",
-				timestamp: 0,
-			});
+			manager.appendMessage(
+				assistantReply({
+					text,
+					stopReason: index === texts.length - 1 ? lastStopReason : "stop",
+					errorMessage: "429 rate limit",
+				}),
+			);
 		}
 	};
 

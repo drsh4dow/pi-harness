@@ -7,6 +7,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
+import { assistantReply } from "#src/primitives/assistant-reply.fixture.ts";
 import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { PiSessions, piSessionsLayer } from "./index.ts";
 
@@ -14,22 +15,11 @@ const piSessions = Layer.provide(piSessionsLayer, NodeServices.layer);
 
 const scratch = scratchFolder("pi-sessions-branch");
 
-const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-
 const saved = () => {
 	const session = SessionManager.create(scratch, scratch);
 	const asked = session.appendMessage({ role: "user", content: "Find the bug.", timestamp: 0 });
 
-	const answered = session.appendMessage({
-		role: "assistant",
-		content: [{ type: "text", text: "It is in the parser." }],
-		api: "anthropic-messages",
-		provider: "anthropic",
-		model: "claude-opus-5-5",
-		usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
-		stopReason: "stop",
-		timestamp: 0,
-	});
+	const answered = session.appendMessage(assistantReply({ text: "It is in the parser." }));
 
 	session.appendMessage({ role: "user", content: "Now fix it.", timestamp: 0 });
 
