@@ -48,8 +48,7 @@ const foldersIn = ({ home, input }: { readonly home: string; readonly input: str
 	return Arr.dedupe(Arr.map(named, (folder) => `${home}${statePath}${folder}`));
 };
 
-/** Each running tool call's named state folders, with each folder's fingerprint from before the call ran. */
-export type Watched = Map<string, ReadonlyArray<readonly [folder: string, before: Fingerprint]>>;
+export type Watched = Map<ToolCallEvent["toolCallId"], ReadonlyArray<readonly [folder: string, before: Fingerprint]>>;
 
 export const watchCall = Effect.fn("watchCall")(function* (
 	watched: Watched,
@@ -143,20 +142,19 @@ export const lastFolder = (branch: ReadonlyArray<SessionEntry>): Option.Option<s
 
 const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
-/** The tool calls being watched, the state folder the session last wrote to, and the label text last set for it. */
 interface Tracker {
 	readonly watched: Watched;
-	folder: Option.Option<string>;
-	published: string;
+	lastWritten: Option.Option<string>;
+	publishedLabel: string;
 }
 
 const publish = Effect.fn("publish")(function* (tracker: Tracker) {
 	const terminal = yield* ownTerminal;
-	const text = Option.getOrElse(tracker.folder, () => "");
+	const text = Option.getOrElse(tracker.lastWritten, () => "");
 
-	if (Option.isSome(terminal) && text !== tracker.published) {
+	if (Option.isSome(terminal) && text !== tracker.publishedLabel) {
 		yield* labelTerminal({ terminal: terminal.value, labels: { [labelKey]: text } });
-		tracker.published = text;
+		tracker.publishedLabel = text;
 	}
 });
 
@@ -174,8 +172,8 @@ const finish = Effect.fn("finish")(function* (
 	const home = yield* Config.String("HOME");
 	const { wrote, checked } = yield* finishCall(tracker.watched, { home, result });
 
-	if (Option.isSome(wrote) && !Option.contains(tracker.folder, wrote.value)) {
-		tracker.folder = wrote;
+	if (Option.isSome(wrote) && !Option.contains(tracker.lastWritten, wrote.value)) {
+		tracker.lastWritten = wrote;
 		pi.appendEntry(entryKind, { folder: wrote.value });
 		yield* publish(tracker).pipe(Effect.catchCause((cause) => Effect.logWarning(cause)));
 	}
@@ -189,14 +187,14 @@ const finish = Effect.fn("finish")(function* (
  * it. No folder, no label. Outside herdr-core it only records.
  */
 export const stateFolder = (pi: Pick<ExtensionAPI, "on" | "appendEntry">) => {
-	const tracker: Tracker = { watched: new Map(), folder: Option.none(), published: "" };
+	const tracker: Tracker = { watched: new Map(), lastWritten: Option.none(), publishedLabel: "" };
 	const host = piHost(Layer.provide(stateFolderLayer, NodeServices.layer));
 
 	const run = <Value, Failure>(effect: Effect.Effect<Value, Failure, StateFolder>) =>
 		host.run(Effect.catchCause(effect, (cause) => Effect.logWarning(cause)));
 
 	const restore = (ctx: ExtensionContext) => {
-		tracker.folder = lastFolder(ctx.sessionManager.getBranch());
+		tracker.lastWritten = lastFolder(ctx.sessionManager.getBranch());
 
 		return run(publish(tracker));
 	};
@@ -210,7 +208,7 @@ export const stateFolder = (pi: Pick<ExtensionAPI, "on" | "appendEntry">) => {
 		tracker.watched.delete(toolCallId);
 	});
 	pi.on("session_shutdown", () => {
-		tracker.folder = Option.none();
+		tracker.lastWritten = Option.none();
 
 		return run(publish(tracker));
 	});
