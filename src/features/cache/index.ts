@@ -69,12 +69,6 @@ const lastCall = (branch: ReadonlyArray<SessionEntry>): Option.Option<Last> =>
 		Option.map(callOf(entry), (call) => ({ call, since: branch.slice(index + 1) })),
 	);
 
-/**
- * The system messages pi saves for each change to the prompt sections or the declared tools. A change pi makes only in
- * the request, a `systemPrompt` a `before_agent_start` handler returns or a declaration `prepareLoadout` hides, saves
- * none, so its miss names no cause. A forced `systemPrompt` also hides the section changes pi saves, which still name
- * PromptChanged.
- */
 const systemMessages = (entries: ReadonlyArray<SessionEntry>): ReadonlyArray<SystemMessage> =>
 	Arr.getSomes(
 		Arr.map(entries, (entry) =>
