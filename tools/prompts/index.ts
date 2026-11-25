@@ -135,13 +135,7 @@ const delegateRun = (launch: StagedLaunch, harnessEnv: Env): Run => ({
 	env: { ...withoutPackageBins(launch.env), ...harnessEnv },
 });
 
-const piRun = (key: string, title: string, about: string, env: Env): Run => ({
-	key,
-	title,
-	about,
-	argv: ["pi", "--no-session", "--", message],
-	env,
-});
+const piRun = (run: Omit<Run, "argv">): Run => ({ ...run, argv: ["pi", "--no-session", "--", message] });
 
 const captureAll = Effect.fn("captureAll")(function* (harnessRoot: string, project: string, workDir: string) {
 	const agentDir = `${harnessRoot}/agent`;
@@ -157,12 +151,21 @@ const captureAll = Effect.fn("captureAll")(function* (harnessRoot: string, proje
 	return yield* Effect.all(
 		{
 			stock: run(
-				piRun("stock", "Stock pi", "pi without this harness: no `SYSTEM.md` and no harness extensions.", {
-					...userEnv,
-					PI_CODING_AGENT_DIR: stockDir,
+				piRun({
+					key: "stock",
+					title: "Stock pi",
+					about: "pi without this harness: no `SYSTEM.md` and no harness extensions.",
+					env: { ...userEnv, PI_CODING_AGENT_DIR: stockDir },
 				}),
 			),
-			root: run(piRun("root", "Root agent", "The pi you start and talk to.", { ...userEnv, ...harnessEnv })),
+			root: run(
+				piRun({
+					key: "root",
+					title: "Root agent",
+					about: "The pi you start and talk to.",
+					env: { ...userEnv, ...harnessEnv },
+				}),
+			),
 			delegates: Effect.forEach(
 				Arr.map(staged, (launch) => delegateRun(launch, harnessEnv)),
 				run,

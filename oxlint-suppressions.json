@@ -83,10 +83,5 @@
     "max-params": {
       "count": 1
     }
-  },
-  "tools/prompts/index.ts": {
-    "max-params": {
-      "count": 1
-    }
   }
 }
