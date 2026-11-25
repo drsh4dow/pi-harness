@@ -9,7 +9,7 @@ import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts"
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "First version of pantry",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\n",
 			"README.md": `# pantry
 
@@ -95,20 +95,28 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
-			const { reply, files } = yield* observe({ run, base, request, within: "20 minutes", stopAt: () => true });
-			const handBack = Option.flatMap(reply, handsBack);
-			const pick = Option.flatMap(reply, pickIn);
+
+			const { settledReply, editedFiles } = yield* observe({
+				run,
+				base,
+				request,
+				within: "20 minutes",
+				stopAt: () => true,
+			});
+
+			const handBack = Option.flatMap(settledReply, handsBack);
+			const pick = Option.flatMap(settledReply, pickIn);
 
 			yield* judge({
 				run,
 				rules: [
 					[
-						!Arr.isReadonlyArrayNonEmpty(files),
-						`a vague build request leaves every file of the project as it was, on every branch and worktree (edited: ${Arr.join(files, ", ")})`,
+						!Arr.isReadonlyArrayNonEmpty(editedFiles),
+						`a vague build request leaves every file of the project as it was, on every branch and worktree (edited: ${Arr.join(editedFiles, ", ")})`,
 					],
 					[
 						Option.isSome(handBack),
-						`the root settles idle on a reply that hands a product call to the human, in words that make the build wait on their answer (it says: ${Option.getOrElse(handBack, () => (Option.isSome(reply) ? "nothing of the kind" : "the root never settled idle"))})`,
+						`the root settles idle on a reply that hands a product call to the human, in words that make the build wait on their answer (it says: ${Option.getOrElse(handBack, () => (Option.isSome(settledReply) ? "nothing of the kind" : "the root never settled idle"))})`,
 					],
 					[
 						Option.isSome(pick),

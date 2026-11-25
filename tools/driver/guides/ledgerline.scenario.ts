@@ -9,7 +9,7 @@ import { before, type Timeline } from "./timeline.ts";
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "ledgerline 0.9",
-		files: {
+		textByProjectPath: {
 			"README.md": `# ledgerline
 
 Shared household ledger. Amounts are whole cents and never negative.

@@ -10,7 +10,7 @@ import { before, firstStep, type Timeline, writesFile } from "./timeline.ts";
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Checkout page",
-		files: {
+		textByProjectPath: {
 			"README.md": "# quaycart\n\nThe storefront of our ferry-ticket shop. Open `checkout.html` in a browser.\n",
 			"checkout.html": `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">

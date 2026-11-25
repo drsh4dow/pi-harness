@@ -9,7 +9,7 @@ import { before, type Call, firstStep, type Timeline, writesFile } from "./timel
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Tide times page",
-		files: {
+		textByProjectPath: {
 			"README.md":
 				"# harborview\n\nTide times for our harbour. Open `index.html`; `tides.js` holds the week ahead.\n",
 			"index.html": `<!doctype html>

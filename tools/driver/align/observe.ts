@@ -20,10 +20,9 @@ export const rootModel = "ultra-a/claude-opus-5-5";
  */
 export const offGitHub = "github.invalid";
 
-/** One commit of the user's history: its subject and the files it writes, by path inside the project. */
 export interface Commit {
 	readonly subject: string;
-	readonly files: Readonly<Record<string, string>>;
+	readonly textByProjectPath: Readonly<Record<string, string>>;
 }
 
 const Work = Schema.Struct({
@@ -166,9 +165,9 @@ export const plant = ({ run, history }: { readonly run: Run; readonly history: R
 			run,
 			`git init -q -b main && git init -q --bare ../origin.git && git remote add origin ${project}/../origin.git`,
 		);
-		yield* Effect.forEach(history, ({ subject, files }, index) =>
+		yield* Effect.forEach(history, ({ subject, textByProjectPath }, index) =>
 			Effect.andThen(
-				Effect.forEach(Rec.toEntries(files), write),
+				Effect.forEach(Rec.toEntries(textByProjectPath), write),
 				sh(
 					run,
 					`at=$(date -R -d '-${String((history.length - index) * 9)} hours') && git add -A && GIT_COMMITTER_DATE="$at" git commit -q --date="$at" -m '${subject}'`,
@@ -180,11 +179,10 @@ export const plant = ({ run, history }: { readonly run: Run; readonly history: R
 		return Str.trim((yield* sh(run, "git rev-parse HEAD")).output);
 	});
 
-/** What the run came to: the sessions `watch` returned, the root's last reply if it settled idle, and the files edited. */
 interface Observed {
 	readonly sessions: Sessions;
-	readonly reply: Option.Option<string>;
-	readonly files: ReadonlyArray<string>;
+	readonly settledReply: Option.Option<string>;
+	readonly editedFiles: ReadonlyArray<string>;
 }
 
 const spend = (sessions: Sessions) =>
@@ -194,7 +192,7 @@ const spend = (sessions: Sessions) =>
 		(sum, { usage }) => ({ dollars: sum.dollars + usage.cost.total, tokens: sum.tokens + usage.totalTokens }),
 	);
 
-const account = (run: Run, { sessions, reply, files }: Observed) =>
+const account = (run: Run, { sessions, settledReply: reply, editedFiles }: Observed) =>
 	Effect.gen(function* () {
 		const { dollars, tokens } = spend(sessions);
 		const count = String(sessions.delegates.length + 1);
@@ -211,7 +209,7 @@ const account = (run: Run, { sessions, reply, files }: Observed) =>
 		);
 		yield* run.say(`root read ${readBy(sessions.root)}`);
 		yield* Effect.forEach(sessions.delegates, (session) => run.say(`delegate ${session.id} read ${readBy(session)}`));
-		yield* run.say(`files edited: ${Arr.join(files, ", ") || "none"}`);
+		yield* run.say(`files edited: ${Arr.join(editedFiles, ", ") || "none"}`);
 		yield* run.say(
 			Option.match(reply, {
 				onNone: () => "the root never settled idle",
@@ -222,7 +220,7 @@ const account = (run: Run, { sessions, reply, files }: Observed) =>
 
 interface Watched {
 	readonly sessions: Sessions;
-	readonly files: ReadonlyArray<string>;
+	readonly editedFiles: ReadonlyArray<string>;
 }
 
 /**
@@ -247,10 +245,10 @@ export const watch = <Failure>({
 			const edited = yield* files;
 
 			if (Arr.some(edited, stopAt)) {
-				return { sessions: clean, files: edited };
+				return { sessions: clean, editedFiles: edited };
 			}
 
-			return Option.isSome(settledReply(now.root)) ? { sessions: now, files: edited } : yield* look(now);
+			return Option.isSome(settledReply(now.root)) ? { sessions: now, editedFiles: edited } : yield* look(now);
 		});
 
 	return look(start);
@@ -291,7 +289,7 @@ export const observe = ({
 		);
 
 		const watched = yield* Effect.raceFirst(Effect.andThen(run.root.prompt(request, within), Effect.never), watching);
-		const observed = { ...watched, reply: settledReply(watched.sessions.root) };
+		const observed = { ...watched, settledReply: settledReply(watched.sessions.root) };
 
 		yield* account(run, observed);
 

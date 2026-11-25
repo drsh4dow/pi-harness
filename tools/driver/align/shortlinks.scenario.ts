@@ -9,7 +9,7 @@ import { type Commit, observe, offGitHub, plant, read, rootModel, turnEnds } fro
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Short links with a JSON store",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\nlinks.json\n",
 			"README.md": `# shortlinks
 
@@ -82,7 +82,15 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
-			const { sessions, files } = yield* observe({ run, base, request, within: "40 minutes", stopAt: building });
+
+			const { sessions, editedFiles } = yield* observe({
+				run,
+				base,
+				request,
+				within: "40 minutes",
+				stopAt: building,
+			});
+
 			const architect = yield* read({ run, sessions, guide: "skills/architect/SKILL.md" });
 			const asked = Arr.getSomes(Arr.map(turnEnds(sessions.root), handsBack));
 
@@ -94,8 +102,8 @@ scenario({
 				run,
 				rules: [
 					[
-						Arr.some(files, building),
-						`with the destination settled, the root goes on to build: a file under shortlinks/ changes before the root settles idle (edited: ${Arr.join(files, ", ") || "none"})`,
+						Arr.some(editedFiles, building),
+						`with the destination settled, the root goes on to build: a file under shortlinks/ changes before the root settles idle (edited: ${Arr.join(editedFiles, ", ") || "none"})`,
 					],
 					[
 						!Arr.isReadonlyArrayNonEmpty(asked),

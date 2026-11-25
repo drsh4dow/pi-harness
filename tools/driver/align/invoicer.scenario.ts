@@ -8,7 +8,7 @@ import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts"
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Invoices with CSV export",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\n*.db\n",
 			"README.md": `# invoicer
 
@@ -92,16 +92,16 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
-			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
+			const { settledReply } = yield* observe({ run, base, request, within: "15 minutes" });
 
 			yield* judge({
 				run,
 				rules: [
 					[
-						Option.exists(reply, (text) => flaws.test(text)),
+						Option.exists(settledReply, (text) => flaws.test(text)),
 						"an audit request gets the audit: the root's settled reply names the SQL injection or the path traversal",
 					],
-					handsNothingBack(reply),
+					handsNothingBack(settledReply),
 				],
 			});
 		}),

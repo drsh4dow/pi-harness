@@ -9,7 +9,7 @@ import { before, firstStep, type Timeline } from "./timeline.ts";
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "tallyclock: log time, print a report",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\n",
 			"README.md": `# tallyclock
 

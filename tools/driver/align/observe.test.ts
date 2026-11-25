@@ -38,7 +38,7 @@ test("once a look finds a build file edited, the run is judged on the sessions r
 
 	return Effect.runPromise(
 		Effect.map(watching, (watched) => {
-			expect(watched).toEqual({ sessions: beforeEdit, files: ["README.md", "cyclefare/pricing.py"] });
+			expect(watched).toEqual({ sessions: beforeEdit, editedFiles: ["README.md", "cyclefare/pricing.py"] });
 		}),
 	);
 });

@@ -9,7 +9,7 @@ import { type Commit, observe, offGitHub, plant, rootModel } from "./observe.ts"
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Tide predictions for one station",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\n",
 			"README.md": "# tidepool\n\nTide times for the spots we surf. `python -m tidepool <station>`.\n",
 			"tidepool/__init__.py": "",
@@ -32,7 +32,7 @@ def predictions(station: str, day: str) -> list[dict]:
 	},
 	{
 		subject: "Cache tide predictions on disk for a day",
-		files: {
+		textByProjectPath: {
 			"tidepool/cache.py": `import json
 import time
 from pathlib import Path
@@ -54,7 +54,7 @@ def cached(key: str, fetch):
 	},
 	{
 		subject: "Show high tide times in local time instead of GMT",
-		files: {
+		textByProjectPath: {
 			"tidepool/times.py": `from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -69,7 +69,7 @@ def local(gmt: str) -> str:
 	},
 	{
 		subject: "Add Monterey station",
-		files: {
+		textByProjectPath: {
 			"tidepool/stations.py": `STATIONS = {
     "santa-cruz": "9413745",
     "monterey": "9413450",
@@ -90,8 +90,8 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
-			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
-			const named = Arr.filter(work, (piece) => Option.exists(reply, (text) => piece.test(text)));
+			const { settledReply } = yield* observe({ run, base, request, within: "15 minutes" });
+			const named = Arr.filter(work, (piece) => Option.exists(settledReply, (text) => piece.test(text)));
 
 			yield* judge({
 				run,
@@ -100,7 +100,7 @@ scenario({
 						named.length >= 2,
 						`a report request gets the report: the root's settled reply names at least 2 of the caching, local time and Monterey work (it names ${String(named.length)})`,
 					],
-					handsNothingBack(reply),
+					handsNothingBack(settledReply),
 				],
 			});
 		}),

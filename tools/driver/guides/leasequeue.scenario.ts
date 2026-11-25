@@ -10,7 +10,7 @@ import type { Timeline, Window } from "./timeline.ts";
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "First version of leasequeue",
-		files: {
+		textByProjectPath: {
 			"README.md": `# leasequeue
 
 An in-memory job queue. A worker leases a job, runs it, and acks it. A lease that runs out frees the job.

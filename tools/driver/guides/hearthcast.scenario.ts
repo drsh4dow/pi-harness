@@ -11,7 +11,7 @@ import { before, firstStep, type Timeline } from "./timeline.ts";
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Static site for the hearthcast podcast",
-		files: {
+		textByProjectPath: {
 			".gitignore": "public/\n",
 			"README.md": `# hearthcast
 

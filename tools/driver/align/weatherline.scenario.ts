@@ -8,7 +8,7 @@ import { type Commit, observe, offGitHub, plant, rootModel, versions } from "./o
 const history: ReadonlyArray<Commit> = [
 	{
 		subject: "Forecast line for the status bar",
-		files: {
+		textByProjectPath: {
 			".gitignore": "__pycache__/\n",
 			"README.md": "# weatherline\n\nOne line of forecast for the status bar. `python -m weatherline`.\n",
 			"weatherline/__init__.py": "",
@@ -47,7 +47,7 @@ scenario({
 		Effect.gen(function* () {
 			const base = yield* plant({ run, history });
 
-			const { reply } = yield* observe({ run, base, request, within: "15 minutes" });
+			const { settledReply } = yield* observe({ run, base, request, within: "15 minutes" });
 			const config = yield* versions({ run, file: "weatherline/config.py" });
 
 			yield* judge({
@@ -57,7 +57,7 @@ scenario({
 						Str.includes('DEFAULT_UNITS = "metric"')(config),
 						"a fully specified edit gets made: a branch tip or a worktree of the project sets DEFAULT_UNITS to metric",
 					],
-					handsNothingBack(reply),
+					handsNothingBack(settledReply),
 				],
 			});
 		}),
