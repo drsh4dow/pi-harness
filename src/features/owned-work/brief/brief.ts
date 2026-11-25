@@ -62,7 +62,6 @@ export const delegateParams = ({
 		state: words(
 			"The work's state folder. It defaults to yours. Its `facts.md` reaches every delegate, its `owner.md` only owners.",
 		),
-		/** A plain string enum, as pi's `StringEnum` builds, since some providers refuse `anyOf` of constants. */
 		role: Type.Optional(Type.Unsafe<ChildRole>({ type: "string", enum: [...roles], description: roleDescription })),
 		design: Type.Optional(designParam),
 		instructionsFile: Type.Optional(
@@ -91,7 +90,6 @@ export type Caller = ModelCaller &
 		readonly sessionManager: Pick<ExtensionContext["sessionManager"], "getBranch">;
 	};
 
-/** The thinking level a delegate starts at unless its instructions file names one. pi clamps it to what the model supports. */
 const delegateThinking = "high";
 
 const absoluteOf = Effect.fn("absoluteOf")(function* (cwd: string, file: string) {
@@ -101,7 +99,6 @@ const absoluteOf = Effect.fn("absoluteOf")(function* (cwd: string, file: string)
 	return path.resolve(cwd, Str.replace(/^~(?=\/)/u, home)(file));
 });
 
-/** Reads the instructions file once, at the call. The brief keeps a copy of its body, so a later edit to the file never reaches a running delegate. */
 const instructionsOf = Effect.fn("instructionsOf")(function* (cwd: string, file: string) {
 	const sources = yield* BriefSources;
 	const absolute = yield* absoluteOf(cwd, file);
@@ -117,7 +114,6 @@ const instructionsOf = Effect.fn("instructionsOf")(function* (cwd: string, file:
 	return { ...profile, file: absolute };
 });
 
-/** The real path, since the child records that one in its session, and pi finds the session by comparing the two as text. */
 const folderOf = Effect.fn("folderOf")(function* (cwd: string, folder: string, refused: string) {
 	const sources = yield* BriefSources;
 	const absolute = yield* absoluteOf(cwd, folder);
@@ -156,7 +152,6 @@ const designOf = Effect.fn("designOf")(function* (cwd: string, named: string) {
 		: yield* BadDelegate.make({ why: `design sketch ${named} holds no \`${sketchHeading}\`: name ${designChoice}` });
 });
 
-/** What a brief holds by role: project facts for every delegate, and the owner rules and a design for an owner only. Each call reads them from the state folder, so no task message has to repeat them. */
 interface RoleChoice {
 	readonly cwd: string;
 	readonly state: Option.Option<string>;
@@ -182,7 +177,6 @@ export const roleFieldsFor = Effect.fn("roleFieldsFor")(function* ({ cwd, state,
 	return { role, facts, ownerRules, design: yield* designOf(cwd, named) };
 });
 
-/** Every delegate below a root inherits its goal, so no task message has to restate it. */
 const goalMissing = BadDelegate.make({
 	why: "name a `goal`: the user's goal in one sentence. A root's call must name it, and every delegate below inherits it",
 });

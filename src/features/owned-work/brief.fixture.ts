@@ -157,10 +157,6 @@ const gh = Layer.succeed(
 	}),
 );
 
-/**
- * The sessions the fake phi-router holds pinned, the one it cannot answer about, and each session a delegate start had
- * it pin, in order.
- */
 export const router = { held: new Set(["held-parent"]), unanswered: "lost-parent", pinned: new Array<string>() };
 
 const phiRouter = Layer.succeed(
@@ -199,10 +195,6 @@ export const delegate = delegateStarting(["owner", "leaf"]);
 
 const logins = new Map<string, string>();
 
-/**
- * A real caller carries its own thinking level, which a delegate must never take. It has no login on any account, so a
- * delegate reads no meter and stays on its parent's account.
- */
 export const callerOf = (
 	getAll: () => ReadonlyArray<Model<Api>> = () => [luna, opus, proxied],
 ): Parameters<typeof delegate.execute>[4] => {
@@ -231,7 +223,6 @@ interface Shown {
 	readonly cwd: string;
 }
 
-/** What a call with a name, a message, the leaf role and the `quick` alias alone starts. */
 const plainStart: Shown = {
 	name: "m",
 	role: "leaf",

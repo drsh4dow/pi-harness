@@ -24,7 +24,6 @@ interface Profile {
 	readonly text: string;
 }
 
-/** A block that never closes or starts below the first line stays in the body, because pi's `parseFrontmatter` leaves it there. */
 export const parseProfile = Effect.fn("parseProfile")(function* (text: string) {
 	const { frontmatter, body } = yield* Effect.try({ try: () => parseFrontmatter(text), catch: String });
 
