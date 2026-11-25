@@ -12,7 +12,6 @@ import { Out } from "#src/features/owned-work/ledger/out/index.ts";
 import { Draft, type LedgerState, type Step } from "#src/features/owned-work/step.ts";
 import type { LedgerError, Settled, WorkRef } from "#src/features/owned-work/work.ts";
 
-/** The jobs a wait is for: any the agent holds, or the ones it names. */
 type WaitScope = Option.Option<ReadonlyArray<WorkRef>>;
 
 export interface Waited {

@@ -74,6 +74,7 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Deliver.** Hand a settled result to the agent, exactly once: at the end of a turn, by a wake while idle, or in a `cancel` or `wait` reply.
 - **Wake.** A message that carries results to an idle agent and starts its next turn.
 - **Wait.** A tool call that keeps the agent's turn until a job it holds settles, then delivers the results due in its reply.
+- **Wait scope.** The jobs one wait is for: those its call names, or every job the agent holds when it names none.
 - **Ledger.** The one module that records owned work, who holds it and what was delivered.
 - **Entry kind.** The `customType` a feature gives the session entries it writes. Owned work's is `owned-work`, which also marks the results the ledger hands the agent.
 - **Terminal name.** The name Herdr shows for a delegate, serve or watch: the name its agent gave it.
