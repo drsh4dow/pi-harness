@@ -46,7 +46,6 @@ export interface FooterInputs {
 	readonly autoCompact: () => boolean;
 }
 
-/** What the stats line shows that only changes when the session gains an entry or the model changes. */
 interface SessionStats {
 	/** Milliseconds from the first message to the latest. None before the first message. */
 	readonly duration: Option.Option<number>;
@@ -104,7 +103,6 @@ const hitRate = (usage: Usage): Option.Option<number> => {
 	return promptTokens > 0 ? Option.some((usage.cacheRead / promptTokens) * 100) : Option.none();
 };
 
-/** Counts every entry, not just those after a compaction, as pi's footer does. */
 export const sessionUsage = (entries: ReadonlyArray<SessionEntry>) => {
 	const usages = Arr.getSomes(Arr.map(entries, usageOf));
 	const usedCache = Arr.some(usages, (usage) => usage.cacheRead > 0 || usage.cacheWrite > 0);

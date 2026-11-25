@@ -23,7 +23,6 @@ const sgr = { warning: 33, error: 31 } as const;
 
 const colored = (color: keyof typeof sgr, text: string) => `\u001B[${String(sgr[color])}m${text}\u001B[39m`;
 
-/** Leaves dim text plain and colors the rest, so a test reads the layout and still sees which part is colored. */
 const theme: FooterInputs["theme"] = {
 	fg: (color, text) => (color === "warning" || color === "error" ? colored(color, text) : text),
 	bold: (text) => text,

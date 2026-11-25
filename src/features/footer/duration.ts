@@ -5,7 +5,6 @@ import * as Str from "effect/String";
 
 const isMessage = (entry: SessionEntry) => entry.type === "message";
 
-/** Uses the time each message was recorded, so the span ends when the latest response finished, not when it started. */
 export const sessionDuration = (entries: ReadonlyArray<SessionEntry>) =>
 	Option.zipWith(
 		Arr.findFirst(entries, isMessage),
