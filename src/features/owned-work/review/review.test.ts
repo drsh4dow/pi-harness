@@ -4,8 +4,8 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
+import { callerOf, delegate, pinned, runtime, started } from "#src/features/owned-work/brief.fixture.ts";
 import type { VerdictResult } from "#src/features/pr/index.ts";
-import { callerOf, delegate, pinned, runtime, started } from "./brief.fixture.ts";
 import { lastLineVerdict } from "./review.ts";
 
 const lines: ReadonlyArray<readonly [string, string, Option.Option<VerdictResult>]> = [

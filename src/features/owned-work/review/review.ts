@@ -6,11 +6,11 @@ import * as Str from "effect/String";
 import { Type } from "typebox";
 
 import type { Gh } from "#src/client/github/index.ts";
+import type { Brief } from "#src/features/owned-work/child.ts";
+import type { LedgerState } from "#src/features/owned-work/step.ts";
+import { BadDelegate, Outcome, type Reviewed, Work, type WorkRef } from "#src/features/owned-work/work.ts";
 import { pin, type ReviewTarget, VerdictResult } from "#src/features/pr/index.ts";
 import { answerOf } from "./answer.ts";
-import type { Brief } from "./child.ts";
-import type { LedgerState } from "./step.ts";
-import { BadDelegate, Outcome, type Reviewed, Work, type WorkRef } from "./work.ts";
 
 export const reviewsParam = Type.String({
 	pattern: String.raw`\S`,

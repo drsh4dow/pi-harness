@@ -13,7 +13,7 @@ import { lastFolder } from "#src/features/state-folder/index.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { type ModelCaller, modelChoices, modelDescription, modelNameOf, modelOf, type ModelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
-import { reviewsParam } from "./review.ts";
+import { reviewsParam } from "./review/index.ts";
 import { BadDelegate, workFilesOf } from "./work.ts";
 
 export const roleUses =

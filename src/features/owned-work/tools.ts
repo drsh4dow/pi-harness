@@ -37,7 +37,7 @@ import {
 	waitTimeout,
 } from "./params.ts";
 import { stdoutRedirectOf } from "./redirect.ts";
-import { withReview } from "./review.ts";
+import { withReview } from "./review/index.ts";
 import { Waiting } from "./waiting.ts";
 import { BadDelegate, StartRequest, WorkRef } from "./work.ts";
 

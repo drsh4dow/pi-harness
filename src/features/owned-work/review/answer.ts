@@ -2,7 +2,7 @@ import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import type { Answer } from "./work.ts";
+import type { Answer } from "#src/features/owned-work/work.ts";
 
 const answerCap = 20_000;
 

@@ -9,7 +9,7 @@ import { type TerminalAddress, TerminalEnd, type TerminalSnapshot } from "#src/c
 import type { Role } from "./child.ts";
 import { Groups } from "./groups.ts";
 import { carried, deadlineOf, nameTaken, running } from "./lifetime.ts";
-import { doneOf } from "./review.ts";
+import { doneOf } from "./review/index.ts";
 import { Command, Draft, type Job, type LedgerState, type Step, type Woke, Verdict } from "./step.ts";
 import {
 	FailReason,
