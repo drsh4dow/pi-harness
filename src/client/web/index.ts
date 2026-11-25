@@ -42,7 +42,6 @@ const fallback = (request: SearchRequest) => (exa: ExaError) =>
 		onSuccess: parallelHits,
 	});
 
-/** Exa's four tries of up to 30 s each could take two minutes, so its turn ends at 15 s to leave Parallel the other 15 s, and a search never outlasts the 30 s of a single fetch. */
 const exaTooSlow = ExaError.make({ message: "no answer in 15 s" });
 
 const searchTooSlow = WebError.make({ kind: "provider", message: "no search answer in 30 s" });

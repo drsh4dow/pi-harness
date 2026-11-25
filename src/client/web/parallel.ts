@@ -31,7 +31,6 @@ type Result = typeof Result.Type;
 
 const failed = (why: string) => WebError.make({ kind: "provider", message: `parallel: ${why}` });
 
-/** The reply is one server-sent event, or plain JSON when the server skips the stream. */
 const payloadOf = (body: string) => {
 	const event = Arr.findFirst(Str.split(body, "\n"), Str.startsWith("data:"));
 
@@ -51,7 +50,6 @@ const onHost = (url: string, domain: string) => {
 	return host === domain || Str.endsWith(`.${domain}`)(host);
 };
 
-/** Parallel's web_search takes no per-call domain or date filter, so domains travel as site: terms and both are checked here. */
 const wanted =
 	({ domains, since }: SearchRequest) =>
 	({ url, publish_date }: Result) =>

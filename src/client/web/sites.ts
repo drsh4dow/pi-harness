@@ -87,7 +87,6 @@ const hnThread = (item: HnItem): string =>
 
 const linkHtml = (link: string) => `<p><a href="${escaped(link)}">${escaped(link)}</a></p>`;
 
-/** Algolia drops flagged items that HN still serves, so its 404 hands the read on, unless HN's own page says there is no such item. */
 const hnMissing = (url: URL) =>
 	Effect.flatMap(got(url.href), (page) =>
 		Str.trim(textOf(page)) === "No such item."
@@ -177,7 +176,6 @@ export const reddit = {
 	read: redditRead,
 } as const satisfies Source<"reddit">;
 
-/** `#/guide/setup?id=x` names `guide/setup.md` beside the page, and `#/` names `README.md`. */
 const docsifyFile = (url: URL) => {
 	const route = Str.replace(/\?.*$/u, "")(Str.slice(2)(url.hash));
 	const file = route === "" || Str.endsWith("/")(route) ? `${route}README.md` : `${route}.md`;
@@ -225,7 +223,6 @@ const secretWords: ReadonlySet<string> = new Set([
 
 const secretNames: ReadonlySet<string> = new Set(["code", "expires", "sid"]);
 
-/** Lowercase compounds such as authtoken, sessionid, rlkey (Dropbox) or resourcekey (Drive) that split into no listed word. */
 const secretInside =
 	/token|secret|passw|passc|passphr|sessid|credential|session|authori[sz]|jwt|(?:api|auth|access|private|client|rl|resource|sign|signing)key|^key\d+$/u;
 
@@ -242,7 +239,6 @@ const isSecretName = (name: string) => {
 	);
 };
 
-/** A fragment counts only when it holds key=value pairs, as an OAuth redirect's does; a plain #anchor names a heading. */
 const parameterNames = (url: URL) => {
 	const fragment = Str.includes("=")(url.hash) ? new URLSearchParams(Str.slice(1)(url.hash)) : new URLSearchParams();
 

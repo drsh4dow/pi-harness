@@ -34,7 +34,6 @@ const headingOf = (markdown: string) =>
 
 const markdownWith = (options: DefuddleOptions) => (url: string) => (html: string) =>
 	Effect.tryPromise({
-		// With useAsync on, Defuddle's extractors call third-party APIs, which would go around the guard.
 		try: () => Defuddle(html, url, { ...options, markdown: true, useAsync: false }),
 		catch: (cause) =>
 			WebError.make({ kind: "bad-answer", message: `${url}: HTML did not convert (${String(cause)})` }),
@@ -42,13 +41,11 @@ const markdownWith = (options: DefuddleOptions) => (url: string) => (html: strin
 
 const htmlMarkdown = markdownWith({});
 
-/** Thread HTML holds no page chrome, and Defuddle's content patterns would drop each author line above the first long comment as a date byline. */
 export const threadMarkdown = markdownWith({ removeContentPatterns: false });
 
 const pageMark = (page: string, index: number) => `<!-- page ${String(index + 1)} -->\n${page}`;
 
 const pdfToMarkdown = (bytes: Uint8Array) =>
-	// The pdf.js in unpdf detaches the buffer it is given, so it gets a copy and the saved file keeps the bytes.
 	Effect.tryPromise({ try: () => getDocumentProxy(new Uint8Array(bytes)), catch: () => "not a readable PDF" }).pipe(
 		Effect.flatMap((pdf) =>
 			Effect.tryPromise({ try: () => extractText(pdf, { mergePages: false }), catch: () => "no text layer" }),
@@ -65,7 +62,6 @@ const kindOfPage = ({ mime, bytes }: Fetched): Kind => {
 	return kind === "file" && isPdf(bytes) ? "pdf" : kind;
 };
 
-/** Defuddle takes about 0.3 s and 75 MB per MB of HTML, so a larger page is cut first. */
 const htmlCap = 2 * 1024 * 1024;
 
 const htmlCut = "Only the first 2 MB of this page's HTML was converted.";
@@ -102,7 +98,6 @@ export const pageOf = (page: Fetched): Effect.Effect<Found, WebError> => {
 	);
 };
 
-// Next.js docs and Cloudflare answer Accept: text/markdown with markdown; Mintlify and Bun publish it at <path>.md, where an SPA catch-all answers HTML instead.
 const accept = { accept: "text/markdown, text/html;q=0.9, */*;q=0.8" };
 
 const siblingOf = (url: string) => {

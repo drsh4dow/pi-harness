@@ -24,7 +24,6 @@ export interface Page {
 }
 
 export class WebError extends Schema.TaggedError<WebError, { readonly brand: unique symbol }>()("WebError", {
-	/** `unreachable`: no full HTTP answer: no connection, a 30 s timeout, or a body cut off. `bad-answer`: a status outside 2xx other than 404, 410 and a bot check, or a body that did not decode or convert. `needs-browser`: a bot check. `not-saved`: the page was read but could not be saved. */
 	kind: Schema.Literals([
 		"blocked",
 		"gone",
@@ -60,7 +59,6 @@ export const rendered = ({ finalUrl, title, text }: Rendered): Found => ({
 	body: Body.Markdown({ text }),
 });
 
-/** For a site source: a 404 from the site's own API means "not one of mine", so the next source decides. */
 export const unlessGone = <Value, Needs>(
 	read: Effect.Effect<Value, WebError, Needs>,
 ): Effect.Effect<Option.Option<Value>, WebError, Needs> =>

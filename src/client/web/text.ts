@@ -23,7 +23,6 @@ export const mimeOf = (headers: Headers.Headers) => {
 const charsetOf = (headers: Headers.Headers) =>
 	Option.fromNullishOr(/charset="?(?<label>[^";\s]+)/iu.exec(headers["content-type"] ?? "")?.groups?.["label"]);
 
-/** Bun types TextDecoder's label as its list of encoding names, and an unknown name throws. */
 const isEncoding = (label: string): label is Bun.Encoding =>
 	Option.getOrElse(
 		Option.liftThrowable(() => Reflect.construct(TextDecoder, [label]) instanceof TextDecoder)(),

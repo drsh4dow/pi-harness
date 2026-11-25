@@ -44,7 +44,6 @@ const ipv6Ranges = [
 	["ff00::", 8],
 ] as const;
 
-/** IPv6 ranges that carry an IPv4 address in the 32 bits after their prefix, given that address as two hex groups. */
 const ipv4Carriers = [
 	[(high: string, low: string) => `::${high}:${low}`, 96],
 	[(high: string, low: string) => `::ffff:${high}:${low}`, 96],
@@ -160,7 +159,6 @@ const tooLarge = (url: string) => WebError.make({ kind: "too-large", message: `$
 
 const isWebError = Schema.is(WebError);
 
-/** Only the 30 s timeout is a TransportError, the reason `HttpClient.retryTransient` retries, since a refusal would come back the same. `guarding` reshapes the TransportError Node's transport reports when `lookupWith` refuses a private address. */
 const failure = (
 	request: HttpClientRequest.HttpClientRequest,
 	error: WebError,
@@ -223,12 +221,6 @@ const guarding = (client: HttpClient.HttpClient) =>
 		}),
 	);
 
-/**
- * Every request through this client, Exa's included, has its URL checked, at most 25 MB of body and 30 s to answer,
- * and no traceparent or b3 header, which would hand every site our trace ids. It follows no redirect, so a key header
- * never reaches another host. `fetched` follows them, and `followRedirects` re-enters only the response half of this
- * client, where `HttpClient.transform` sits, so each hop is checked.
- */
 export const guardedHttp = (transport: Layer.Layer<HttpClient.HttpClient>): Layer.Layer<HttpClient.HttpClient> =>
 	Layer.effect(
 		HttpClient.HttpClient,
@@ -240,7 +232,6 @@ export const guardedHttp = (transport: Layer.Layer<HttpClient.HttpClient>): Laye
 		),
 	).pipe(Layer.provide(transport));
 
-/** `lookupWith` hands the agent the addresses it checked, so the socket connects to exactly those and a second DNS answer (rebinding) cannot slip in. Node's per-client http agents ignore HTTP(S)_PROXY, which would resolve DNS itself and skip the pin. */
 export const transportWith = (resolve: Resolve): Layer.Layer<HttpClient.HttpClient> =>
 	NodeHttpClient.layerNodeHttpOptions({ lookup: lookupWith(resolve) });
 

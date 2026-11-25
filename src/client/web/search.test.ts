@@ -71,15 +71,20 @@ const parallelResults = [
 	{ url: "https://bun.sh/undated", title: "Undated", excerpts: [] },
 ];
 
-const parallelEvent = Effect.gen(function* () {
+const parallelReply = Effect.gen(function* () {
 	const text = yield* jsonText({ search_id: "s", results: parallelResults });
-	const data = yield* jsonText({ jsonrpc: "2.0", id: 1, result: { content: [{ type: "text", text }] } });
 
-	return `event: message\ndata: ${data}\n\n`;
+	return yield* jsonText({ jsonrpc: "2.0", id: 1, result: { content: [{ type: "text", text }] } });
 });
 
-const parallelBody = (): ReadableStream<Uint8Array> =>
-	parallelEvent.pipe(Effect.orDie, Stream.fromEffect, Stream.encodeText, Stream.toReadableStream());
+const parallelEvent = Effect.map(parallelReply, (data) => `event: message\ndata: ${data}\n\n`);
+
+const streamOf = (body: Effect.Effect<string, Schema.SchemaError>): ReadableStream<Uint8Array> =>
+	body.pipe(Effect.orDie, Stream.fromEffect, Stream.encodeText, Stream.toReadableStream());
+
+const parallelBody = () => streamOf(parallelEvent);
+
+const parallelJson = () => new Response(streamOf(parallelReply), { headers: { "content-type": "application/json" } });
 
 const parallelHits = (body: string) =>
 	Str.includes("bun serve site:bun.sh OR site:github.com")(body)
@@ -117,6 +122,12 @@ const rows: ReadonlyArray<Row> = [
 		absent: ["Old", "Elsewhere", "Undated", Str.repeat(301)("x")],
 	},
 	{
+		name: "Parallel's reply as plain JSON, without an event stream, is read too",
+		withExaKey: false,
+		routes: { "POST https://mcp.parallel.ai/mcp": parallelJson },
+		expect: ["provider parallel\ncost -\n- HTTP server <https://bun.sh/docs/api/http>"],
+	},
+	{
 		name: "when Exa refuses the key, Parallel answers",
 		withExaKey: true,
 		routes: { "POST https://api.exa.ai/search": unauthorized, "POST https://mcp.parallel.ai/mcp": parallelHits },
@@ -147,14 +158,16 @@ const slowRows = [
 	{
 		name: "an Exa search that never answers gives way to Parallel after 15 s",
 		parallel: parallelHits,
+		after: "15 seconds",
 		expect: "provider parallel",
 	},
 	{
 		name: "a search no provider answers gives up after 30 s",
 		parallel: never,
+		after: "30 seconds",
 		expect: "provider: no search answer in 30 s",
 	},
-];
+] as const;
 
 test.each(slowRows)("$name", (row) => {
 	const routes = { "POST https://api.exa.ai/search": never, "POST https://mcp.parallel.ai/mcp": row.parallel };
@@ -164,7 +177,7 @@ test.each(slowRows)("$name", (row) => {
 		Effect.gen(function* () {
 			const searching = yield* Effect.forkChild(search);
 
-			yield* TestClock.adjust("10 minutes");
+			yield* TestClock.adjust(row.after);
 
 			const got = yield* Fiber.join(searching);
 

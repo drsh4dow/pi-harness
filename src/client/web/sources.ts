@@ -130,7 +130,6 @@ const tryEach =
 			},
 		});
 
-/** Tries the sources that claim the URL in table order and returns the first good answer. A thin answer lets the next source try, and the longest thin one comes back with a caveat when none is good. */
 export const readPage = (url: PublicUrl): Effect.Effect<Page, WebError, HttpClient.HttpClient | Exa> =>
 	Effect.flatMap(Exa, (exa) => {
 		const parsed = new URL(url);

@@ -29,6 +29,11 @@ const endless = brokenWithExa(() => new Response(new ReadableStream()));
 
 const busyOnce = brokenWithExa(inTurn([() => new Response("", { status: 503 }), exaCopy]));
 
+const silentOnce = brokenWithExa(inTurn([() => new Response(new ReadableStream()), exaCopy]));
+
+const freshCopy = (body: string) =>
+	Str.includes('"maxAgeHours":1,')(body) ? exaCopy() : new Response("", { status: 400 });
+
 const readAfterTenMinutes = Effect.gen(function* () {
 	const reading = yield* Effect.forkChild(readOutcome("https://docs.example/broken"));
 
@@ -55,6 +60,15 @@ test("Exa is asked again after it answers 503", () =>
 		}).pipe(Effect.provide(busyOnce)),
 	));
 
+test("Exa is asked again after it sends no answer in 30 s", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const got = yield* readAfterTenMinutes;
+
+			expect(got).toContain("via exa");
+		}).pipe(Effect.provide(silentOnce)),
+	));
+
 const huge = plain(Str.repeat(26 * 1024 * 1024)("x"));
 
 test.each<ReadRow>([
@@ -68,6 +82,16 @@ test.each<ReadRow>([
 		},
 		expect: ["https://api.exa.ai/contents is over 25 MB"],
 		absent: ["via exa"],
+	},
+	{
+		name: "Exa is asked for a copy crawled within the last hour",
+		url: "https://docs.example/broken",
+		withExaKey: true,
+		routes: {
+			"GET https://docs.example/broken": broken,
+			"POST https://api.exa.ai/contents": freshCopy,
+		},
+		expect: ["via exa"],
 	},
 ])("$name", readRow);
 

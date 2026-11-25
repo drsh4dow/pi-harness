@@ -77,7 +77,6 @@ const Entries = Schema.Array(Schema.Struct({ name: Schema.String, type: Schema.S
 
 type Post = typeof Post.Type;
 
-/** GitHub's Link header points later pages at api.github.com/repositories/<id>/, so the URL is followed whole. */
 const nextPage = (page: Fetched) =>
 	Option.fromNullishOr(/<(?<next>[^>]+)>;\s*rel="next"/u.exec(page.headers["link"] ?? "")?.groups?.["next"]).pipe(
 		Option.flatMap(Schema.decodeUnknownOption(ApiUrl)),

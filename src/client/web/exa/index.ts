@@ -81,7 +81,6 @@ interface SearchBody {
 	readonly contents: { readonly highlights: true };
 }
 
-/** `maxAgeHours: 1` makes Exa re-crawl any page it cached over an hour ago, so a stale copy is not served as current. */
 interface ContentsBody {
 	readonly urls: readonly [string];
 	readonly text: true;

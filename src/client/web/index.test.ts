@@ -1,8 +1,12 @@
-import { test } from "bun:test";
+import { afterAll, expect, spyOn, test } from "bun:test";
 
 import * as Arr from "effect/Array";
+import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
+import * as Layer from "effect/Layer";
 import * as Rec from "effect/Record";
 import * as Str from "effect/String";
+import * as TestClock from "effect/testing/TestClock";
 
 import {
 	bytes,
@@ -16,16 +20,37 @@ import {
 	prose,
 	redirect,
 } from "./transport.fixture.ts";
-import { type ReadRow, readRow } from "./web.fixture.ts";
+import { type ReadRow, readOutcome, readRow, webFor } from "./web.fixture.ts";
 
 const latin1 = (text: string) => Buffer.from(text, "latin1");
+
+const aroundTheGuard = "fetched around the guard";
+
+const unguardedFetch = spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ text: aroundTheGuard }));
+
+afterAll(() => {
+	unguardedFetch.mockRestore();
+});
 
 const rows: ReadonlyArray<ReadRow> = [
 	{
 		name: "a site that answers Accept: text/markdown is read as served",
 		url: "https://nextjs.org/docs/app",
-		routes: { "GET https://nextjs.org/docs/app": markdown(`# App Router\n\n${prose("Next")}`) },
+		routes: {
+			"GET https://nextjs.org/docs/app": (_body, headers) =>
+				Str.includes("text/markdown")(headers["accept"] ?? "")
+					? markdown(`# App Router\n\n${prose("Next")}`)()
+					: docsPage("App Router")(),
+			"GET https://nextjs.org/docs/app.md": missing,
+		},
 		expect: ["via direct", "title App Router", "# App Router\n\nNext starts"],
+	},
+	{
+		name: "a page Defuddle has an API extractor for is converted from its own HTML, with no fetch around the guard",
+		url: "https://wiki.c2.com/?WelcomeVisitors",
+		routes: { "GET https://wiki.c2.com/?WelcomeVisitors": docsPage("Welcome Visitors") },
+		expect: ["via direct", "Welcome Visitors starts"],
+		absent: [aroundTheGuard],
 	},
 	{
 		name: "an HTML page with a .md copy beside it, as Mintlify and Bun publish, is read from the copy",
@@ -123,6 +148,16 @@ const rows: ReadonlyArray<ReadRow> = [
 		expect: ["Crème brûlée"],
 	},
 	{
+		name: "a text file whose charset names no known encoding is decoded as UTF-8",
+		url: "https://odd.example/notes.txt",
+		routes: {
+			"GET https://odd.example/notes.txt": bytes("text/plain; charset=x-no-such-encoding")(
+				new TextEncoder().encode("Crème brûlée"),
+			),
+		},
+		expect: ["Crème brûlée"],
+	},
+	{
 		name: "a PDF keeps its bytes and gets its text as markdown",
 		url: "https://arxiv.org/pdf/1706.03762",
 		routes: { "GET https://arxiv.org/pdf/1706.03762": bytes("application/pdf")(pdfBytes) },
@@ -169,6 +204,12 @@ const rows: ReadonlyArray<ReadRow> = [
 		routes: { "GET https://docs.example/broken": () => new Response("", { status: 500 }) },
 		expect: ["bad-answer: direct: https://docs.example/broken answered HTTP 500."],
 		absent: ["agent-browser", "exa:"],
+	},
+	{
+		name: "an HTML page that does not convert is a bad answer",
+		url: "https://empty.example/",
+		routes: { "GET https://empty.example/": html("") },
+		expect: ["bad-answer: direct: https://empty.example/: HTML did not convert"],
 	},
 	{
 		name: "a bot check is not taken for the page",
@@ -233,3 +274,20 @@ const rows: ReadonlyArray<ReadRow> = [
 ];
 
 test.each(rows)("$name", readRow);
+
+test("a page that sends no answer in 30 s is unreachable", () => {
+	const routes = { "GET https://slow.example/": () => new Response(new ReadableStream()) };
+	const layer = Layer.provideMerge(webFor({ routes }), TestClock.layer());
+
+	return Effect.runPromise(
+		Effect.gen(function* () {
+			const reading = yield* Effect.forkChild(readOutcome("https://slow.example/"));
+
+			yield* TestClock.adjust("10 minutes");
+
+			const got = yield* Fiber.join(reading);
+
+			expect(got).toStartWith("unreachable: direct: https://slow.example/: no answer in 30 s");
+		}).pipe(Effect.provide(layer)),
+	);
+});

@@ -146,6 +146,12 @@ const rows: ReadonlyArray<ReadRow> = [
 		expect: ["via docsify", "final https://docs.example/site/guide/setup.md", "# Setup"],
 	},
 	{
+		name: "a Docsify home route is read from the README beside the page",
+		url: "https://docs.example/site/#/",
+		routes: { "GET https://docs.example/site/README.md": plain("# Home\n\nWelcome.") },
+		expect: ["via docsify", "final https://docs.example/site/README.md", "# Home"],
+	},
+	{
 		name: "a hash route that leaves the page's origin is left to direct",
 		url: "https://docs.example/#///evil.example/x",
 		routes: { "GET https://docs.example/": docsPage("Docs") },
@@ -247,6 +253,15 @@ const rows: ReadonlyArray<ReadRow> = [
 			"GET https://news.ycombinator.com/item?id=7": () => new Response("", { status: 503 }),
 		},
 		expect: ["bad-answer: hacker-news: ", "direct: https://news.ycombinator.com/item?id=7 answered HTTP 503"],
+	},
+	{
+		name: "an API answer that does not decode tells more than a host that never answered",
+		url: "https://news.ycombinator.com/item?id=8",
+		routes: {
+			"GET https://hn.algolia.com/api/v1/items/8": plain("Down for maintenance"),
+			"GET https://news.ycombinator.com/item?id=8": dropsMidBody,
+		},
+		expect: ["bad-answer: hacker-news: https://hn.algolia.com/api/v1/items/8: unexpected answer"],
 	},
 	{
 		name: "a host that never answers is unreachable, and its URL is not sent to Exa",
