@@ -116,7 +116,6 @@ const merge = (root: string, pr: string) =>
 		decide("merge gate: merge refused.", [reading], ["--match-head-commit", reading.view.head]),
 	);
 
-/** Reads the pull requests a merge lands and their verdicts under `root`, and refuses when any read fails. */
 export const gate =
 	(root: string) =>
 	(

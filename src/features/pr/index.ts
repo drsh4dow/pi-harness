@@ -59,10 +59,6 @@ const untilChanged = <Services>(
 ): Effect.Effect<Arr.NonEmptyReadonlyArray<string>, GhError, Services> =>
 	Effect.filterOrElse(Effect.retry(round, { times: 2 }), Arr.isReadonlyArrayNonEmpty, () => untilChanged(round));
 
-/**
- * Reads every pull request, then re-reads all of them every 60 s until one changes. Returns the change lines, each
- * prefixed by the ref. A pull request already merged or closed ends the wait at once, since nothing will change on it.
- */
 export const prWait = (
 	prs: Arr.NonEmptyReadonlyArray<string>,
 ): Effect.Effect<Arr.NonEmptyReadonlyArray<string>, GhError, Gh> =>

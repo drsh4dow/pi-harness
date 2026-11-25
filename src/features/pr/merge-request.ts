@@ -3,7 +3,6 @@ import * as Data from "effect/Data";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-/** What a `gh` call asks to merge. */
 export type MergeRequest = Data.TaggedEnum<{
 	Merge: { readonly pr: string };
 	StackMerge: { readonly ceiling: string };
@@ -86,11 +85,9 @@ const deferred = (pr: string) =>
 		"The gate pins that merge to the head it checked.",
 	]);
 
-/** `-R` takes `[HOST/]OWNER/REPO`. */
 const prUrl = (repo: string, number: string) =>
 	Str.split(repo, "/").length === 3 ? `https://${repo}/pull/${number}` : `https://github.com/${repo}/pull/${number}`;
 
-/** None for a branch name with `-R`: gh resolves it in that repository, and the gate cannot. */
 const selectorOf = (target: string, repo: Option.Option<string>): Option.Option<string> => {
 	if (/^\d+$/u.test(target)) {
 		return Option.some(Option.match(repo, { onNone: () => target, onSome: (named) => prUrl(named, target) }));
@@ -145,7 +142,6 @@ const stackMergeOf = (target: string | undefined): MergeRequest =>
 
 const restMerge = /pulls\/[^/]+\/merge/u;
 
-/** A merge through `gh api` is refused by its text, because an endpoint has more spellings than the gate can read a pull request from. */
 const apiMergeOf = (argv: ReadonlyArray<string>): Option.Option<MergeRequest> => {
 	if (Arr.some(argv, Str.includes("enablePullRequestAutoMerge"))) {
 		return Option.some(deferred("<number>"));
@@ -162,7 +158,6 @@ const apiMergeOf = (argv: ReadonlyArray<string>): Option.Option<MergeRequest> =>
 		: Option.none();
 };
 
-/** None for a call that merges nothing: the wrapper hands it to the real gh unchanged. */
 export const mergeRequestOf = (argv: ReadonlyArray<string>): Option.Option<MergeRequest> => {
 	const { positionals, flags } = parsed(argv);
 	const [command, sub = "", target] = positionals;

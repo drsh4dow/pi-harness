@@ -4,7 +4,6 @@ import { Gh, GhError, type VerdictRecord } from "#src/client/github/index.ts";
 
 export type ReviewTarget = Pick<VerdictRecord, "repo" | "number" | "head" | "patchId">;
 
-/** Reads the head again after the diff, so a push in between cannot pin one head with another's patch-id. */
 export const pin = (pr: string) =>
 	Effect.gen(function* () {
 		const gh = yield* Gh;

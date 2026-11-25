@@ -4,11 +4,9 @@
 	"src/features/compaction/index.ts no-comments": 1,
 	"src/features/compaction/overflow.scenario.ts no-comments": 2,
 	"src/features/compaction/summary.ts no-comments": 2,
-	"src/features/pr/gate.ts no-comments": 2,
-	"src/features/pr/index.ts no-comments": 1,
+	"src/features/pr/gate.ts no-comments": 1,
 	"src/features/pr/merge-gate.scenario.ts no-comments": 4,
-	"src/features/pr/merge-request.ts no-comments": 6,
-	"src/features/pr/verdict.ts no-comments": 1,
+	"src/features/pr/merge-request.ts no-comments": 1,
 	"src/features/state-folder/index.test.ts no-comments": 2,
 	"src/features/state-folder/index.ts no-comments": 9
 }
