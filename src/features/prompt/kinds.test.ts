@@ -175,19 +175,14 @@ test("playbooks/<name>.md names a playbook, and a file in a playbook's subfolder
 	expect(playbookReferences(text)).toEqual(["bug-fix"]);
 });
 
-/** The text of `SYSTEM.md` and of every `.md` file under each folder of the agent dir. A missing folder has none. */
 const promptTexts = (folders: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 
 		const listed = yield* Effect.forEach(folders, (folder) =>
-			Effect.gen(function* () {
-				const files = (yield* fs.exists(`${agentDir}/${folder}`))
-					? yield* fs.readDirectory(`${agentDir}/${folder}`, { recursive: true })
-					: [];
-
-				return Arr.map(Arr.filter(files, Str.endsWith(".md")), (file) => `${folder}/${file}`);
-			}),
+			Effect.map(fs.readDirectory(`${agentDir}/${folder}`, { recursive: true }), (files) =>
+				Arr.map(Arr.filter(files, Str.endsWith(".md")), (file) => `${folder}/${file}`),
+			),
 		);
 
 		return yield* Effect.forEach(["SYSTEM.md", ...Arr.flatten(listed)], (file) =>
