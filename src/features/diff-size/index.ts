@@ -21,7 +21,6 @@ const documentation = "linguist-documentation";
 
 const isSet = (value: string | undefined) => value === "set" || value === "true";
 
-/** `linguist-generated` in `.gitattributes` makes a path other, and `linguist-documentation` set or unset overrides the docs rule. */
 const kindOf = (path: string, attribute: (name: string) => string | undefined): Kind => {
 	if (isSet(attribute(generated)) || lockOrSnapshot.test(path)) {
 		return "other";
@@ -55,7 +54,6 @@ const attributesOf = (checkAttr: string) => {
 	return new Map(Arr.map(triples, ([path, name, value]) => [`${path}\0${name ?? ""}`, value]));
 };
 
-/** One line that sizes `<base>...<head>` by kind of path, with binary files as zero lines. */
 export const diffSize = Effect.fn("diffSize")(function* (base: string, head: string) {
 	const mergeBase = yield* Effect.map(git({ args: ["merge-base", base, head] }), Str.trim);
 	const numstat = yield* git({ args: ["diff", "--numstat", "-z", "--no-renames", mergeBase, head] });
