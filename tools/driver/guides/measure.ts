@@ -91,12 +91,6 @@ const stage = ({
 		return markers;
 	});
 
-/**
- * A scenario's whole `play`. Plants `history`, sends `request` as the human's one message, and stops at the first of:
- * `event` finds its window, the root gives its final reply, `within` runs out. Then it prints each read of `guides`,
- * the window, the principles the root read, and last `verdict <hit|miss|no-event> <model> <ended>`. Every verdict
- * passes; a run that breaks prints no verdict.
- */
 export const measure = ({
 	run,
 	guides,
