@@ -80,7 +80,7 @@ scenario({
 	model: "phi/auto",
 	files: router.files,
 	settings: {
-		compaction: { enabled: true, reserveTokens: 984_000, keepRecentTokens: 2000 },
+		compaction: { enabled: true, reserveTokens: 1_000_000, keepRecentTokens: 2000 },
 		packages: [router.checkout],
 	},
 	play: (run) =>
