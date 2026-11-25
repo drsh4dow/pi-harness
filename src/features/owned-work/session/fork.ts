@@ -24,16 +24,10 @@ import { entryKind, unsettledRefs } from "#src/features/owned-work/recorded.ts";
 
 type Sessions = ExtensionContext["sessionManager"];
 
-/** The label herdr-app reads to show a terminal in one of its spaces, in a tab of its own. */
 const spaceLabel = "herdr.space";
 
-/** Set on a fork's pi, whose owned-work puts it back in the editor when the fork starts. */
 const draftVariable = "PI_OWNED_WORK_DRAFT";
 
-/**
- * What `/fork` or `/clone` copies: the path to `leaf`, or nothing when that path holds no message yet, and for `/fork`
- * the prompt it puts back in the editor.
- */
 export interface ForkPlan {
 	readonly leaf: Option.Option<string>;
 	readonly draft: Option.Option<string>;
@@ -42,7 +36,6 @@ export interface ForkPlan {
 const isConversation = (entry: SessionEntry): boolean =>
 	entry.type === "message" && (entry.message.role === "user" || entry.message.role === "assistant");
 
-/** Pi's own choice of path and prompt for `/fork` (`before` a user message) and `/clone` (`at` the leaf). */
 export const forkPlanOf =
 	(manager: Pick<Sessions, "getEntry" | "getBranch">) =>
 	({ entryId, position }: Pick<SessionBeforeForkEvent, "entryId" | "position">): Option.Option<ForkPlan> => {
@@ -69,7 +62,6 @@ export const forkPlanOf =
 		}));
 	};
 
-/** The herdr-app space `terminal` shows in, so a fork opens beside it. None outside herdr-app. */
 const spaceOf = (terminal: Option.Option<TerminalAddress>): Effect.Effect<Option.Option<string>, HcError, Hc> =>
 	Option.match(terminal, {
 		onNone: () => Effect.succeedNone,
@@ -95,10 +87,8 @@ interface TabRequest {
 	readonly env: Readonly<Record<string, string>>;
 }
 
-/** The herdr-app window learns of a new terminal a moment after hc starts it. */
 const untilShown = { times: 20, schedule: Schedule.spaced("150 millis") };
 
-/** Starts the fork's pi in a new herdr-app tab beside this one and shows it. This session and its work stay as they are. */
 const openInTab = ({ plan, manager, source, space, cwd, env }: TabRequest) =>
 	Effect.gen(function* () {
 		const hc = yield* Hc;
@@ -144,24 +134,27 @@ const opened = ({ terminal, unfocused }: { terminal: TerminalAddress; unfocused:
 		}),
 	});
 
-const spaceOrWarn = (terminal: Option.Option<TerminalAddress>, ctx: Pick<ExtensionContext, "ui">) =>
+const spaceOrWarn = (terminal: Option.Option<TerminalAddress>, ctx: Notifier) =>
 	Effect.catchTag(spaceOf(terminal), "HcError", ({ message }) => {
 		ctx.ui.notify(`Could not find this tab in herdr-app, so the fork replaces this session: ${message}`, "warning");
 
 		return Effect.succeedNone;
 	});
 
+interface Notifier {
+	readonly ui: Pick<ExtensionContext["ui"], "notify">;
+}
+
 export interface ForkRequest {
 	readonly event: SessionBeforeForkEvent;
-	readonly ctx: Pick<ExtensionContext, "mode" | "cwd" | "sessionManager" | "ui">;
+	readonly ctx: Pick<ExtensionContext, "mode" | "cwd"> &
+		Notifier & {
+			readonly sessionManager: Pick<Sessions, "getEntry" | "getBranch" | "getSessionDir" | "getSessionFile">;
+		};
 	readonly ownTerminal: Option.Option<TerminalAddress>;
 	readonly env: Readonly<Record<string, string>>;
 }
 
-/**
- * In a herdr-app tab, `/fork` and `/clone` open the copy in a new tab beside this one, so this session keeps running
- * with its work. False when pi has to fork in place instead: outside herdr-app, or for a session with no file.
- */
 export const forkInTab = ({ event, ctx, ownTerminal, env }: ForkRequest) =>
 	Effect.gen(function* () {
 		const space = yield* ctx.mode === "tui" ? spaceOrWarn(ownTerminal, ctx) : Effect.succeedNone;
@@ -189,14 +182,13 @@ export const forkInTab = ({ event, ctx, ownTerminal, env }: ForkRequest) =>
 		return true;
 	});
 
-/** A fork's pi puts back in the editor the prompt `/fork` took it from, once, when it starts. */
 export const restoreDraft = ({
 	event,
 	ctx,
 	env,
 }: {
-	readonly event: SessionStartEvent;
-	readonly ctx: ExtensionContext;
+	readonly event: Pick<SessionStartEvent, "reason">;
+	readonly ctx: Pick<ExtensionContext, "hasUI"> & { readonly ui: Pick<ExtensionContext["ui"], "setEditorText"> };
 	readonly env: Readonly<Record<string, string | undefined>>;
 }): void => {
 	const draft = Option.fromUndefinedOr(env[draftVariable]);
