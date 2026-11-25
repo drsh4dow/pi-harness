@@ -49,24 +49,31 @@ const finished = (handle: ChildProcessSpawner.ChildProcessHandle) =>
 		{ concurrency: 2 },
 	);
 
+interface UserCommand {
+	readonly program: "systemctl" | "systemd-run";
+	readonly args: ReadonlyArray<string>;
+	readonly succeedsOn: ReadonlyArray<number>;
+}
+
 const systemd = (
 	spawner: ChildProcessSpawner.ChildProcessSpawner["Service"],
-	program: string,
-	args: ReadonlyArray<string>,
-	ok: ReadonlyArray<number>,
+	{ program, args, succeedsOn }: UserCommand,
 ) =>
 	spawner.spawn(ChildProcess.make(program, ["--user", ...args])).pipe(
 		Effect.flatMap(finished),
 		Effect.scoped,
 		Effect.mapError((error) => error.message),
 		Effect.filterOrFail(
-			({ code }) => ok.includes(code),
+			({ code }) => succeedsOn.includes(code),
 			({ output }) => Str.trim(output),
 		),
 	);
 
 const stopUnit = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], unit: string) =>
-	Effect.ignore(systemd(spawner, "systemctl", ["stop", "--no-block", unit], [0, notLoaded]), { log: "Warn" });
+	Effect.ignore(
+		systemd(spawner, { program: "systemctl", args: ["stop", "--no-block", unit], succeedsOn: [0, notLoaded] }),
+		{ log: "Warn" },
+	);
 
 /** Stops the root's watcher, whose ExecStopPost stops the root's slice and every job in it. */
 export const stopRoot = (slice: string) =>
@@ -78,7 +85,7 @@ export const ownCgroup = Effect.flatMap(FileSystem.FileSystem, (fs) =>
 );
 
 const isActive = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], unit: string) =>
-	Effect.isSuccess(systemd(spawner, "systemctl", ["is-active", "--quiet", unit], [0]));
+	Effect.isSuccess(systemd(spawner, { program: "systemctl", args: ["is-active", "--quiet", unit], succeedsOn: [0] }));
 
 /**
  * The root's slice outlives a `kill -9` of the root, so a user service outside hc waits on the root's pid and stops
@@ -97,7 +104,10 @@ const watchRoot = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], 
 		"/dev/null",
 	];
 
-	const start = Effect.mapError(systemd(spawner, "systemd-run", service, [0]), noUserManager);
+	const start = Effect.mapError(
+		systemd(spawner, { program: "systemd-run", args: service, succeedsOn: [0] }),
+		noUserManager,
+	);
 
 	return Effect.flatMap(isActive(spawner, `${slice}.service`), (running) =>
 		running ? Effect.void : Effect.asVoid(start),

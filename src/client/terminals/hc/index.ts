@@ -158,13 +158,13 @@ const change = (socket: string, method: string, params: Schema.JsonObject & { re
 		Effect.ignore({ log: "Warn" }),
 	);
 
-const read = (socket: string, terminal: TerminalAddress, history: number) =>
+const read = (socket: string) => (terminal: TerminalAddress, history: number) =>
 	call(socket)("terminal.read", { terminal, lines: history }, Schema.Struct({ text: Schema.String })).pipe(
 		Effect.retry(safely),
 		Effect.map(({ text }) => Str.trimEnd(text)),
 	);
 
-const waitForOutput = (socket: string, terminal: TerminalAddress, pattern: string, timeout: Duration.Duration) =>
+const waitForOutput = (socket: string) => (terminal: TerminalAddress, pattern: string, timeout: Duration.Duration) =>
 	call(socket)(
 		"terminal.wait",
 		{ terminal, output: pattern, timeout: Duration.toSeconds(timeout) },
@@ -264,8 +264,8 @@ export const hcLayer = (options: HcOptions): Layer.Layer<Hc> =>
 				follow: Effect.asVoid(subscription),
 				kill: (terminal) => change(socket, "terminal.kill", { terminal }),
 				label: (terminal, labels) => change(socket, "terminal.label", { terminal, labels }),
-				waitForOutput: (terminal, pattern, timeout) => waitForOutput(socket, terminal, pattern, timeout),
-				read: (terminal, history) => read(socket, terminal, history),
+				waitForOutput: waitForOutput(socket),
+				read: read(socket),
 				notices: Stream.fromQueue(feed.notices),
 			});
 		}),

@@ -1,14 +1,4 @@
 {
-  "src/client/terminals/hc/index.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/client/terminals/systemd/index.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/checks/slots.scenario.ts": {
     "max-params": {
       "count": 1
