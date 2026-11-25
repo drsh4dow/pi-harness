@@ -56,8 +56,7 @@ interface Session {
 	readonly host: PiHost<RuntimeServices, never>;
 	readonly lineage: Handover.Lineage;
 	readonly relay: Relay;
-	/** The hc terminal pi runs in, when it runs in one. */
-	readonly terminal: Option.Option<TerminalAddress>;
+	readonly ownTerminal: Option.Option<TerminalAddress>;
 	readonly passEnv: Readonly<Record<string, string>>;
 }
 
@@ -97,7 +96,7 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 	const services = servicesOf(pi, { agentKey, parent, relay, slices, childExtensions, env });
 	const host = piHost(Layer.provideMerge(ledger, services));
 
-	return { host, lineage: { agentKey, stamp }, relay, terminal: parent, passEnv };
+	return { host, lineage: { agentKey, stamp }, relay, ownTerminal: parent, passEnv };
 };
 
 /**
@@ -186,7 +185,7 @@ const cancelUnless = (ledger: (typeof Ledger)["Service"], ctx: ExtensionContext)
 
 const forkOrAsk =
 	(session: Session, event: SessionBeforeForkEvent, ctx: ExtensionContext) => (ledger: (typeof Ledger)["Service"]) =>
-		Effect.flatMap(forkInTab({ event, ctx, terminal: session.terminal, env: session.passEnv }), (opened) =>
+		Effect.flatMap(forkInTab({ event, ctx, ownTerminal: session.ownTerminal, env: session.passEnv }), (opened) =>
 			opened ? Effect.succeed({ cancel: true }) : cancelUnless(ledger, ctx),
 		);
 

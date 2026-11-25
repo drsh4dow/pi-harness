@@ -154,8 +154,7 @@ const spaceOrWarn = (terminal: Option.Option<TerminalAddress>, ctx: Pick<Extensi
 export interface ForkRequest {
 	readonly event: SessionBeforeForkEvent;
 	readonly ctx: Pick<ExtensionContext, "mode" | "cwd" | "sessionManager" | "ui">;
-	/** The hc terminal this pi runs in. */
-	readonly terminal: Option.Option<TerminalAddress>;
+	readonly ownTerminal: Option.Option<TerminalAddress>;
 	readonly env: Readonly<Record<string, string>>;
 }
 
@@ -163,9 +162,9 @@ export interface ForkRequest {
  * In a herdr-app tab, `/fork` and `/clone` open the copy in a new tab beside this one, so this session keeps running
  * with its work. False when pi has to fork in place instead: outside herdr-app, or for a session with no file.
  */
-export const forkInTab = ({ event, ctx, terminal, env }: ForkRequest) =>
+export const forkInTab = ({ event, ctx, ownTerminal, env }: ForkRequest) =>
 	Effect.gen(function* () {
-		const space = yield* ctx.mode === "tui" ? spaceOrWarn(terminal, ctx) : Effect.succeedNone;
+		const space = yield* ctx.mode === "tui" ? spaceOrWarn(ownTerminal, ctx) : Effect.succeedNone;
 		const plan = forkPlanOf(ctx.sessionManager)(event);
 		const source = Option.fromUndefinedOr(ctx.sessionManager.getSessionFile());
 		const site = Option.all({ plan, source, space });
