@@ -1,11 +1,3 @@
-/**
- * A protected parent's delegate keeps its alias's model, and phi-router picks only the account per request. The root
- * runs on phi/auto and starts a leaf on each alias of owned-work's table, then pins itself and starts one more worker
- * leaf. Each child reads a synthetic record from the wire manifest, then a clean file, so its clean brief, its sealed
- * turn and its clean turn after the seal each land on a mock that records the account and the model id. The
- * investigator runs on openai, a BAA provider, outside the router. The divergent leaf's model is on neither phi-router
- * nor a BAA provider, so it runs on phi/sealed. The leaf of the pinned root starts pinned.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -183,7 +175,6 @@ const pairOf = ({ carrier, model }: Served) => `${carrier}/${model}`;
 
 const pairsOf = (turns: ReadonlyArray<Served>) => Arr.join(Arr.map(turns, pairOf), ", ");
 
-/** An open account receives the record withheld, a BAA account receives it raw. */
 const recordAsDue = (planted: ReadonlyArray<string>) => (turn: Served) => {
 	const raw = foundIn([turn.body])(planted).length > 0;
 

@@ -1,8 +1,3 @@
-/**
- * A switch away from `phi/auto` breaks the seal by the human's choice (ADR 0017). A pi on `phi/auto` seals a synthetic
- * SSN, then the same session continues on raw `ultra-a`. The continued request reaches the `ultra-a` mock outside
- * phi-router, sealed content included, and is not refused.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Str from "effect/String";

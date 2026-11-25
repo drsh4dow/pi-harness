@@ -1,8 +1,3 @@
-/**
- * A 429 on a session's home account moves its request to the other open account. Each Claude account of phi-router's
- * documented lists answers at its mock, and the first open account the prompt reaches, the session's home, answers 429.
- * The prompt reaches its answer from the other open account, and the lane log names that account for the failover.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as MutableRef from "effect/MutableRef";

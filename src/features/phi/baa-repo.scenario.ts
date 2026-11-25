@@ -1,8 +1,3 @@
-/**
- * A session in a BAA repo and its delegate send every request to a BAA account. The run's project folder is in
- * phi-router's `baaRepos`. The root on phi/auto reads a clean file, then starts a fable leaf that reads one too. Each
- * request lands on ent, none on an open account, and each lane line says `BAA repo`.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";

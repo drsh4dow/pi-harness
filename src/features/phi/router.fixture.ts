@@ -102,7 +102,6 @@ export const routerSetup = ({
 	},
 });
 
-/** The policy's stub for a sealed part, which opens the text phi-router puts in its place. */
 const withheld = "[withheld: holds patient identifiers, handled on the HIPAA account]";
 
 const MessagesOf = Schema.fromJsonString(Schema.Struct({ messages: Schema.Json }));

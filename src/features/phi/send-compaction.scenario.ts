@@ -1,8 +1,3 @@
-/**
- * A compaction summary that holds PHI never reaches an open account. The developer pastes a long clean fixture, pi
- * compacts, and the summary the model writes names a synthetic patient. phi-router judges the summary as new content:
- * the next request takes it to ent, and the one after that goes to an open account with the summary withheld.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
