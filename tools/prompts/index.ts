@@ -1,7 +1,3 @@
-/**
- * `bun run prompts [project-dir]` writes `system-prompts.md` at the harness root: the exact first-turn request pi builds
- * for stock pi, for our root agent, and for owners and leaves at each level. No request is sent.
- */
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -36,7 +32,6 @@ interface Run {
 	readonly env: Env;
 }
 
-/** The environment the user's own pi gets. `bun run` puts `node_modules/.bin` folders first in `PATH`, which would run this repo's dev copy of pi. */
 const userEnv = withoutPackageBins(inheritedEnv(process.env));
 
 class CaptureFailed extends Schema.TaggedError<CaptureFailed, { readonly brand: unique symbol }>()("CaptureFailed", {
@@ -56,7 +51,6 @@ const spawn = Effect.fn("spawn")(function* (argv: ReadonlyArray<string>, cwd: st
 	);
 }, Effect.scoped);
 
-/** `argv` with the capture extension and print mode added before the `--` that ends pi's options. */
 const withCapture = (argv: ReadonlyArray<string>) => {
 	const optionsEnd = Option.getOrElse(
 		Arr.findLastIndex(argv, (arg) => arg === "--"),
@@ -110,10 +104,6 @@ const whichPiOf = ({ role, level }: StagedLaunch) => {
 		: "A child pi started as an owner at the last level, so its `delegate` tool starts leaves only.";
 };
 
-/**
- * Links each entry of the user's agent folder that `agentDir` lacks into it until the scope closes, so a git worktree's
- * agents run on the user's credentials and settings. In `~/.pi` itself it links nothing.
- */
 const borrowUserState = Effect.fn("borrowUserState")(function* (agentDir: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const own = yield* fs.readDirectory(agentDir);
