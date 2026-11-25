@@ -178,7 +178,6 @@ const delegateSection = (real: ReadonlyArray<SessionFacts>) => {
 	]);
 };
 
-/** The usage report as markdown: per guide kind, then per event, then the delegate calls. */
 export const reportOf = ({
 	library,
 	sessions,
