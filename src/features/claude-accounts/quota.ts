@@ -128,10 +128,6 @@ const recentUsed = Effect.fnUntraced(function* (registry: PlanReader, account: A
 
 const byPercentUsed = Order.mapInput(Order.Number, ({ percent }: Used) => percent);
 
-/**
- * The account a delegate of a session on `from` starts on: of the accounts on `from`'s side of the BAA boundary that
- * offer `id`, the one that has used the least of its weekly window. `from` on a tie, and when no meter answers.
- */
 export const roomiestAccount = Effect.fn("roomiestAccount")(function* ({
 	registry,
 	from,

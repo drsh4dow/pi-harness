@@ -28,7 +28,6 @@ interface TargetRequest {
 	readonly find: (provider: string, id: string) => Model<Api> | undefined;
 }
 
-/** The same model on the named account, so a switch keeps everything but who pays. */
 export const targetOf = ({ name, current, find }: TargetRequest): Target => {
 	const account = accountOf(name);
 

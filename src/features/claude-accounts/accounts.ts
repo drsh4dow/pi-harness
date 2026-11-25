@@ -20,7 +20,6 @@ type OAuthAuth = NonNullable<Provider["auth"]["oauth"]>;
 /** How an account logs in: Anthropic's OAuth flow, or a token from `claude setup-token`, which has no refresh token. */
 export type Login = "oauth" | "setup-token";
 
-/** `lacks` names catalog models the account cannot serve, so the registry never offers them on it. */
 export const accounts = [
 	{ id: "ultra-a", name: "Claude Ultra A", login: "oauth", baa: false, lacks: [] },
 	{ id: "ultra-b", name: "Claude Ultra B", login: "setup-token", baa: false, lacks: [] },
@@ -43,10 +42,6 @@ export const accountOf = (id: string) => Arr.findFirst(accounts, (account) => ac
 
 const isBaaAccount = (id: string) => Option.exists(accountOf(id), ({ baa }) => baa);
 
-/**
- * Where a request that `from` cannot answer goes next: the other personal accounts, then the BAA accounts. A BAA account
- * has nowhere to go, since what it holds may be PHI.
- */
 export const fallbackChain = (from: AccountId): ReadonlyArray<Account> => {
 	if (isBaaAccount(from)) {
 		return [];
@@ -63,7 +58,6 @@ class NotASetupToken extends Schema.TaggedError<NotASetupToken, { readonly brand
 	message: Schema.String,
 }) {}
 
-/** Pi sends a key with this prefix as a subscription token, with the same headers as an OAuth login. */
 const subscriptionTokenPrefix = "sk-ant-oat";
 
 const setupTokenOf = (pasted: string) => {
@@ -80,7 +74,6 @@ const setupTokenOf = (pasted: string) => {
 	return Effect.succeed({ type: "api_key" as const, key });
 };
 
-/** Reads only the account's own stored token, never an `ANTHROPIC_*` variable, so no other account can stand in for it. */
 const setupTokenAuth: ApiKeyAuth = {
 	name: "Claude setup-token",
 	login: (interaction) =>
@@ -104,7 +97,6 @@ const setupTokenAuth: ApiKeyAuth = {
 
 export interface Anthropic {
 	readonly models: ReadonlyArray<Model<"anthropic-messages">>;
-	/** Pi's Anthropic OAuth flow, which every OAuth account reuses. */
 	readonly oauth: OAuthAuth;
 }
 
@@ -176,10 +168,6 @@ const limitWatched = (api: ProviderStreams, limited: (back: DateTime.Utc) => voi
 	};
 };
 
-/**
- * Anthropic's catalog and API under the account's id. Pi stores and reads the account's credential under that id, and
- * each model names it as its provider, so a session shows which account answered.
- */
 export const accountProvider = ({
 	anthropic,
 	account,
@@ -200,7 +188,6 @@ export const accountProvider = ({
 			(model) => ({
 				...model,
 				provider: account.id,
-				// The BAA org answers a thread with HTTP 400.
 				compat: { ...model.compat, supportsMessageThreads: !account.baa },
 			}),
 		),

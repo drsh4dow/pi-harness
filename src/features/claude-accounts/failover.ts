@@ -11,7 +11,6 @@ import { accountOf, fallbackChain } from "./accounts.ts";
 /** When each account that answered 429 takes requests again, by account id. */
 export type Limits = ReadonlyMap<string, DateTime.Utc>;
 
-/** Where a rate-limited session goes: an account open now, or the account back first once it is back. */
 export type Failover =
 	| { readonly kind: "move"; readonly model: Model<Api> }
 	| { readonly kind: "wait"; readonly model: Model<Api>; readonly until: DateTime.Utc };
@@ -46,11 +45,6 @@ const failoverFrom = ({
 	return { kind: "wait", model: soonest, until: backAt(soonest) };
 };
 
-/**
- * The session's model on the first account of its fallback chain that is not rate-limited, else on whichever account it
- * may use, its own included, is back first. A BAA account's chain is empty, so a session there only waits. None for a
- * session on no Claude account, such as `phi/auto`, which its router moves.
- */
 export const failoverOf = ({ current, runnableModel, limits, now }: FailoverRequest): Option.Option<Failover> => {
 	if (current === undefined) {
 		return Option.none();
