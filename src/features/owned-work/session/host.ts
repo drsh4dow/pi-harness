@@ -13,7 +13,6 @@ export interface Relay {
 	waiter: Option.Option<Deferred.Deferred<ReadonlyArray<Settled>>>;
 }
 
-/** A settle as the message a wake carries. */
 export const messageOf = (settled: Settled) => {
 	const json = Out.result(settled);
 

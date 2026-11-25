@@ -11,13 +11,11 @@ import { ownCgroup, Slices, stopRoot } from "#src/client/terminals/index.ts";
 import { Ledger } from "#src/features/owned-work/ledger/index.ts";
 import type { LedgerState } from "#src/features/owned-work/step.ts";
 
-/** Names a pi's terminals in hc and its slice in systemd, and stamps the code that laid out its ledger state. */
 export interface Lineage {
 	readonly agentKey: string;
 	readonly stamp: number;
 }
 
-/** What one load of this extension hands the next when pi reloads in the same process, so its work keeps running. */
 export interface Handover extends Lineage {
 	readonly state: LedgerState;
 }
@@ -26,10 +24,6 @@ declare global {
 	var piOwnedWorkHandover: Handover | undefined;
 }
 
-/**
- * A hash of the files that lay out `LedgerState`. A reload that changed them would read state written by other code, so
- * it stops the old work instead. An unreadable file gives a stamp no other load shares.
- */
 export const ledgerStamp = Effect.flatMap(SourceStamp, (stamp) =>
 	stamp.of([`${import.meta.dirname}/../work.ts`, `${import.meta.dirname}/../step.ts`]),
 );

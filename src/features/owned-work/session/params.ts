@@ -45,10 +45,6 @@ export const GroupParams = Type.Object({
 	of: Refs,
 });
 
-/**
- * Seconds. The default keeps a wait that runs out inside the 5-minute prompt cache, so the next call reads it warm. The
- * cap bounds one call; a longer wait is a turn's end, which costs no call.
- */
 export const waitTimeout = { default: 240, max: 3600 } as const;
 
 const WaitRefs = Type.Array(HandleRef, {
