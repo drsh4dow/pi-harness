@@ -28,7 +28,6 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 export const labelKey = "pi.state";
 
-/** The `customType` of the session entry that records each new state folder, so a resumed or reloaded session labels it again. */
 export const entryKind = "pi.state";
 
 const StateEntry = Schema.Struct({
@@ -185,11 +184,6 @@ const finish = Effect.fn("finish")(function* (
 	return Option.getOrUndefined(checked);
 });
 
-/**
- * Keeps the `pi.state` label on this agent's hc terminal equal to the state folder its session last wrote to, found by
- * watching its own tool calls, and records each new folder in the session so `/resume`, `/reload` and `/tree` restore
- * it. No folder, no label. Outside herdr-core it only records.
- */
 export const stateFolder = (env: Env) => (pi: Pick<ExtensionAPI, "appendEntry">) => {
 	const tracker: Tracker = { watched: new Map(), lastWritten: Option.none(), publishedLabel: "" };
 	const config = ConfigProvider.layer(ConfigProvider.fromEnvRecord(env));

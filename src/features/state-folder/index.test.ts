@@ -8,10 +8,11 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
+import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { type StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
-import { entryKind, finishCall, lastFolder, type Watched, watchCall } from "./index.ts";
+import { entryKind, finishCall, lastFolder, stateFolder, type Watched, watchCall } from "./index.ts";
 
 const home = `${Bun.env["TMPDIR"] ?? "/tmp"}/state-folder-test-${String(process.pid)}`;
 const folder = (work: string) => `${home}/.local/state/pi-agent/pi/${work}`;
@@ -258,6 +259,137 @@ test("a bash heredoc that grows STATE.md past the cap comes back as an error nam
 			expect(texts[1]).toContain("16,384");
 			expect(texts[1]).toContain("decisions.tsv");
 		}),
+	));
+
+const LabelParams = Schema.Struct({ terminal: Schema.String, labels: Schema.Record(Schema.String, Schema.String) });
+
+const LabelRequest = Schema.fromJsonString(
+	Schema.Struct({ method: Schema.Literal("terminal.label"), params: LabelParams }),
+);
+
+const fakeHc = (socket: string) =>
+	Effect.acquireRelease(
+		Effect.sync(() => {
+			const requests: Array<string> = [];
+
+			const server = Bun.listen({
+				unix: socket,
+				socket: {
+					data: (client, chunk) => {
+						requests.push(Str.trimEnd(chunk.toString()));
+						client.write('{"result":{"address":"t1"}}\n');
+					},
+				},
+			});
+
+			return { server, requests };
+		}),
+		({ server }) =>
+			Effect.sync(() => {
+				server.stop(true);
+			}),
+	);
+
+const labelsSent = (requests: ReadonlyArray<string>) =>
+	Effect.forEach(requests, (line) =>
+		Effect.map(Schema.decodeEffect(LabelRequest)(line), ({ params }) => [params.terminal, params.labels["pi.state"]]),
+	);
+
+const withExtension = <Value, Failure, Needs>(
+	name: string,
+	{ inHerdr }: { readonly inHerdr: boolean },
+	use: (
+		feature: ReturnType<ReturnType<typeof stateFolder>>,
+		seen: { readonly requests: ReadonlyArray<string>; readonly recorded: ReadonlyArray<unknown> },
+	) => Effect.Effect<Value, Failure, Needs>,
+) =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const socket = `${home}/${name}.sock`;
+			const { requests } = yield* fakeHc(socket);
+			const terminal = inHerdr ? { HC_TERMINAL_ID: "t1" } : {};
+			const recorded: Array<unknown> = [];
+
+			const feature = stateFolder({ HOME: home, HC_TERMINAL_SOCKET: socket, ...terminal })({
+				appendEntry: (customType, data) => {
+					recorded.push({ customType, data });
+				},
+			});
+
+			return yield* use(feature, { requests, recorded });
+		}),
+	);
+
+const writeBeta = (feature: ReturnType<ReturnType<typeof stateFolder>>) =>
+	Effect.gen(function* () {
+		const input = { path: `${folder("beta")}/STATE.md`, content: "# beta" };
+
+		yield* Effect.promise(() => feature.toolCall({ type: "tool_call", toolCallId: "w", toolName: "write", input }));
+		yield* write(input.path, "# beta\n");
+		yield* Effect.promise(() =>
+			feature.toolResult({
+				type: "tool_result",
+				toolCallId: "w",
+				toolName: "write",
+				input,
+				content: [{ type: "text", text: "ok" }],
+				isError: false,
+				details: undefined,
+			}),
+		);
+	});
+
+test("a resumed session labels its terminal with the folder its branch last recorded, and a shutdown clears it", () =>
+	runTest(
+		withExtension("resumed", { inHerdr: true }, (feature, { requests }) =>
+			Effect.gen(function* () {
+				const session = SessionManager.inMemory();
+
+				yield* Effect.promise(() => feature.restore({ sessionManager: session }));
+
+				session.appendCustomEntry(entryKind, { folder: folder("alpha") });
+
+				yield* Effect.promise(() => feature.restore({ sessionManager: session }));
+				yield* Effect.promise(() => feature.shutdown());
+
+				const labels = yield* labelsSent(requests);
+
+				expect(labels).toEqual([
+					["t1", folder("alpha")],
+					["t1", ""],
+				]);
+			}),
+		),
+	));
+
+test("a call that writes a new state folder records it in the session and labels the terminal with it", () =>
+	runTest(
+		withExtension("wrote", { inHerdr: true }, (feature, { requests, recorded }) =>
+			Effect.gen(function* () {
+				yield* writeBeta(feature);
+
+				const labels = yield* labelsSent(requests);
+
+				expect({ recorded, labels }).toEqual({
+					recorded: [{ customType: entryKind, data: { folder: folder("beta") } }],
+					labels: [["t1", folder("beta")]],
+				});
+			}),
+		),
+	));
+
+test("outside herdr-core a call that writes a new state folder is only recorded", () =>
+	runTest(
+		withExtension("outside", { inHerdr: false }, (feature, { requests, recorded }) =>
+			Effect.gen(function* () {
+				yield* writeBeta(feature);
+
+				expect({ recorded, requests }).toEqual({
+					recorded: [{ customType: entryKind, data: { folder: folder("beta") } }],
+					requests: [],
+				});
+			}),
+		),
 	));
 
 afterAll(() => Effect.runPromise(Effect.promise(() => Bun.$`rm -rf ${home}`.quiet())));
