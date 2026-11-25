@@ -21,29 +21,24 @@ import * as Schema from "effect/Schema";
 import type * as Scope from "effect/Scope";
 import * as Str from "effect/String";
 
-import type { Exited } from "./core.ts";
 import { ScenarioFailed, SetupFailed } from "./failed.ts";
 import { type Reporter, reporter } from "./report.ts";
-import { type Root, type RootProcess, startRoot } from "./root.ts";
-import { inService, runAsService, stdinEnded } from "./service.ts";
-import { readSessions, type Sessions } from "./sessions.ts";
-import { type Setup, setupOf } from "./setup.ts";
-import { type SpawnRequest, type Spawned, spawnIn } from "./spawn.ts";
-import { tookSetup } from "./took.ts";
-import { leftAlone } from "./tripwire.ts";
-import { type Layout, layoutOf, openWorld } from "./world.ts";
+import { type Root, type RootProcess, type SpawnRequest, type Spawned, spawnIn, startRoot } from "./run/index.ts";
+import { inService, leftAlone, runAsService, stdinEnded } from "./service/index.ts";
+import { readSessions, type Sessions, tookSetup } from "./sessions/index.ts";
+import { type Exited, type Layout, layoutOf, openWorld, type Setup, setupOf } from "./world/index.ts";
 
 export type { ScenarioFailed } from "./failed.ts";
 
-export type { Image, Message } from "./message.ts";
+export type { Image, Message } from "./run/index.ts";
 
-export type { Root } from "./root.ts";
+export type { Root } from "./run/index.ts";
 
-export type { SpawnRequest, Spawned } from "./spawn.ts";
+export type { SpawnRequest, Spawned } from "./run/index.ts";
 
-export type { Loaded, Session, Sessions } from "./sessions.ts";
+export type { Loaded, Session, Sessions } from "./sessions/index.ts";
 
-export type { Exited } from "./core.ts";
+export type { Exited } from "./world/index.ts";
 
 /**
  * One scenario: what it changes about the run's world before the root starts, and `play`, what it does in the run.

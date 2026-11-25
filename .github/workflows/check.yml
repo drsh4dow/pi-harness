@@ -14,7 +14,7 @@ jobs:
            with:
               bun-version: 1.4.5
          - run: bun install --frozen-lockfile
-         # Ubuntu's AppArmor bars the user namespace systemd --user needs for the driver's ReadOnlyPaths (tools/driver/service.test.ts)
+         # Ubuntu's AppArmor bars the user namespace systemd --user needs for the driver's ReadOnlyPaths (tools/driver/service/service.test.ts)
          - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-         # tools/driver/core.test.ts skips its terminal test here: herdr-core's hc has no public release to install
+         # tools/driver/world/core.test.ts skips its terminal test here: herdr-core's hc has no public release to install
          - run: bun run check

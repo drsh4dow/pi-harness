@@ -12,9 +12,8 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Str from "effect/String";
 
-import { ran } from "./core.ts";
-import { SetupFailed } from "./failed.ts";
-import type { Layout } from "./world.ts";
+import { SetupFailed } from "#tools/driver/failed.ts";
+import { type Layout, ran } from "#tools/driver/world/index.ts";
 
 type Names = readonly [string, ...Array<string>];
 

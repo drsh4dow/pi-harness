@@ -11,7 +11,7 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Schedule from "effect/Schedule";
 import * as Stream from "effect/Stream";
 
-import { ScenarioFailed, SetupFailed } from "./failed.ts";
+import { ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
 import type { Layout } from "./world.ts";
 
 export type Argv = readonly [string, ...Array<string>];

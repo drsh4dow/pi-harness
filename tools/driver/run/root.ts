@@ -18,10 +18,10 @@ import * as Schema from "effect/Schema";
 import type * as Scope from "effect/Scope";
 import * as Stream from "effect/Stream";
 
-import { ScenarioFailed, SetupFailed } from "./failed.ts";
+import { ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
+import type { World } from "#tools/driver/world/index.ts";
 import { lfLines } from "./lines.ts";
 import { type Message, type Sent, sentOf, textOf } from "./message.ts";
-import type { World } from "./world.ts";
 
 /** The root pi a scenario talks to. Every call fails at once if the root has exited. */
 export interface Root {

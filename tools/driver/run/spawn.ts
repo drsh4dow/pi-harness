@@ -10,11 +10,9 @@ import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Schema from "effect/Schema";
 import type * as Scope from "effect/Scope";
 
-import { execIn } from "./core.ts";
-import { ScenarioFailed, SetupFailed } from "./failed.ts";
+import { ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
+import { execIn, type Layout, modelsOf, type World } from "#tools/driver/world/index.ts";
 import { type Root, startRoot } from "./root.ts";
-import { modelsOf } from "./setup.ts";
-import type { Layout, World } from "./world.ts";
 
 /** What `run.spawn` takes: the pi's folder name under `<run>/pis/`, and the `models.json` providers it replaces. */
 export interface SpawnRequest {

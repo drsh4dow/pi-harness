@@ -381,7 +381,7 @@
 			// With the user's approval (2026-11-25): pi and oxlint load these files' default export, so no other export form works
 			"files": [
 				"agent/extensions/*/index.ts",
-				"tools/driver/probe.ts",
+				"tools/driver/sessions/probe.ts",
 				"tools/prompts/capture.ts",
 				"tools/oxlint/fixtures/effect-pi-idioms.ts",
 			],

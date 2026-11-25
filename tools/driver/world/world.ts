@@ -14,9 +14,9 @@ import * as Schema from "effect/Schema";
 import type * as Scope from "effect/Scope";
 import * as Str from "effect/String";
 
+import { type ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
 import { harnessEntries, withoutPackageBins } from "#tools/harness.ts";
 import { type Argv, execIn, type Exited, ran, startCore } from "./core.ts";
-import { type ScenarioFailed, SetupFailed } from "./failed.ts";
 import { modelsOf, type RunSetup, settingsOf } from "./setup.ts";
 
 type Env = Readonly<Record<string, string>>;
@@ -153,7 +153,7 @@ const decodeJson = Schema.decodeEffect(Schema.fromJsonString(Schema.JsonObject))
 
 const encodeJson = Schema.encodeEffect(Schema.fromJsonString(Schema.JsonObject, { space: "\t" }));
 
-const worktree = Str.replace(/\/tools\/driver$/u, "")(import.meta.dirname);
+const worktree = Str.replace(/\/tools\/driver\/world$/u, "")(import.meta.dirname);
 
 /** Links the worktree's shipped entries and the human's credentials. Closing the scope removes the credentials link. */
 const linkAgent = Effect.fn("linkAgent")(function* (layout: Layout, humanAgent: string) {
@@ -233,7 +233,7 @@ const resolvePi = Effect.fn("resolvePi")(function* (layout: Layout, env: Env) {
 	const folder = yield* fs.realPath(layout.folder);
 
 	const wrapper = `#!/bin/sh
-case "$(pwd -P)/" in '${folder}'/*) exec '${path}' -e '${worktree}/tools/driver/probe.ts' "$@" ;; esac
+case "$(pwd -P)/" in '${folder}'/*) exec '${path}' -e '${worktree}/tools/driver/sessions/probe.ts' "$@" ;; esac
 pwd -P >>'${layout.refused}'
 echo "pi starts only inside the run folder ${folder}, not in $(pwd -P)" >&2
 exit 2

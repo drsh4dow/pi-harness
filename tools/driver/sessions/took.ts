@@ -9,10 +9,10 @@ import * as Schedule from "effect/Schedule";
 import type * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { type ScenarioFailed, SetupFailed } from "./failed.ts";
+import { type ScenarioFailed, SetupFailed } from "#tools/driver/failed.ts";
+import type { Setup } from "#tools/driver/world/index.ts";
 import { isJsonArray, type Loaded } from "./probe.ts";
 import type { Sessions } from "./sessions.ts";
-import type { Setup } from "./setup.ts";
 
 /** What the run asks of the root's pi. */
 export interface Asked {

@@ -84,7 +84,7 @@ test("Ctrl-C ends the run through its stdin and waits for it", () =>
 test("a scenario where systemd-run cannot start a service exits 2 and says so", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const scenario = Bun.spawn([process.execPath, `${import.meta.dirname}/false-fact.scenario.ts`], {
+			const scenario = Bun.spawn([process.execPath, `${import.meta.dirname}/../false-fact.scenario.ts`], {
 				stdout: "pipe",
 				env: { ...Bun.env, PATH: "/nonexistent" },
 			});

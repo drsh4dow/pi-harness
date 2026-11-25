@@ -12,10 +12,8 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 import * as Struct from "effect/Struct";
 
-import { ScenarioFailed } from "./failed.ts";
+import { ScenarioFailed } from "#tools/driver/failed.ts";
 import { type Loaded, Probed } from "./probe.ts";
-
-export type { Loaded } from "./probe.ts";
 
 /** One pi session file as it stood when read. */
 export interface Session {
