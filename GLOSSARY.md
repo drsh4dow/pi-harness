@@ -78,6 +78,7 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Ledger.** The one module that records owned work, who holds it and what was delivered.
 - **Entry kind.** The `customType` a feature gives the session entries it writes. Owned work's is `owned-work`, which also marks the results the ledger hands the agent.
 - **Terminal name.** The name Herdr shows for a delegate, serve or watch: the name its agent gave it.
+- **Work label.** An hc label that owned work puts on its terminals for Herdr's agents list: `ow.kind` picks a row's icon, and `ow.group` and `ow.group.name` the group the row sits under.
 - **Slice.** The systemd user slice a delegate, serve or watch runs in, nested below its parent's.
 - **Child session.** A delegate's own pi session, kept apart from the sessions the human resumes.
 - **Staged files.** A delegate's task message and its **brief**, written beside its child session for it to read.

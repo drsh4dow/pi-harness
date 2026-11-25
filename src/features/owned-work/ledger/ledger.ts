@@ -96,8 +96,7 @@ interface Kit {
 
 const commandChild = atLevel({ level: levels, role: "leaf" });
 
-/** Herdr's agents mod reads these to pick each row's icon and the group it sits under. */
-const labelOf = {
+const workLabel = {
 	kind: "ow.kind",
 	group: "ow.group",
 	groupName: "ow.group.name",
@@ -114,7 +113,7 @@ export const commandSpec =
 	});
 
 const specOf = ({ options, cli }: Kit, ref: WorkRef, request: TimedRequest): Effect.Effect<RunSpec, SpawnError> => {
-	const labels = { [labelOf.kind]: Draft.kindOf(request) };
+	const labels = { [workLabel.kind]: Draft.kindOf(request) };
 
 	return Match.valueTags(request, {
 		Delegate: ({ brief, childSession }) =>
@@ -141,7 +140,7 @@ const run = (kit: Kit, command: Command): Effect.Effect<unknown> =>
 		Append: ({ entry }) => kit.host.append(entry),
 		Kill: ({ terminal }) => kit.hc.kill(terminal),
 		ShowInGroup: ({ terminal, group, name }) =>
-			kit.hc.label(terminal, { [labelOf.group]: group, [labelOf.groupName]: name }),
+			kit.hc.label(terminal, { [workLabel.group]: group, [workLabel.groupName]: name }),
 		StopSlice: ({ ref }) => kit.slices.stop(ref),
 		ReadAnswer: ({ ref, session, end }) =>
 			Effect.flatMap(kit.sessions.readAnswer(session), (answer) =>
