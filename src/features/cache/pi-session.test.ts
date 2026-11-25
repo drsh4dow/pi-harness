@@ -7,7 +7,7 @@ import * as FileSystem from "effect/FileSystem";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { entryKind } from "./index.ts";
+import { entryKind, Miss } from "./index.ts";
 
 const pi = `${import.meta.dirname}/../../../node_modules/.bin/pi`;
 
@@ -16,6 +16,35 @@ const extension = `${import.meta.dirname}/../../../agent/extensions/cache/index.
 const first = "cache-probe-first";
 
 const second = "cache-probe-second";
+
+const third = "cache-probe-third";
+
+const fourth = "cache-probe-fourth";
+
+const hook = `
+let hidden = [];
+
+const tool = (name, prepareLoadout) => ({
+	name,
+	label: name,
+	description: \`The \${name} tool.\`,
+	parameters: { type: "object", properties: {} },
+	execute: async () => ({ content: [] }),
+	prepareLoadout,
+});
+
+export default function (pi) {
+	pi.on("before_agent_start", (event) => {
+		if (event.prompt === "${fourth}") {
+			hidden = ["extra"];
+		}
+
+		return event.prompt === "${first}" ? undefined : { systemPrompt: "You are forced." };
+	});
+	pi.registerTool(tool("hider", () => ({ hiddenDeclarations: hidden })));
+	pi.registerTool(tool("extra"));
+}
+`;
 
 const reply = (cacheWriteTokens: number) =>
 	Arr.join(
@@ -62,54 +91,75 @@ const Entry = Schema.Struct({
 	message: Schema.optionalKey(Schema.Struct({ role: Schema.String })),
 });
 
-const decodeEntry = Schema.decodeUnknownEffect(Schema.fromJsonString(Entry));
+const decodeEntry = Schema.decodeUnknownEffect(Entry);
+
+const decodeLine = Schema.decodeUnknownEffect(Schema.fromJsonString(Schema.Unknown));
+
+const Recorded = Schema.Struct({ customType: Schema.Literal(entryKind), data: Miss });
+
+const decodeRecorded = Schema.decodeUnknownOption(Recorded);
 
 const kindOf = ({ type, customType, message }: typeof Entry.Type) => customType ?? message?.role ?? type;
 
 const isReplyOrMiss = (kind: string) => kind === "assistant" || kind === entryKind;
 
-const sessionKinds = Effect.gen(function* () {
-	const fs = yield* FileSystem.FileSystem;
-	const server = yield* provider;
-	const folder = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
-	const sessions = `${folder}/sessions`;
-	const baseUrl = `http://127.0.0.1:${String(server.port)}/v1`;
+const sessionEntries = (runs: ReadonlyArray<ReadonlyArray<string>>) =>
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		const server = yield* provider;
+		const folder = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
+		const sessions = `${folder}/sessions`;
+		const baseUrl = `http://127.0.0.1:${String(server.port)}/v1`;
 
-	yield* fs.writeFileString(
-		`${folder}/models.json`,
-		`{"providers":{"fake":{"baseUrl":"${baseUrl}","api":"openai-completions","apiKey":"none","models":[{"id":"m"}]}}}`,
-	);
-
-	const env = { ...Bun.env, PI_CODING_AGENT_DIR: folder };
-
-	const prompt = (words: ReadonlyArray<string>) =>
-		Effect.promise(
-			() =>
-				Bun.spawn([pi, "--session-dir", sessions, "--model", "fake/m", "-e", extension, "-p", ...words], {
-					cwd: folder,
-					env,
-					stdout: "ignore",
-					stderr: "ignore",
-				}).exited,
+		yield* fs.writeFileString(
+			`${folder}/models.json`,
+			`{"providers":{"fake":{"baseUrl":"${baseUrl}","api":"openai-completions","apiKey":"none","models":[{"id":"m"}]}}}`,
 		);
+		yield* fs.writeFileString(`${folder}/hook.ts`, hook);
 
-	yield* prompt(["--", first]);
-	yield* prompt(["-c", "--", second]);
+		const env = { ...Bun.env, PI_CODING_AGENT_DIR: folder };
 
-	const [file = ""] = yield* fs.readDirectory(sessions);
-	const lines = yield* fs.readFileString(`${sessions}/${file}`);
+		const prompt = (words: ReadonlyArray<string>) =>
+			Effect.promise(
+				() =>
+					Bun.spawn([pi, "--session-dir", sessions, "--model", "fake/m", "-e", extension, "-p", ...words], {
+						cwd: folder,
+						env,
+						stdout: "ignore",
+						stderr: "ignore",
+					}).exited,
+			);
 
-	return yield* Effect.forEach(Arr.filter(Str.split(lines, "\n"), Str.isNonEmpty), (line) =>
-		Effect.map(decodeEntry(line), kindOf),
-	);
-}).pipe(Effect.scoped);
+		yield* Effect.forEach(runs, prompt);
+
+		const [file = ""] = yield* fs.readDirectory(sessions);
+		const lines = yield* fs.readFileString(`${sessions}/${file}`);
+
+		return yield* Effect.forEach(Arr.filter(Str.split(lines, "\n"), Str.isNonEmpty), (line) => decodeLine(line));
+	}).pipe(Effect.scoped);
 
 test("in pi, a reply that misses the cache gets its entry right before it, and the first reply none", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const kinds = yield* sessionKinds;
+			const entries = yield* sessionEntries([
+				["--", first],
+				["-c", "--", second],
+			]);
+
+			const kinds = yield* Effect.forEach(entries, (entry) => Effect.map(decodeEntry(entry), kindOf));
 			const replies = Arr.filter(kinds, isReplyOrMiss);
 
 			expect(replies).toEqual(["assistant", entryKind, "assistant"]);
+		}).pipe(Effect.provide(NodeServices.layer)),
+	));
+
+test("in pi, a miss after a hook forced the prompt or hid a tool inside the request names that change", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const entries = yield* sessionEntries([["-e", "hook.ts", "--", first, second, third, fourth]]);
+			const misses = Arr.getSomes(Arr.map(entries, (entry) => decodeRecorded(entry)));
+			const causes = Arr.map(misses, ({ data }) => Arr.map(data.causes, ({ _tag }) => _tag));
+
+			expect(causes).toEqual([["PromptChanged"], [], ["ToolsChanged"]]);
 		}).pipe(Effect.provide(NodeServices.layer)),
 	));

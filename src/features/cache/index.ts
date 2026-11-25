@@ -1,7 +1,15 @@
 import type { AssistantMessage, SystemMessage, Usage } from "@earendil-works/pi-ai";
-import type { ExtensionAPI, ExtensionContext, MessageEndEvent, SessionEntry } from "@earendil-works/pi-coding-agent";
+import type {
+	BeforeProviderRequestEvent,
+	ExtensionAPI,
+	ExtensionContext,
+	MessageEndEvent,
+	SessionEntry,
+} from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
+import * as Equal from "effect/Equal";
 import * as Option from "effect/Option";
+import * as Predicate from "effect/Predicate";
 import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
 
@@ -82,7 +90,48 @@ const changesPrompt = ({ content, sections }: SystemMessage) =>
 const changesTools = ({ toolsAdded, toolsRemoved }: SystemMessage) =>
 	Arr.isReadonlyArrayNonEmpty(toolsAdded ?? []) || Arr.isReadonlyArrayNonEmpty(toolsRemoved ?? []);
 
-const causesOf = (reply: AssistantMessage, { call, since }: Last) => {
+const isToolDeclaration = Schema.is(Schema.Struct({ name: Schema.String, description: Schema.String }));
+
+const encodeBody = Schema.encodeUnknownOption(Schema.fromJsonString(Schema.Unknown));
+
+const decodeBody = Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Json));
+
+const isJsonArray = (json: Schema.Json): json is Schema.JsonArray => Arr.isArray(json);
+
+const isJsonObject = (json: Schema.Json): json is Schema.JsonObject => Predicate.isObject(json);
+
+const toolDeclarations = (json: Schema.Json): ReadonlyArray<Schema.Json> => {
+	if (isJsonArray(json)) {
+		return Arr.flatMap(json, toolDeclarations);
+	}
+
+	if (!isJsonObject(json)) {
+		return [];
+	}
+
+	return isToolDeclaration(json) ? [json] : Arr.flatMap(Rec.values(json), toolDeclarations);
+};
+
+interface RequestHead {
+	readonly prompt: string;
+	readonly tools: ReadonlyArray<Schema.Json>;
+}
+
+interface HeadChange {
+	readonly prompt: boolean;
+	readonly tools: boolean;
+}
+
+const headChange = (before: Option.Option<RequestHead>, after: Option.Option<RequestHead>): HeadChange =>
+	Option.getOrElse(
+		Option.zipWith(before, after, (from, to) => ({
+			prompt: from.prompt !== to.prompt,
+			tools: !Equal.equals(from.tools, to.tools),
+		})),
+		() => ({ prompt: false, tools: false }),
+	);
+
+const causesOf = (reply: AssistantMessage, { call, since }: Last, head: HeadChange) => {
 	const idleMs = reply.timestamp - call.at;
 	const model = `${reply.provider}/${reply.model}`;
 	const changes = systemMessages(since);
@@ -93,8 +142,8 @@ const causesOf = (reply: AssistantMessage, { call, since }: Last) => {
 		[model !== call.model, cases.ModelChanged.make({ from: call.model, to: model })],
 		[Arr.some(since, (entry) => entry.type === "compaction"), cases.Compacted.make({})],
 		[Arr.some(since, (entry) => entry.type === "context_edit"), cases.ContextEdited.make({})],
-		[Arr.some(changes, changesPrompt), cases.PromptChanged.make({})],
-		[Arr.some(changes, changesTools), cases.ToolsChanged.make({})],
+		[head.prompt || Arr.some(changes, changesPrompt), cases.PromptChanged.make({})],
+		[head.tools || Arr.some(changes, changesTools), cases.ToolsChanged.make({})],
 	];
 
 	return Arr.map(
@@ -103,7 +152,11 @@ const causesOf = (reply: AssistantMessage, { call, since }: Last) => {
 	);
 };
 
-const missOf = (branch: ReadonlyArray<SessionEntry>, reply: AssistantMessage): Option.Option<Miss> => {
+const missOf = (
+	branch: ReadonlyArray<SessionEntry>,
+	reply: AssistantMessage,
+	head: HeadChange,
+): Option.Option<Miss> => {
 	const { cacheRead } = reply.usage;
 	const prompt = promptOf(reply.usage);
 
@@ -118,24 +171,45 @@ const missOf = (branch: ReadonlyArray<SessionEntry>, reply: AssistantMessage): O
 			return Option.none();
 		}
 
-		return Option.some({ missedTokens, cacheRead, prompt, causes: causesOf(reply, last) });
+		return Option.some({ missedTokens, cacheRead, prompt, causes: causesOf(reply, last, head) });
 	});
 };
 
-export const recordMisses =
-	(pi: Pick<ExtensionAPI, "appendEntry">) =>
-	({ message }: MessageEndEvent, ctx: Pick<ExtensionContext, "sessionManager">) => {
+export const recordMisses = (pi: Pick<ExtensionAPI, "appendEntry">) => {
+	let sending = Option.none<RequestHead>();
+	let answered = Option.none<RequestHead>();
+
+	const request = ({ payload }: BeforeProviderRequestEvent, ctx: Pick<ExtensionContext, "getSystemPrompt">) => {
+		const body = Option.flatMap(encodeBody(payload), decodeBody);
+
+		sending = Option.some({
+			prompt: ctx.getSystemPrompt(),
+			tools: Option.getOrElse(Option.map(body, toolDeclarations), () => []),
+		});
+	};
+
+	const reply = ({ message }: MessageEndEvent, ctx: Pick<ExtensionContext, "sessionManager">) => {
 		if (message.role !== "assistant") {
 			return;
 		}
 
-		const miss = missOf(ctx.sessionManager.getBranch(), message);
+		const miss = missOf(ctx.sessionManager.getBranch(), message, headChange(answered, sending));
+
+		if (reachedModel(message.usage)) {
+			answered = sending;
+		}
 
 		if (Option.isSome(miss)) {
 			pi.appendEntry(entryKind, miss.value);
 		}
 	};
 
+	return { request, reply };
+};
+
 export const cache = (pi: Pick<ExtensionAPI, "on" | "appendEntry">) => {
-	pi.on("message_end", recordMisses(pi));
+	const misses = recordMisses(pi);
+
+	pi.on("before_provider_request", misses.request);
+	pi.on("message_end", misses.reply);
 };

@@ -52,6 +52,19 @@ const replyOf = (call: Call): AssistantMessage => ({
 
 const decodeMiss = Schema.decodeUnknownOption(Miss);
 
+interface Request {
+	readonly prompt: string;
+	readonly tools: ReadonlyArray<string>;
+}
+
+const usual: Request = { prompt: "You are a coding assistant.", tools: ["read", "bash"] };
+
+const forced: Request = { ...usual, prompt: "You are a reviewer." };
+
+const payloadOf = ({ tools }: Request) => ({
+	tools: Arr.map(tools, (name) => ({ name, description: `Run ${name}.`, input_schema: { type: "object" } })),
+});
+
 const world = () => {
 	const session = SessionManager.inMemory("/work");
 
@@ -61,10 +74,17 @@ const world = () => {
 		},
 	});
 
+	const send = (request: Request) => {
+		record.request(
+			{ type: "before_provider_request", payload: payloadOf(request) },
+			{ getSystemPrompt: () => request.prompt },
+		);
+	};
+
 	const reply = (call: Call) => {
 		const message = replyOf(call);
 
-		record({ type: "message_end", message }, { sessionManager: session });
+		record.reply({ type: "message_end", message }, { sessionManager: session });
 
 		return session.appendMessage(message);
 	};
@@ -92,7 +112,7 @@ const world = () => {
 			),
 		);
 
-	return { session, reply, changePrompt, addTool, misses };
+	return { session, send, reply, changePrompt, addTool, misses };
 };
 
 type World = ReturnType<typeof world>;
@@ -173,6 +193,48 @@ const cases: ReadonlyArray<readonly [string, (world: World) => void, ReadonlyArr
 			reply({ at: start + minute, ...full });
 		},
 		missed([cause.ToolsChanged.make({})]),
+	],
+	[
+		"a system prompt a hook forced inside the request",
+		({ send, reply }) => {
+			send(usual);
+			reply({ at: start, ...hit });
+			send(forced);
+			reply({ at: start + minute, ...full });
+		},
+		missed([cause.PromptChanged.make({})]),
+	],
+	[
+		"a tool declaration a hook hid inside the request",
+		({ send, reply }) => {
+			send(usual);
+			reply({ at: start, ...hit });
+			send({ ...usual, tools: ["bash"] });
+			reply({ at: start + minute, ...full });
+		},
+		missed([cause.ToolsChanged.make({})]),
+	],
+	[
+		"no prompt or tools change when a hook sends the same prompt and tools on each call",
+		({ send, reply }) => {
+			send(forced);
+			reply({ at: start, ...hit });
+			send(forced);
+			reply({ at: start + minute, ...full });
+		},
+		missed([]),
+	],
+	[
+		"a hook's prompt change made before a failed call",
+		({ send, reply }) => {
+			send(usual);
+			reply({ at: start, ...hit });
+			send(forced);
+			reply({ at: start + minute, input: 0, cacheRead: 0 });
+			send(forced);
+			reply({ at: start + 2 * minute, ...full });
+		},
+		missed([cause.PromptChanged.make({})]),
 	],
 	[
 		"two causes together",
