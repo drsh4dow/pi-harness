@@ -5,13 +5,11 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
 
-/** Each entry of a folder by name, stamped with its size and mtime, so two fingerprints differ where an entry changed. */
 export type Fingerprint = ReadonlyMap<string, string>;
 
 export class StateFolder extends Context.Service<
 	StateFolder,
 	{
-		/** Empty when the folder cannot be listed, and an empty stamp for an entry that cannot be read. */
 		readonly fingerprint: (folder: string) => Effect.Effect<Fingerprint>;
 		readonly bytes: (path: string) => Effect.Effect<Uint8Array, PlatformError.PlatformError>;
 		readonly text: (path: string) => Effect.Effect<string, PlatformError.PlatformError>;

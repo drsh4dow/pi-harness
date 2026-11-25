@@ -1,5 +1,4 @@
 {
-	"src/client/brief-sources/index.ts no-comments": 3,
 	"src/client/checks/queue.ts no-comments": 7,
 	"src/client/checks/receipts.ts no-comments": 2,
 	"src/client/checks/run.ts no-comments": 3,
@@ -7,8 +6,6 @@
 	"src/client/providers/claude-usage/index.ts no-comments": 8,
 	"src/client/providers/opencode-go/index.ts no-comments": 2,
 	"src/client/providers/phi-router/index.ts no-comments": 5,
-	"src/client/source-stamp/index.ts no-comments": 1,
-	"src/client/state-folder/index.ts no-comments": 2,
 	"src/client/web-cache/index.ts no-comments": 1,
 	"src/client/web/direct.ts no-comments": 5,
 	"src/client/web/exa/index.ts no-comments": 1,

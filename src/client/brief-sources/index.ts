@@ -30,13 +30,10 @@ export class BriefSources extends Context.Service<
 	BriefSources,
 	{
 		readonly read: (file: string) => Effect.Effect<string, SourceRefused>;
-		/** None when the file does not exist. */
 		readonly readIfPresent: (file: string) => Effect.Effect<Option.Option<string>, SourceRefused>;
 		readonly exists: (path: string) => Effect.Effect<boolean, SourceRefused>;
 		readonly list: (folder: string) => Effect.Effect<ReadonlyArray<string>, SourceRefused>;
-		/** The nearest folder at or above `folder` that holds a `.git`, or None outside a git repo. */
 		readonly repoRoot: (folder: string) => Effect.Effect<Option.Option<string>, SourceRefused>;
-		/** The real path of `folder`, which must exist and be a folder. */
 		readonly realFolder: (folder: string) => Effect.Effect<string, SourceRefused>;
 	}
 >()("pi-harness/client/brief-sources/BriefSources") {}

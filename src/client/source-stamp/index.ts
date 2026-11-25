@@ -9,7 +9,6 @@ import * as Layer from "effect/Layer";
 export class SourceStamp extends Context.Service<
 	SourceStamp,
 	{
-		/** A hash of the files' text. An unreadable file gives a stamp no other call shares. */
 		readonly of: (files: ReadonlyArray<string>) => Effect.Effect<number>;
 	}
 >()("pi-harness/client/source-stamp/SourceStamp") {}
