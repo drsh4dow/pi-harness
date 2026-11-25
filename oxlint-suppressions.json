@@ -28,10 +28,5 @@
     "max-params": {
       "count": 1
     }
-  },
-  "src/features/prompt/index.ts": {
-    "max-params": {
-      "count": 1
-    }
   }
 }

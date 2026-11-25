@@ -39,7 +39,7 @@ const rows: ReadonlyArray<{ role: Role; playbooks: Option.Option<string> }> = [
 test.each(rows)("a $role reads its own role file, every principle, and only the playbooks that fit it", (row) =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const { layers, problems } = yield* layersOf(agentDir, row.role, Option.none(), []);
+			const { layers, problems } = yield* layersOf({ agentDir, role: row.role, brief: Option.none(), loaded: [] });
 
 			expect({ role: layers.role, principles: layers.principles, playbooks: layers.playbooks, problems }).toEqual({
 				role: `<role>\n${row.role}\n</role>`,

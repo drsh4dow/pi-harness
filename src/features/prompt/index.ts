@@ -24,13 +24,15 @@ const indexOf = Effect.fn("indexOf")(function* (kind: Kind, agentDir: string, ro
 	return { index: entryIndex({ kind, role, dir, entries }), problems };
 });
 
+interface LayerSources {
+	readonly agentDir: string;
+	readonly role: Role;
+	readonly brief: Option.Option<StagedBrief>;
+	readonly loaded: ReadonlyArray<Skill>;
+}
+
 /** Reads the prompt files on every run, so an edit lands on the next turn. Unchanged files give the same text, so pi sends no patch. */
-export const layersOf = Effect.fn("layersOf")(function* (
-	agentDir: string,
-	role: Role,
-	brief: Option.Option<StagedBrief>,
-	loaded: ReadonlyArray<Skill>,
-) {
+export const layersOf = Effect.fn("layersOf")(function* ({ agentDir, role, brief, loaded }: LayerSources) {
 	const roleText = yield* agentFileText(`${agentDir}/roles/${role}.md`);
 	const principles = yield* indexOf("principles", agentDir, role);
 	const playbooks = yield* indexOf("playbooks", agentDir, role);
@@ -60,7 +62,13 @@ type Env = Readonly<Record<string, string | undefined>>;
 const run = Effect.fn("prompt")(function* (env: Env, event: BeforeAgentStartEvent, ctx: ExtensionContext) {
 	const self = yield* selfFromEnv(env);
 	const brief = yield* briefOf(self, ctx);
-	const { layers, problems } = yield* layersOf(getAgentDir(), self.role, brief, event.systemPromptOptions.skills);
+
+	const { layers, problems } = yield* layersOf({
+		agentDir: getAgentDir(),
+		role: self.role,
+		brief,
+		loaded: event.systemPromptOptions.skills,
+	});
 
 	compose(layers)(event);
 
