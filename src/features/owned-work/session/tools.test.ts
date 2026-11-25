@@ -5,6 +5,7 @@ import type { ToolDefinition } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -53,27 +54,27 @@ const levelRows = [
 	{
 		name: "the root",
 		self: Self.Root({ role: "root", level: 1 }),
-		expect: { roles: ["owner", "leaf"], lastLevelLine: false, ownerLine: true },
+		expect: { roles: ["owner", "leaf"], delegateLines: true, lastLevelLine: false, ownerLine: true },
 	},
 	{
 		name: "a level-2 owner",
 		self: Self.Delegate({ role: "owner", level: 2, slice: "s" }),
-		expect: { roles: ["owner", "leaf"], lastLevelLine: false, ownerLine: true },
+		expect: { roles: ["owner", "leaf"], delegateLines: true, lastLevelLine: false, ownerLine: true },
 	},
 	{
 		name: "an owner at the last level, told its delegates cannot delegate,",
 		self: Self.Delegate({ role: "owner", level: 3, slice: "s" }),
-		expect: { roles: ["leaf"], lastLevelLine: true, ownerLine: false },
+		expect: { roles: ["leaf"], delegateLines: true, lastLevelLine: true, ownerLine: false },
 	},
 	{
 		name: "a level-2 leaf",
 		self: Self.Delegate({ role: "leaf", level: 2, slice: "s" }),
-		expect: { roles: undefined, lastLevelLine: false, ownerLine: false },
+		expect: { roles: undefined, delegateLines: false, lastLevelLine: false, ownerLine: false },
 	},
 	{
 		name: "a level-4 leaf",
 		self: Self.Delegate({ role: "leaf", level: 4, slice: "s" }),
-		expect: { roles: undefined, lastLevelLine: false, ownerLine: false },
+		expect: { roles: undefined, delegateLines: false, lastLevelLine: false, ownerLine: false },
 	},
 ];
 
@@ -106,6 +107,7 @@ test.each(Arr.map(levelRows, (row) => ({ ...row, starts: startsOf(row) })))(
 		expect({
 			rest: Arr.filter(names, (name) => name !== "delegate"),
 			roles: startableRoles(tools),
+			delegateLines: Arr.some(guidelines, Str.includes("goes to a delegate")),
 			lastLevelLine: Arr.some(guidelines, Str.includes("cannot start delegates of their own")),
 			ownerLine: Arr.some(guidelines, Str.includes("one owner per slice")),
 		}).toEqual({ rest: ["serve", "watch", "group", "cancel", "wait"], ...row.expect });
@@ -154,6 +156,8 @@ test.each([
 
 const commandsStarted: Array<string> = [];
 
+const watchLogs: Array<string> = [];
+
 const startedHandle: Handle = {
 	ref: WorkRef("watch-1"),
 	kind: "watch",
@@ -169,6 +173,10 @@ const commandRuntime = piHost(
 			start: (request) =>
 				Effect.sync(() => {
 					commandsStarted.push(StartRequest.$is("Delegate")(request) ? "a delegate" : request.command);
+
+					if (StartRequest.$is("Watch")(request)) {
+						watchLogs.push(request.log);
+					}
 
 					return startedHandle;
 				}),
@@ -277,5 +285,32 @@ test("a wait returns once the human queues a message, with the jobs still runnin
 		}),
 	);
 });
+
+const folderMode = (folder: string) =>
+	Effect.map(
+		Effect.promise(() =>
+			piHost(NodeServices.layer).run(Effect.orDie(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.stat(folder)))),
+		),
+		({ mode }) => Str.takeRight(mode.toString(8), 3),
+	);
+
+test("a watch keeps its log beside the delegate sessions, in a folder only its owner can read", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			watchLogs.splice(0);
+
+			yield* Effect.promise(() => started.watch({ name: "check", command: "bun test" }));
+
+			const logs = watchLogs.splice(0);
+
+			commandsStarted.splice(0);
+
+			expect({
+				inDelegatesFolder: Arr.map(logs, Str.startsWith(`${commandPlace.dir}/`)),
+				isLog: Arr.map(logs, Str.endsWith(".log")),
+				mode: yield* folderMode(commandPlace.dir),
+			}).toEqual({ inDelegatesFolder: [true], isLog: [true], mode: "700" });
+		}),
+	));
 
 afterAll(() => Effect.runPromise(Effect.promise(() => Bun.$`rm -rf ${commandPlace.dir}`.quiet())));

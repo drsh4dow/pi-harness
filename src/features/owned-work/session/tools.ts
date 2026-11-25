@@ -87,7 +87,6 @@ const ownBrief = (ownSession: Option.Option<OwnSession>) =>
 		),
 	);
 
-/** When its parent is held, the delegate's session is pinned in phi-router before its first request. */
 const pinnedFirst = (pin: boolean, session: string) =>
 	pin
 		? Effect.flatMap(PhiRouter, (router) =>
@@ -97,7 +96,6 @@ const pinnedFirst = (pin: boolean, session: string) =>
 			)
 		: Effect.void;
 
-/** Runs a settled delegate again in its own session, on the model the PHI gate allows for its brief's model now. */
 const relaunched = Effect.fn("relaunched")(function* ({
 	ledger,
 	ctx,
@@ -188,7 +186,6 @@ const serveTool = (runtime: Runtime) =>
 			),
 	}) satisfies ToolDefinition<typeof ServeParams, JsonValue>;
 
-/** A watch's log sits beside the delegate sessions of the session that started it, and stays as long as they do. */
 const watchTool = (runtime: Runtime, place: Omit<ChildSession, "id">) =>
 	({
 		name: "watch",

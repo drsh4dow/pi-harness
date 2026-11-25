@@ -106,10 +106,6 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 	return { host, lineage: { agentKey, stamp }, relay, ownTerminal: parent, passEnv };
 };
 
-/**
- * Under --no-session pi's session folder is "", so a root's delegates keep their sessions in a temp folder whose name
- * nobody can guess ahead of time. It is made, owner-only, when the first delegate starts.
- */
 export const delegatesDirOf = ({ sessionDir, tmpDir }: { readonly sessionDir: string; readonly tmpDir: string }) =>
 	sessionDir === "" ? `${tmpDir}/pi-delegates-${uuidv7()}` : `${sessionDir}/delegates`;
 

@@ -64,7 +64,6 @@ export const promptGuidelines = [
 	"Starting work returns a handle at once. Its result reaches you as a wake once you end your turn, or in the reply of a `wait` call, never while another tool call runs.",
 ];
 
-/** Only an agent that may start delegates gets these, since pi shows a tool's guidelines only while the tool is active. */
 export const delegateGuidelines = [
 	"Decide what goes to a delegate before you start, while your context is small. Work of a handful of tool calls, or that needs context a task message cannot carry, stays with you.",
 	"Reading of more than about 1,500 lines, or of three or more areas, goes to delegates, one per area in parallel, each asked for the facts you need with file, line, and quotes. This holds when the reading serves your own plan. Context spent on reading never comes back, so read yourself only what you will edit.",
@@ -75,7 +74,6 @@ export const delegateGuidelines = [
 	"A delegate that reports something missing hands you a gap. Supply it in a fresh delegate's message. If only someone above you can settle it, it is your own open question now.",
 ];
 
-/** Only an agent that may start owners gets these. */
 export const ownerGuidelines = [
 	"Hand implementation to one owner per slice when a slice has written acceptance criteria or the work has two or more slices. Coupled code gets one owner.",
 	"An owner you start can start delegates of its own, so hand it its whole slice. A leaf cannot.",
