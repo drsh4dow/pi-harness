@@ -156,12 +156,17 @@ test.each(kinds)(
 	},
 );
 
-/** The names `text` points at as `principle-<name>`, the one spelling prompts and answers use. */
 const principleReferences = (text: string) => {
-	const found = [...Str.matchAll(/\bprinciple-(?<name>[a-z][a-z0-9-]*[a-z0-9])/gu)(text)];
+	const found = [...Str.matchAll(/\bprinciple(?:-|s\/)(?<name>[a-z][a-z0-9-]*[a-z0-9])/gu)(text)];
 
 	return Arr.dedupe(Arr.map(found, (match) => match.groups?.["name"] ?? ""));
 };
+
+test("principle-<name> and principles/<name>.md each name a principle", () => {
+	const text = "Per principle-fix-root-causes, read principles/prove-it-works.md, then principles/<name>.md.";
+
+	expect(principleReferences(text)).toEqual(["fix-root-causes", "prove-it-works"]);
+});
 
 const playbookReferences = (text: string) => {
 	const found = [...Str.matchAll(/\bplaybooks\/(?<name>[a-z][a-z0-9-]*)\.md\b/gu)(text)];
@@ -199,7 +204,7 @@ const namesIn = (kind: Kind) =>
 		return Arr.map(entries, ({ name }) => name);
 	});
 
-test("every shipped principle loads, and every principle-<name> in the prompt files and playbooks names one", () =>
+test("every shipped principle loads, and every principle-<name> or principles/<name>.md in the prompt files and playbooks names one", () =>
 	run(
 		Effect.gen(function* () {
 			const texts = yield* promptTexts(["roles", "instructions", "playbooks"]);
@@ -221,7 +226,7 @@ test("every shipped playbook loads, and every playbooks/<name>.md in a skill, pl
 		}),
 	));
 
-test("a principle stands alone: none names a principle as principle-<name>", () =>
+test("a principle stands alone: none names a principle as principle-<name> or principles/<name>.md", () =>
 	run(
 		Effect.gen(function* () {
 			const fs = yield* FileSystem.FileSystem;
