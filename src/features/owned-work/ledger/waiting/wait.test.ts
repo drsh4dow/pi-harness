@@ -65,6 +65,21 @@ const rows: ReadonlyArray<Row> = [
 		],
 	},
 	{
+		name: "a stopped wait for named jobs names only those of them still running",
+		role: "owner",
+		acts: [
+			runs,
+			Start({ kind: "watch" }),
+			Start({ kind: "watch", name: "lint" }),
+			waitStarts(["watch-2"]),
+			waitStops,
+			waitReturns("none | running watch-2"),
+			End({ terminal: "t1", end: exit(0) }),
+			End({ terminal: "t2", end: exit(0) }),
+			TurnEnds({ expect: `continue: ${fired("watch-1")}; ${fired("watch-2")}` }),
+		],
+	},
+	{
 		name: "a stopped wait names the jobs still running, and a result that settles after it wakes the agent at the turn's end",
 		role: "owner",
 		acts: [

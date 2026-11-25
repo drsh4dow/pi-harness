@@ -16,7 +16,6 @@ type WaitScope = Option.Option<ReadonlyArray<WorkRef>>;
 
 export interface Waited {
 	readonly results: ReadonlyArray<Settled>;
-	/** The jobs in the wait's scope that still run. */
 	readonly running: ReadonlyArray<WorkRef>;
 }
 
