@@ -6,7 +6,7 @@ import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as Str from "effect/String";
 
-import { type Commit, longestBodyLine, plant } from "#tools/driver/align/observe.ts";
+import { type Commit, longestBodyLine, plant } from "#tools/driver/align/index.ts";
 import type { Run, ScenarioFailed } from "#tools/driver/index.ts";
 import {
 	type Ended,

@@ -2,7 +2,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { type Commit, offGitHub, rootModel } from "#tools/driver/align/observe.ts";
+import { type Commit, offGitHub, rootModel } from "#tools/driver/align/index.ts";
 import { type Run, scenario } from "#tools/driver/index.ts";
 import { measure } from "./measure.ts";
 import { before, firstStep, type Timeline, writesFile } from "./timeline.ts";

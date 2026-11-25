@@ -6,7 +6,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { entryKind } from "#src/features/owned-work/index.ts";
-import { settledReply } from "#tools/driver/align/observe.ts";
+import { settledReply } from "#tools/driver/align/index.ts";
 import type { Session, Sessions } from "#tools/driver/index.ts";
 
 /** A guide by its path inside the agent folder. */

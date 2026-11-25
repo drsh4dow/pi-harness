@@ -3,7 +3,7 @@ import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 import * as Str from "effect/String";
 
-import { type Commit, offGitHub, rootModel } from "#tools/driver/align/observe.ts";
+import { type Commit, offGitHub, rootModel } from "#tools/driver/align/index.ts";
 import { scenario } from "#tools/driver/index.ts";
 import { measure } from "./measure.ts";
 import { before, firstStep, type Timeline } from "./timeline.ts";
