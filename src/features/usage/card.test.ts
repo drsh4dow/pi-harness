@@ -121,3 +121,23 @@ test("a card reads back the same from the JSON the session stores", () =>
 			expect(back).toEqual(card);
 		}),
 	));
+
+const resetLine = (at: string) => {
+	const window = { name: "w", percent: 0, resetsAt: Option.some(DateTime.makeUnsafe(at)) };
+
+	const block: Block = {
+		account: "a",
+		via: "v",
+		body: blockOf({ now, outcome: { kind: "read", meters: [{ kind: "window", window }] } }),
+	};
+
+	return blockLines({ blocks: [block], theme: plain })[1];
+};
+
+test("a reset reads in days and hours, then hours and minutes, then minutes", () => {
+	expect(Arr.map(["2026-11-11T23:00:00Z", "2026-11-10T21:52:00Z", "2026-11-10T17:20:00Z"], resetLine)).toEqual([
+		"  w  ░░░░░░░░░░   0%  resets in 1d 6h",
+		"  w  ░░░░░░░░░░   0%  resets in 5h 12m",
+		"  w  ░░░░░░░░░░   0%  resets in 40m",
+	]);
+});

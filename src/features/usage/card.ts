@@ -56,7 +56,6 @@ const moneyText = ({ minor, exponent, currency }: Money) =>
 
 const usdText = (usd: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(usd);
 
-/** Time until a reset, coarse enough to read at a glance: `1d 6h`, `5h 12m`, `40m`. */
 const untilText = (left: Duration.Duration) => {
 	const minutes = Math.max(0, Math.round(Duration.toMinutes(left)));
 	const days = Math.floor(minutes / 1440);
