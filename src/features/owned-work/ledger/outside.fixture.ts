@@ -23,10 +23,9 @@ const hangUp = (terminal: TerminalAddress) =>
 
 export const printed = "tail";
 
-/** Linux MAX_ARG_STRLEN, which counts the closing NUL: execve fails with E2BIG on a longer argv word. */
-const argvWordLimit = 128 * 1024;
+const linuxMaxArgStrlen = 128 * 1024;
 
-const tooLong = (spec: RunSpec) => Arr.some(spec.argv, (word) => Buffer.byteLength(word) >= argvWordLimit);
+const tooLong = (spec: RunSpec) => Arr.some(spec.argv, (word) => Buffer.byteLength(word) >= linuxMaxArgStrlen);
 
 const failed = (why: string) => HcError.make({ method: "terminal.run", kind: "spawn_failed", message: why });
 
