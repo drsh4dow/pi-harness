@@ -7,7 +7,6 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as Redacted from "effect/Redacted";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
@@ -19,7 +18,7 @@ import {
 	opencodeGoFetchLayer,
 	type Window,
 } from "#src/client/providers/index.ts";
-import { type Account, accounts, type Login, planOf } from "#src/features/claude-accounts/index.ts";
+import { type Account, accounts, keyOf, type Login, planOf } from "#src/features/claude-accounts/index.ts";
 import { type Block, blockOf, Card, type Meter, type Outcome, readAtOf } from "./card.ts";
 import { cardComponent, liveCard } from "./view.ts";
 
@@ -39,15 +38,6 @@ const timeout = Duration.seconds(20);
 
 const windowMeters = (windows: ReadonlyArray<Window>) =>
 	Arr.map(windows, (window): Meter => ({ kind: "window", window }));
-
-const keyOf = (ctx: ExtensionCommandContext, provider: string) =>
-	Effect.flatMap(
-		Effect.promise(() => ctx.modelRegistry.getApiKeyForProvider(provider)),
-		(key) =>
-			key === undefined
-				? Effect.fail(`${provider} has no login. Run /login ${provider}.`)
-				: Effect.succeed(Redacted.make(key)),
-	);
 
 const planMeters = (ctx: ExtensionCommandContext, account: Account) =>
 	Effect.map(planOf({ registry: ctx.modelRegistry, account }), (plan) => {
@@ -69,7 +59,7 @@ const opencodeGo: Source = {
 	via: "OpenCode Go usage API",
 	read: (ctx) =>
 		Effect.gen(function* () {
-			const key = yield* keyOf(ctx, "opencode-go");
+			const key = yield* keyOf({ registry: ctx.modelRegistry, provider: "opencode-go" });
 			const go = yield* OpencodeGo;
 			const windows = yield* Effect.mapError(go.usage(key), ({ message }) => message);
 

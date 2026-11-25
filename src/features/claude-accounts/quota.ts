@@ -12,7 +12,7 @@ import { type Account, type AccountId, accounts } from "./accounts.ts";
 
 export type PlanReader = Pick<ModelRegistry, "getAll" | "getApiKeyForProvider">;
 
-const keyOf = (registry: PlanReader, provider: string) =>
+export const keyOf = ({ registry, provider }: { readonly registry: PlanReader; readonly provider: string }) =>
 	Effect.flatMap(
 		Effect.promise(() => registry.getApiKeyForProvider(provider)),
 		(key) =>
@@ -38,7 +38,7 @@ const cheapestModel = (registry: PlanReader, provider: string) => {
 
 const probedPlan = (registry: PlanReader, provider: string) =>
 	Effect.gen(function* () {
-		const token = yield* keyOf(registry, provider);
+		const token = yield* keyOf({ registry, provider });
 		const model = yield* cheapestModel(registry, provider);
 		const claude = yield* ClaudeUsage;
 		const windows = yield* Effect.mapError(claude.probe({ token, model }), ({ message }) => message);
@@ -55,7 +55,7 @@ export const planOf = ({
 }): Effect.Effect<PlanUsage, string, ClaudeUsage> => {
 	switch (login) {
 		case "oauth": {
-			return Effect.flatMap(Effect.zip(keyOf(registry, id), ClaudeUsage), ([token, claude]) =>
+			return Effect.flatMap(Effect.zip(keyOf({ registry, provider: id }), ClaudeUsage), ([token, claude]) =>
 				Effect.mapError(claude.plan(token), ({ message }) => message),
 			);
 		}

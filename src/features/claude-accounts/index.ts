@@ -13,7 +13,7 @@ export { type Account, type AccountId, accountOf, accounts, type Login } from ".
 
 export { isRateLimited } from "./failover.ts";
 
-export { type PlanReader, planOf, roomiestAccount } from "./quota.ts";
+export { keyOf, type PlanReader, planOf, roomiestAccount } from "./quota.ts";
 
 const accountIds = Arr.map(accounts, ({ id }) => id);
 
