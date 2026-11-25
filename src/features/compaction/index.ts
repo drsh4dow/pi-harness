@@ -45,6 +45,8 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 type StreamSimple = ExtensionContext["modelRegistry"]["streamSimple"];
 
+type Compacted = Required<Pick<SessionBeforeCompactResult, "compaction">>;
+
 interface Caller {
 	readonly model: Model<Api> | undefined;
 	readonly modelRegistry: {
@@ -228,10 +230,6 @@ const compact = Effect.fn("compact")(function* ({
 	};
 });
 
-/**
- * Always returns a compaction, since anything else lets pi's own prompt run, which carries every earlier summary into
- * the next.
- */
 export const compaction =
 	(env: Env) =>
 	(pi: {
@@ -244,6 +242,6 @@ export const compaction =
 		const host = piHost(Layer.provideMerge(stateFolderLayer, NodeServices.layer));
 
 		pi.on("session_before_compact", (event, ctx) =>
-			host.run(compact({ env, commands: pi.getCommands(), event, ctx })),
+			host.run<Compacted, never>(compact({ env, commands: pi.getCommands(), event, ctx })),
 		);
 	};
