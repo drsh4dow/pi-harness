@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -7,14 +7,13 @@ import * as FileSystem from "effect/FileSystem";
 import * as Latch from "effect/Latch";
 import * as Str from "effect/String";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { holdPlace } from "./queue.ts";
 
-const folder = `${Bun.env["TMPDIR"] ?? "/tmp"}/queue-client-test-${String(process.pid)}`;
+const folder = scratchFolder("queue-client-test");
 
 const run = <Value, Failure>(body: Effect.Effect<Value, Failure, FileSystem.FileSystem>) =>
 	Effect.runPromise(Effect.provide(body, NodeServices.layer));
-
-afterAll(() => run(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(folder, { recursive: true }))));
 
 const lateTickets = (fs: FileSystem.FileSystem, latch: Latch.Latch): FileSystem.FileSystem => ({
 	...fs,

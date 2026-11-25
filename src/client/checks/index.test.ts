@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
@@ -9,15 +9,14 @@ import * as Str from "effect/String";
 
 import { git } from "#src/client/git/index.ts";
 import { eventually } from "#src/primitives/eventually.ts";
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { type Receipt, receiptOf, recordReceipt, worktreeAt } from "./index.ts";
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/checks-client-test-${String(process.pid)}`;
+const scratch = scratchFolder("checks-client-test");
 
 const run = <Value, Failure>(
 	body: Effect.Effect<Value, Failure, FileSystem.FileSystem | ChildProcessSpawner.ChildProcessSpawner>,
 ) => Effect.runPromise(Effect.provide(body, NodeServices.layer));
-
-afterAll(() => run(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true }))));
 
 const receipt = (stdout: string): Receipt => ({
 	command: ["true"],

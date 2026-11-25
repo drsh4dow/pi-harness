@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -7,13 +7,12 @@ import * as FileSystem from "effect/FileSystem";
 import * as Str from "effect/String";
 
 import { eventually } from "#src/primitives/eventually.ts";
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/check-bin-test-${String(process.pid)}`;
+const scratch = scratchFolder("check-bin-test");
 
 const run = <Value, Failure>(body: Effect.Effect<Value, Failure, FileSystem.FileSystem>) =>
 	Effect.runPromise(Effect.provide(body, NodeServices.layer));
-
-afterAll(() => run(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true }))));
 
 const spawnLimit = { timeout: 60_000 };
 
