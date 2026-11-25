@@ -16,7 +16,6 @@ export interface Guide {
 	readonly lines: ReadonlyArray<string>;
 }
 
-/** A guide the model sees now. `by` is who put its text there: the agent through a tool, or the person through a message or `/skill:`. */
 export const Loaded = Schema.Struct({
 	kind: Kind,
 	name: Schema.String,
@@ -64,14 +63,12 @@ export const guidesOf = (
 	}));
 };
 
-/** A script that returns a file inside JSON shows its lines with escaped newlines and quotes. */
 const unescaped = (text: string) =>
 	Str.replaceAll(
 		String.raw`\"`,
 		'"',
 	)(Str.replaceAll(String.raw`\t`, "\t")(Str.replaceAll(String.raw`\n`, "\n")(text)));
 
-/** The text a message shows the model. The model's own replies load nothing, so assistant messages give none. */
 const visibleText = (message: AgentMessage) => {
 	if (message.role === "assistant" || message.role === "system") {
 		return "";
@@ -95,7 +92,6 @@ export interface Index {
 	readonly guides: ReadonlyArray<Guide>;
 	/** Each marking line, to its guide and its place in that guide's lines. */
 	readonly owner: ReadonlyMap<string, { readonly guide: number; readonly line: number }>;
-	/** What each message marks, by guide. Entries never change, and a context edit hands over a new message. */
 	readonly seen: WeakMap<AgentMessage, ReadonlyMap<number, ReadonlySet<number>>>;
 }
 

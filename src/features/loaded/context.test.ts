@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 
 import { SessionManager } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
+import * as Function from "effect/Function";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
@@ -132,4 +133,77 @@ test("a context edit that omits the read drops the guide", () => {
 	session.appendContextEdit(read, Option.getOrNull(Option.none()));
 
 	expect(loaded(session)).toEqual([]);
+});
+
+const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
+test("a guide in a ! command's output is loaded by the person", () => {
+	const session = SessionManager.inMemory();
+	session.appendMessage({
+		role: "bashExecution",
+		command: `cat ${tdd.path}`,
+		output: tdd.text,
+		exitCode: 0,
+		cancelled: false,
+		truncated: false,
+		timestamp: 0,
+	});
+
+	expect(loaded(session)).toEqual([{ name: "tdd", state: "full", by: "person" }]);
+});
+
+test("a guide the model quotes whole in its own reply is not in context", () => {
+	const session = SessionManager.inMemory();
+	session.appendMessage({
+		role: "assistant",
+		content: [{ type: "text", text: tdd.text }],
+		api: "anthropic-messages",
+		provider: "anthropic",
+		model: "claude-opus-5-5",
+		usage: { ...zero, totalTokens: 0, cost: { ...zero, total: 0 } },
+		stopReason: "stop",
+		timestamp: 0,
+	});
+
+	expect(loaded(session)).toEqual([]);
+});
+
+test("a guide with quotes and tabs, returned inside a script's JSON, still loads", () => {
+	const lines = Arr.makeBy(10, (line) => `Line ${String(line)} says "run it"\tand is long enough to mark it.`);
+
+	const quoted = {
+		kind: "skill" as const,
+		name: "quoted",
+		path: "/skills/quoted/SKILL.md",
+		text: file("quoted", lines),
+	};
+
+	const escaped = Function.pipe(
+		quoted.text,
+		Str.replaceAll('"', String.raw`\"`),
+		Str.replaceAll("\t", String.raw`\t`),
+		Str.replaceAll("\n", String.raw`\n`),
+	);
+
+	const session = SessionManager.inMemory();
+	toolResult(session, `{"path":"${quoted.path}","content":"${escaped}"}`);
+	const alone = indexOf(guidesOf([quoted]));
+
+	expect(inContext({ index: alone, entries: session.buildSessionProjection().entries })).toEqual([
+		{ kind: "skill", name: "quoted", path: quoted.path, state: "full", by: "agent" },
+	]);
+});
+
+test("one index sees a context edit that replaces a read", () => {
+	const shared = index();
+	const session = SessionManager.inMemory();
+	const read = toolResult(session, tdd.text);
+
+	const names = () =>
+		Arr.map(inContext({ index: shared, entries: session.buildSessionProjection().entries }), ({ name }) => name);
+
+	const before = names();
+	session.appendContextEdit(read, { content: [{ type: "text", text: "The read was cut." }] });
+
+	expect({ before, after: names() }).toEqual({ before: ["tdd"], after: [] });
 });
