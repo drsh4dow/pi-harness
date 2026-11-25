@@ -24,7 +24,6 @@ export interface GuideFile {
 	readonly path: string;
 }
 
-/** The hc label on an agent's own terminal that holds its `ContextLabel`, which herdr-app's Skills panel reads. */
 export const labelKey = "pi.context";
 
 const Count = Schema.Finite;
@@ -38,7 +37,6 @@ export type ContextLabel = typeof ContextLabel.Type;
 
 const encodeLabel = Schema.encodeEffect(Schema.fromJsonString(ContextLabel));
 
-/** Reads each guide file. One that cannot be read is left out, so a deleted skill never hides the rest. */
 export const readGuides = Effect.fn("readGuides")(function* (files: ReadonlyArray<GuideFile>) {
 	const read = yield* Effect.forEach(
 		files,
@@ -85,7 +83,6 @@ const labelOf = (index: Index, ctx: ExtensionContext): ContextLabel => ({
 	},
 });
 
-/** The guides this agent can load, and the label text it last set, so an unchanged context sends nothing. */
 interface Publisher {
 	index: Option.Option<Index>;
 	published: string;
@@ -93,7 +90,6 @@ interface Publisher {
 
 const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
-/** The guides pi can load now: its skill commands' files and the harness principles and playbooks. */
 export const guideFiles = Effect.fn("guideFiles")(function* (commands: ReadonlyArray<SlashCommandInfo>) {
 	const principles = yield* guideFilesIn("principle", `${getAgentDir()}/principles`);
 	const playbooks = yield* guideFilesIn("playbook", `${getAgentDir()}/playbooks`);
@@ -132,11 +128,6 @@ const clear = Effect.fn("clear")(function* (publisher: Publisher) {
 	}
 });
 
-/**
- * Keeps the `pi.context` label on this agent's hc terminal equal to the skills, principles and playbooks its model sees now. It
- * recomputes after each turn, a `/tree` move and a compaction, and clears the label when the session ends. Outside
- * herdr-core it does nothing. A compaction reads the guides again, since its summary carries them as their files read now.
- */
 export const loaded = (pi: Pick<ExtensionAPI, "on" | "getCommands">) => {
 	const publisher: Publisher = { index: Option.none(), published: "" };
 	const host = piHost(NodeServices.layer);
