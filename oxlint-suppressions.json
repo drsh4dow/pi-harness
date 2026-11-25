@@ -8,20 +8,5 @@
     "max-params": {
       "count": 1
     }
-  },
-  "src/features/pr/gate.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/features/pr/merge-gate.scenario.ts": {
-    "max-params": {
-      "count": 3
-    }
-  },
-  "src/features/pr/patch-id.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
   }
 }

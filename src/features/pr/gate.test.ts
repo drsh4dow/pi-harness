@@ -14,7 +14,6 @@ import {
 	recordVerdict,
 	type StackMember,
 	type VerdictRecord,
-	type VerdictResult,
 } from "#src/client/github/index.ts";
 import { Authorization, gate } from "./gate.ts";
 import { mergeRequestOf } from "./merge-request.ts";
@@ -37,13 +36,15 @@ const viewOf = (number: number): PrView => ({
 	state: "OPEN",
 });
 
-const verdict = (number: number, result: VerdictResult, at = headOf(number), patchId = `patch-${String(number)}`) => ({
+type VerdictAt = Pick<VerdictRecord, "number" | "result"> & Partial<Pick<VerdictRecord, "head" | "patchId">>;
+
+const verdict = ({ number, result, head = headOf(number), patchId = `patch-${String(number)}` }: VerdictAt) => ({
 	repo: "o/r",
 	number,
-	head: at,
+	head,
 	patchId,
 	result,
-	verifier: { name: `verify ${String(number)}`, session: `session-${result}-${Str.slice(0, 4)(at)}`, model: "m" },
+	verifier: { name: `verify ${String(number)}`, session: `session-${result}-${Str.slice(0, 4)(head)}`, model: "m" },
 	answer: "/answers/1.md",
 });
 
@@ -81,13 +82,13 @@ const allowedRows: ReadonlyArray<Case & { readonly pin: ReadonlyArray<string> }>
 	{
 		name: "lets a merge through on a pass at the head, pinned to it",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "pass")] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass" })] },
 		pin: ["--match-head-commit", pr5.head],
 	},
 	{
 		name: "carries a pass with notes from an older head with the same patch",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "pass+notes", oldHead)] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass+notes", head: oldHead })] },
 		pin: ["--match-head-commit", pr5.head],
 	},
 	{
@@ -95,7 +96,7 @@ const allowedRows: ReadonlyArray<Case & { readonly pin: ReadonlyArray<string> }>
 		argv: ["stack", "merge", "7", "--yes", "--squash"],
 		world: {
 			views: [viewOf(6), viewOf(7), viewOf(8)],
-			verdicts: [verdict(7, "pass")],
+			verdicts: [verdict({ number: 7, result: "pass" })],
 			stack: [
 				{ number: "6", state: "merged" },
 				{ number: "7", state: "open" },
@@ -110,19 +111,22 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 	{
 		name: "refuses a pass at an older head whose patch differs",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "pass", oldHead, "patch-with-a-space")] },
+		world: {
+			views: [pr5],
+			verdicts: [verdict({ number: 5, result: "pass", head: oldHead, patchId: "patch-with-a-space" })],
+		},
 		says: ["o/r#5 has no pass at its head 5555555", "- pass by verify 5 at bbbbbbb, another patch."],
 	},
 	{
 		name: "refuses a fail at the head",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "fail")] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "fail" })] },
 		says: ["Verdicts found:", "- fail by verify 5 at 5555555, this head."],
 	},
 	{
 		name: "refuses an incomplete verdict at the head",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "incomplete")] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "incomplete" })] },
 		says: ["- incomplete by verify 5 at 5555555, this head."],
 	},
 	{
@@ -130,14 +134,14 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 		argv: ["pr", "merge", "5", "--squash"],
 		world: {
 			views: [{ ...pr5, reviewDecision: Option.some("CHANGES_REQUESTED") }],
-			verdicts: [verdict(5, "pass")],
+			verdicts: [verdict({ number: 5, result: "pass" })],
 		},
 		says: ["o/r#5 has changes requested on GitHub."],
 	},
 	{
 		name: "refuses a pull request with no verdict, naming the call that fixes it",
 		argv: ["pr", "merge", "5", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(6, "pass", headOf(5))] },
+		world: { views: [pr5], verdicts: [verdict({ number: 6, result: "pass", head: headOf(5) })] },
 		says: ["No verdict is recorded for it.", 'with role "leaf" and reviews "https://github.com/o/r/pull/5"'],
 	},
 	{
@@ -149,13 +153,13 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 	{
 		name: "refuses --auto on a pull request with a pass at its head",
 		argv: ["pr", "merge", "5", "--auto", "--squash"],
-		world: { views: [pr5], verdicts: [verdict(5, "pass")] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass" })] },
 		says: ["Wait for the checks with `gh pr checks 5 --watch`"],
 	},
 	{
 		name: "refuses auto-merge enabled through gh api",
 		argv: ["api", "graphql", "-f", "query=mutation { enablePullRequestAutoMerge(input: {}) { clientMutationId } }"],
-		world: { views: [pr5], verdicts: [verdict(5, "pass")] },
+		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass" })] },
 		says: ["merge gate: a deferred merge is refused."],
 	},
 	{
@@ -163,7 +167,7 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 		argv: ["stack", "merge", "7", "--yes", "--squash"],
 		world: {
 			views: [viewOf(6), viewOf(7)],
-			verdicts: [verdict(7, "pass")],
+			verdicts: [verdict({ number: 7, result: "pass" })],
 			stack: [
 				{ number: "6", state: "open" },
 				{ number: "7", state: "open" },
@@ -176,7 +180,7 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 		argv: ["stack", "merge", "9", "--yes"],
 		world: {
 			views: [viewOf(6), viewOf(7)],
-			verdicts: [verdict(6, "pass")],
+			verdicts: [verdict({ number: 6, result: "pass" })],
 			stack: [
 				{ number: "6", state: "open" },
 				{ number: "7", state: "open" },
@@ -187,7 +191,7 @@ const refusedRows: ReadonlyArray<Case & { readonly says: ReadonlyArray<string> }
 	{
 		name: "refuses a stack merge it cannot enumerate",
 		argv: ["stack", "merge", "7", "--yes"],
-		world: { views: [viewOf(7)], verdicts: [verdict(7, "pass")] },
+		world: { views: [viewOf(7)], verdicts: [verdict({ number: 7, result: "pass" })] },
 		says: ["could not read what it lands", "stacks/7 failed: HTTP 404"],
 	},
 	{

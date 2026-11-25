@@ -109,7 +109,13 @@ const deferredMerge = (pr: Pr) => `gh pr merge ${pr.url} --auto --squash`;
 const script = (command: string) => `return (await tools.bash({ command: '${command}' })).output;`;
 const noVerdict = (pr: Pr) => ["merge gate: merge refused.", "No verdict is recorded for it.", `reviews "${pr.url}"`];
 
-const prints = (run: Run, where: string, output: Option.Option<string>, expected: ReadonlyArray<string>) =>
+interface Printed {
+	readonly where: string;
+	readonly output: Option.Option<string>;
+	readonly expected: ReadonlyArray<string>;
+}
+
+const prints = (run: Run, { where, output, expected }: Printed) =>
 	Effect.gen(function* () {
 		const text = Option.getOrElse(output, () => "nothing: no such tool call found");
 
@@ -134,9 +140,17 @@ const unverified = (run: Run, prs: Prs) =>
 		const { root, leaf } = yield* finished(run, "merger 1");
 		const codemode = outputOf(leaf, "codemode", byUrl(prs.codemode));
 
-		yield* prints(run, "the root's bash", outputOf(root, "bash", byNumber(prs.bash)), noVerdict(prs.bash));
-		yield* prints(run, "merger 1's bash", outputOf(leaf, "bash", byNumber(prs.bash)), noVerdict(prs.bash));
-		yield* prints(run, "merger 1's codemode", codemode, noVerdict(prs.codemode));
+		yield* prints(run, {
+			where: "the root's bash",
+			output: outputOf(root, "bash", byNumber(prs.bash)),
+			expected: noVerdict(prs.bash),
+		});
+		yield* prints(run, {
+			where: "merger 1's bash",
+			output: outputOf(leaf, "bash", byNumber(prs.bash)),
+			expected: noVerdict(prs.bash),
+		});
+		yield* prints(run, { where: "merger 1's codemode", output: codemode, expected: noVerdict(prs.codemode) });
 		yield* isIn(run, prs.bash, "OPEN ");
 		yield* isIn(run, prs.codemode, "OPEN ");
 	});
@@ -174,7 +188,14 @@ const mainMoved = (pr: Pr) =>
 const spaced = (pr: Pr) =>
 	`git checkout -q ${pr.branch}; printf 'a  b\\nc\\n' > ${pr.branch}.txt; git commit -q -a --amend --no-edit`;
 
-const raceShim = (pr: Pr, realGh: string, folder: string, project: string) => `#!/bin/sh
+interface RaceShim {
+	readonly pr: Pr;
+	readonly realGh: string;
+	readonly folder: string;
+	readonly project: string;
+}
+
+const raceShim = ({ pr, realGh, folder, project }: RaceShim) => `#!/bin/sh
 if [ "$1 $2 $3" = "pr merge ${pr.url}" ] && [ -e ${folder}/race.armed ]; then
 	rm ${folder}/race.armed
 	cd ${project}/scratch && git checkout -q ${pr.branch} && echo raced >> ${pr.branch}.txt && git commit -q -am raced && git push -q origin ${pr.branch}
@@ -191,19 +212,25 @@ const armed = (run: Run, pr: Pr, realGh: string) =>
 		const folder = Str.replace(/\/home$/u, "")(run.home);
 		const project = yield* sh(run, "pwd");
 
-		yield* fs.writeFileString(`${folder}/bin/gh`, raceShim(pr, realGh, folder, project), { mode: 0o755 });
+		yield* fs.writeFileString(`${folder}/bin/gh`, raceShim({ pr, realGh, folder, project }), { mode: 0o755 });
 		yield* fs.writeFileString(`${folder}/race.armed`, "");
 
 		return yield* inScratch(run, `git rev-parse ${pr.branch}`);
 	});
 
-const raced = (run: Run, pr: Pr, before: string, output: Option.Option<string>) =>
+interface Race {
+	readonly pr: Pr;
+	readonly before: string;
+	readonly output: Option.Option<string>;
+}
+
+const raced = (run: Run, { pr, before, output }: Race) =>
 	Effect.gen(function* () {
 		const after = yield* inScratch(run, `git rev-parse ${pr.branch}`);
 		const seen = yield* stateOf(run, pr);
 		const text = Option.getOrElse(output, () => "nothing");
 
-		yield* prints(run, "merger 2's race merge", output, ["Head branch was modified"]);
+		yield* prints(run, { where: "merger 2's race merge", output, expected: ["Head branch was modified"] });
 		yield* run.check(
 			!Str.includes("merge gate")(text) && after !== before && seen === `OPEN null ${after}`,
 			`GitHub, not the gate, refuses the race, which stays open at the raced head ${after}, not ${before} (it reads ${seen})`,
@@ -211,7 +238,10 @@ const raced = (run: Run, pr: Pr, before: string, output: Option.Option<string>) 
 	});
 
 const landed = (run: Run, pr: Pr, output: Option.Option<string>) =>
-	Effect.andThen(prints(run, `merger 2's merge of ${pr.url}`, output, []), isIn(run, pr, "MERGED "));
+	Effect.andThen(
+		prints(run, { where: `merger 2's merge of ${pr.url}`, output, expected: [] }),
+		isIn(run, pr, "MERGED "),
+	);
 
 const mergerTwo = (run: Run, prs: Prs) =>
 	Effect.gen(function* () {
@@ -235,10 +265,18 @@ const merged = (run: Run, prs: Prs, raceHead: string) =>
 		yield* landed(run, prs.bash, ran("bash", byNumber(prs.bash)));
 		yield* landed(run, prs.codemode, ran("codemode", byUrl(prs.codemode)));
 		yield* landed(run, prs.rebase, ran("bash", byUrl(prs.rebase)));
-		yield* prints(run, "merger 2's space merge", ran("bash", byUrl(prs.space)), ["merge refused.", "another patch"]);
+		yield* prints(run, {
+			where: "merger 2's space merge",
+			output: ran("bash", byUrl(prs.space)),
+			expected: ["merge refused.", "another patch"],
+		});
 		yield* isIn(run, prs.space, "OPEN ");
-		yield* raced(run, prs.race, raceHead, ran("bash", byUrl(prs.race)));
-		yield* prints(run, "merger 2's auto merge", ran("bash", deferredMerge(prs.auto)), auto);
+		yield* raced(run, { pr: prs.race, before: raceHead, output: ran("bash", byUrl(prs.race)) });
+		yield* prints(run, {
+			where: "merger 2's auto merge",
+			output: ran("bash", deferredMerge(prs.auto)),
+			expected: auto,
+		});
 		yield* isIn(run, prs.auto, "OPEN null ");
 	});
 

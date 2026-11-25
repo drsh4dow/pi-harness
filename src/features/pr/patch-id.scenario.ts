@@ -141,7 +141,11 @@ const mergeAndRebase = (run: Run, { bottomBranch, topBranch, bottom, top }: Stac
 		return yield* Effect.retry(shown, { schedule: Schedule.spaced("2 seconds"), times: 30 });
 	});
 
-const pinned = (records: ReadonlyArray<VerdictRecord>, session: string, head: string, patchId: string) =>
+interface Pin extends Pick<VerdictRecord, "head" | "patchId"> {
+	readonly session: string;
+}
+
+const pinned = (records: ReadonlyArray<VerdictRecord>, { session, head, patchId }: Pin) =>
 	Arr.some(
 		records,
 		(record) => record.verifier.session === session && record.head === head && record.patchId === patchId,
@@ -166,8 +170,8 @@ const carried = (run: Run, stack: Stack) =>
 		);
 		yield* run.check(
 			records.length === 2 &&
-				pinned(records, first.session, before.head, before.id) &&
-				pinned(records, second.session, after.head, after.id),
+				pinned(records, { session: first.session, head: before.head, patchId: before.id }) &&
+				pinned(records, { session: second.session, head: after.head, patchId: after.id }),
 			`each verifier left one record pinning its head and the patch-id the command gives (${String(records.length)} records)`,
 		);
 	});
