@@ -19,10 +19,6 @@ export interface Call {
 	readonly argumentsJson: string;
 }
 
-/**
- * One assistant message, at the time pi appended it. pi appends it before any of its tool results, so a guide its
- * calls read arrives after it, and a read in the same message as an event is never before that event.
- */
 interface Step {
 	readonly at: string;
 	readonly by: Actor;
@@ -37,14 +33,12 @@ interface Read {
 	readonly by: Actor;
 }
 
-/** A run so far, every session on one clock. It only grows, so the first step that matches stays the first. */
 export interface Timeline {
 	readonly steps: ReadonlyArray<Step>;
 	readonly reads: ReadonlyArray<Read>;
 	readonly settledReply: Option.Option<{ readonly at: string; readonly text: string }>;
 }
 
-/** A hit needs each guide read at or after `opens`, from the run's start when none, and before `closes`. */
 export interface Window {
 	readonly opens: Option.Option<string>;
 	readonly closes: string;
@@ -175,7 +169,6 @@ export const timelineOf = ({
 
 type Verdict = "hit" | "miss" | "no-event";
 
-/** Pure. A hit when every guide was read inside the window. */
 export const verdictOf = ({
 	timeline,
 	guides,
@@ -198,10 +191,6 @@ export const verdictOf = ({
 		},
 	});
 
-/**
- * Whether `call` may write a file: a write or an edit, or a bash command or codemode script with a heredoc or a write
- * in it, whose path stays unknown. Counting those makes an event that closes at a write close early, never late.
- */
 export const writesFile = ({ tool, argumentsJson }: Call) => {
 	if (tool === "write" || tool === "edit") {
 		return true;
@@ -235,10 +224,6 @@ const readLines = ({ timeline, guide }: { readonly timeline: Timeline; readonly 
 		: [`read ${guide} never`];
 };
 
-/**
- * Pure. The lines a run prints: each read of the measured guides, the event's window, the principles the root read,
- * and last `verdict <hit|miss|no-event> <model> <ended>`, the line the table counts.
- */
 export const reportOf = ({
 	sessions,
 	timeline,
