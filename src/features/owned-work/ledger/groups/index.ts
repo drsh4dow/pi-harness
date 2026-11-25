@@ -78,7 +78,6 @@ const adopt = (draft: Draft, { name, members }: GroupRequest): Work => {
 	return created;
 };
 
-/** A delegate started with a group's name joins the live group of that name the agent holds, or starts one. */
 const join = (draft: Draft, name: string, member: WorkRef): void => {
 	const open = Arr.findFirst(
 		Arr.filter([...draft.work.values()], Draft.isGroup),

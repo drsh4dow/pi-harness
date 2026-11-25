@@ -26,7 +26,6 @@
 	"src/features/loaded/context.ts no-comments": 12,
 	"src/features/loaded/index.test.ts no-comments": 2,
 	"src/features/loaded/index.ts no-comments": 7,
-	"src/features/owned-work/ledger/groups/index.ts no-comments": 1,
 	"src/features/owned-work/ledger/ledger.ts no-comments": 3,
 	"src/features/owned-work/ledger/lifetime/index.ts no-comments": 1,
 	"src/features/owned-work/ledger/outside.fixture.ts no-comments": 1,

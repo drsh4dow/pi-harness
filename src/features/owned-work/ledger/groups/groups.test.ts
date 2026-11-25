@@ -63,6 +63,22 @@ const rows: ReadonlyArray<Row> = [
 		],
 	},
 	{
+		name: "a delegate started with the name of a group that another group holds starts a new group",
+		role: "root",
+		acts: [
+			runs,
+			reviewing("delegate-1", "t1", "group-2"),
+			delegate,
+			Group({ refs: ["group-2", "delegate-3"], expect: "group-4" }),
+			reviewing("delegate-5", "t3", "group-6"),
+			Cancel({
+				refs: ["group-4", "group-6"],
+				expect:
+					"group-4 [group-2 [delegate-1 failed: cancelled by your cancel call], delegate-3 failed: cancelled by your cancel call]; group-6 [delegate-5 failed: cancelled by your cancel call]",
+			}),
+		],
+	},
+	{
 		name: "each terminal is named for the list of running agents and labeled with its kind",
 		role: "root",
 		acts: [
