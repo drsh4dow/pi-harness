@@ -19,7 +19,6 @@ const gitAt = (args: ReadonlyArray<string>, at: { readonly cwd: string; readonly
 		git({ args: ["-C", at.cwd, ...args], env: at.index === undefined ? {} : { GIT_INDEX_FILE: at.index } }),
 	);
 
-/** A copy of the worktree's index in a folder that lives as long as the scope. A worktree without an index gets none. */
 const indexCopy = (index: string) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -58,10 +57,6 @@ const locate = [
 	"--git-common-dir",
 ];
 
-/**
- * The tree of the worktree at `cwd` with every tracked, modified and untracked file added, and ignored files left out.
- * It adds them to a copy of the worktree's index, so the real index stays as it was. None outside a git worktree.
- */
 export const worktreeAt = (
 	cwd: string,
 ): Effect.Effect<

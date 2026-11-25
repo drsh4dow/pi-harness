@@ -20,7 +20,6 @@ const receiptJson = Schema.fromJsonString(Receipt);
 
 export const receiptsFolder = (home: string) => `${home}/.local/state/pi-agent/receipts`;
 
-/** None when no receipt has that key, or its file does not read as one. */
 export const receiptOf = (folder: string) => (key: string) =>
 	Effect.flatMap(FileSystem.FileSystem, (fs) => {
 		const read = fs.readFileString(`${folder}/${key}.json`);
@@ -28,7 +27,6 @@ export const receiptOf = (folder: string) => (key: string) =>
 		return Effect.option(Effect.flatMap(read, Schema.decodeUnknownEffect(receiptJson)));
 	});
 
-/** Written aside and renamed into place, so a reader never sees half a receipt. */
 export const recordReceipt = (folder: string) => (key: string, receipt: Receipt) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;

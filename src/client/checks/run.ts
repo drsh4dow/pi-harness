@@ -12,7 +12,6 @@ export interface Output {
 	readonly stderr: string;
 }
 
-/** How a command ended, and what it printed unless it printed more than `keptBytes`. */
 export interface Ran {
 	readonly exitCode: number;
 	readonly output: Option.Option<Output>;
@@ -36,10 +35,6 @@ const keeper = () => {
 	return { keep, bytes: () => bytes, text: () => new TextDecoder().decode(Buffer.concat(chunks)) };
 };
 
-/**
- * Runs the command with its output passed through to this process's own, and keeps what each stream printed.
- * The command stays in this process's process group, so whatever stops the caller's group stops it too.
- */
 export const runShown = ({
 	command: [file, ...args],
 	cwd,
@@ -62,7 +57,6 @@ export const runShown = ({
 		}),
 	);
 
-/** Prints what a command printed earlier, each stream to its own. */
 export const replay = ({ stdout, stderr }: Output) =>
 	Effect.flatMap(Stdio.Stdio, (stdio) =>
 		Effect.andThen(
