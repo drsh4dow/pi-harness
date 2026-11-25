@@ -1,8 +1,3 @@
-/**
- * `bun tools/loaded/replay.ts [since]` replays saved sessions and checks `inContext` against a second, independent
- * reading: the guide files each tool call or `/skill:` expansion named by path. Sessions older than the guides' last
- * edit hold older text that no longer matches, so pass that edit's date as `since`.
- */
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { contentText } from "@earendil-works/pi-ai";
 import { type ProjectedSessionEntry, SessionManager } from "@earendil-works/pi-coding-agent";
