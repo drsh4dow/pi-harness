@@ -268,3 +268,13 @@ test.each([
 ])("a session run in $cwd is $scope work", ({ cwd, scope }) => {
 	expect(scopeIn(cwd)).toEqual(Option.some(scope));
 });
+
+test("a session's facts hold none of the text its messages carry", () => {
+	const secret = "the private launch plan for next quarter";
+
+	const delegated = calls(["delegate", { group: "audit", message: secret }], ["bash", { command: `echo ${secret}` }]);
+	const read = shown(`${secret}\n${joined(big)}`);
+	const facts = Option.getOrThrow(factsFor([read, delegated]));
+
+	expect(Bun.inspect(facts, { depth: 10 })).not.toContain(secret);
+});

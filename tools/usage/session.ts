@@ -22,7 +22,6 @@ interface DelegateCall {
 	readonly continues: boolean;
 }
 
-/** What one session's file shows about the guides it was offered and used. It holds counts and names, never text. */
 export interface SessionFacts {
 	readonly started: string;
 	readonly role: Role;
