@@ -69,10 +69,17 @@ interface Parts {
 	readonly slices: ReturnType<typeof slicesLayer>;
 }
 
-/** What a session's work runs on. Each delegate loads phi-router's pi package when this session has it. */
+export const delegateExtensionsOf = ({
+	childExtensions,
+	router,
+}: {
+	readonly childExtensions: ReadonlyArray<string>;
+	readonly router: Option.Option<string>;
+}) => [...childExtensions, ...Option.toArray(router)];
+
 const servicesOf = (pi: ExtensionAPI, parts: Pick<Start, "childExtensions" | "env"> & Parts) => {
 	const router = routerExtensionOf(pi.getCommands());
-	const cli = piCliLayer([...parts.childExtensions, ...Option.toArray(router)]);
+	const cli = piCliLayer(delegateExtensionsOf({ childExtensions: parts.childExtensions, router }));
 	const tools = Layer.merge(Tools.layer, phiRouterLayer({ extension: router, env: parts.env }));
 	const hc = hcLayer({ agentKey: parts.agentKey, parent: parts.parent });
 	const host = hostLayer({ pi, relay: parts.relay });
@@ -132,7 +139,6 @@ const sessionOf = (pi: ExtensionAPI, start: Start) =>
 		return session;
 	});
 
-/** Both modes run pi's `print-mode.js`, which exits once the prompt resolves. */
 export const exitsWhenPromptResolves = (mode: ExtensionContext["mode"]): boolean => mode === "print" || mode === "json";
 
 const continued = (event: AgentBeforeSettleEvent, results: ReadonlyArray<Settled>) =>
@@ -167,8 +173,12 @@ const settle =
 			}),
 		);
 
-/** True when nothing runs, or the person agrees to stop what does, since leaving this session stops its work. */
-const mayStopRunning = (ledger: (typeof Ledger)["Service"], ctx: ExtensionContext) =>
+interface Asker {
+	readonly hasUI: boolean;
+	readonly ui: Pick<ExtensionContext["ui"], "confirm">;
+}
+
+const mayStopRunning = (ledger: Pick<(typeof Ledger)["Service"], "running">, ctx: Asker) =>
 	Effect.flatMap(ledger.running, (refs) =>
 		Arr.isReadonlyArrayNonEmpty(refs) && ctx.hasUI
 			? Effect.promise(() =>
@@ -180,13 +190,13 @@ const mayStopRunning = (ledger: (typeof Ledger)["Service"], ctx: ExtensionContex
 			: Effect.succeed(true),
 	);
 
-const cancelUnless = (ledger: (typeof Ledger)["Service"], ctx: ExtensionContext) =>
+export const cancelUnless = (ctx: Asker) => (ledger: Pick<(typeof Ledger)["Service"], "running">) =>
 	Effect.map(mayStopRunning(ledger, ctx), (agreed) => (agreed ? {} : { cancel: true }));
 
 const forkOrAsk =
 	(session: Session, event: SessionBeforeForkEvent, ctx: ExtensionContext) => (ledger: (typeof Ledger)["Service"]) =>
 		Effect.flatMap(forkInTab({ event, ctx, ownTerminal: session.ownTerminal, env: session.passEnv }), (opened) =>
-			opened ? Effect.succeed({ cancel: true }) : cancelUnless(ledger, ctx),
+			opened ? Effect.succeed({ cancel: true }) : cancelUnless(ctx)(ledger),
 		);
 
 export const awaitOn =
@@ -198,7 +208,7 @@ export const awaitOn =
 			),
 		);
 
-interface Current {
+export interface Current {
 	session: Option.Option<Session>;
 }
 
@@ -224,8 +234,7 @@ const begin =
 			yield* awaitOn(session.host)(Handover.stopStale({ ui: ctx.ui, sliceOf })(inheritance));
 		});
 
-/** Forgets the session before it stops, so no hook reaches a ledger that froze for a reload. */
-const end = (current: Current) => (event: SessionShutdownEvent) => {
+export const end = (current: Current) => (event: SessionShutdownEvent) => {
 	const ending = current.session;
 
 	current.session = Option.none();
@@ -240,7 +249,6 @@ const end = (current: Current) => (event: SessionShutdownEvent) => {
 	});
 };
 
-/** `childExtensions` are the entrypoints each delegate loads: this feature's own, plus any the harness wants in every child. */
 export const ownedWork =
 	(childExtensions: ReadonlyArray<string>) => (agentDir: string, processEnv: Env) => (pi: ExtensionAPI) => {
 		const env = withAgentBin(agentDir)(processEnv);
@@ -277,8 +285,7 @@ export const ownedWork =
 			beforeSettle: (event: AgentBeforeSettleEvent, ctx: ExtensionContext) =>
 				withLedger((session) => settle(session, event, ctx)),
 			settled: () => withLedger(() => (ledger) => ledger.wentIdle),
-			beforeSwitch: (_event: SessionBeforeSwitchEvent, ctx: ExtensionContext) =>
-				withLedger(() => (ledger) => cancelUnless(ledger, ctx)),
+			beforeSwitch: (_event: SessionBeforeSwitchEvent, ctx: ExtensionContext) => withLedger(() => cancelUnless(ctx)),
 			beforeFork: (event: SessionBeforeForkEvent, ctx: ExtensionContext) =>
 				withLedger((session) => forkOrAsk(session, event, ctx)),
 			shutdown: (event: SessionShutdownEvent): Promise<void> => host.run(end(current)(event)),

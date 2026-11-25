@@ -1,11 +1,30 @@
 import { expect, test } from "bun:test";
 
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
+import * as Str from "effect/String";
 
-import { piHost } from "#src/client/pi/index.ts";
-import { awaitOn, delegatesDirOf, exitsWhenPromptResolves } from "./session.ts";
+import { BriefSources } from "#src/client/brief-sources/index.ts";
+import { Gh } from "#src/client/github/index.ts";
+import { PiCli, piHost, PiSessions } from "#src/client/pi/index.ts";
+import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
+import { Hc, HerdrApp, Slices } from "#src/client/terminals/index.ts";
+import { childExtensions } from "#src/features/owned-work/child.ts";
+import { Ledger, Transitions } from "#src/features/owned-work/ledger/index.ts";
+import { MonotonicNanos, WorkRef } from "#src/features/owned-work/work.ts";
+import { take } from "./handover.ts";
+import {
+	awaitOn,
+	cancelUnless,
+	type Current,
+	delegateExtensionsOf,
+	delegatesDirOf,
+	end,
+	exitsWhenPromptResolves,
+} from "./session.ts";
 
 const rows = [
 	{ mode: "print", exits: true },
@@ -56,4 +75,126 @@ test.each(places)("$name", ({ sessionDir, dir }) => {
 
 test("two --no-session runs never share a delegates folder", () => {
 	expect(delegatesDirOf({ sessionDir: "", tmpDir: "/t" })).not.toBe(delegatesDirOf({ sessionDir: "", tmpDir: "/t" }));
+});
+
+test("each delegate loads owned-work's own extension and the harness's, plus phi-router's pi package when this session has it", () => {
+	const router = "/phi-router/pi/index.ts";
+	const withoutRouter = delegateExtensionsOf({ childExtensions, router: Option.none() });
+
+	expect({
+		ownedWork: Arr.some(withoutRouter, Str.endsWith("/extensions/owned-work/index.ts")),
+		withRouter: delegateExtensionsOf({ childExtensions, router: Option.some(router) }),
+		withoutRouter,
+	}).toEqual({ ownedWork: true, withRouter: [...childExtensions, router], withoutRouter: [...childExtensions] });
+});
+
+const leaving = ({
+	running,
+	hasUI,
+	agrees,
+}: {
+	readonly running: ReadonlyArray<string>;
+	readonly hasUI: boolean;
+	readonly agrees: boolean;
+}) => {
+	const asked = { times: 0 };
+	const ledger = { running: Effect.succeed(Arr.map(running, WorkRef)) };
+
+	const ctx = {
+		hasUI,
+		ui: {
+			confirm: () => {
+				asked.times += 1;
+
+				return Promise.resolve(agrees);
+			},
+		},
+	};
+
+	return Effect.map(cancelUnless(ctx)(ledger), (reply) => ({ reply, asked: asked.times }));
+};
+
+const runningWork = ["delegate-1", "watch-2"];
+
+test.each([
+	{
+		name: "with nothing running goes ahead without asking",
+		running: [],
+		hasUI: true,
+		agrees: false,
+		reply: {},
+		asked: 0,
+	},
+	{
+		name: "while work runs asks, and a yes goes ahead",
+		running: runningWork,
+		hasUI: true,
+		agrees: true,
+		reply: {},
+		asked: 1,
+	},
+	{
+		name: "while work runs asks, and a no keeps the session",
+		running: runningWork,
+		hasUI: true,
+		agrees: false,
+		reply: { cancel: true },
+		asked: 1,
+	},
+	{
+		name: "while work runs with no UI to ask goes ahead",
+		running: runningWork,
+		hasUI: false,
+		agrees: false,
+		reply: {},
+		asked: 0,
+	},
+])("leaving a session $name", ({ reply, asked, ...situation }) =>
+	Effect.runPromise(
+		Effect.map(leaving(situation), (left) => {
+			expect(left).toEqual({ reply, asked });
+		}),
+	),
+);
+
+test("a session that shuts down for a reload is forgotten before its ledger freezes, so no later hook reaches the frozen ledger", () => {
+	const current: Current = { session: Option.none() };
+	const sessionKnownAtFreeze: Array<boolean> = [];
+
+	const services = Layer.mergeAll(
+		Layer.mock(Ledger)({
+			freeze: Effect.sync(() => {
+				sessionKnownAtFreeze.push(Option.isSome(current.session));
+
+				return Transitions.initial("root", 4, MonotonicNanos(0n));
+			}),
+		}),
+		Layer.mock(PiCli)({ release: Effect.void }),
+		Layer.mock(Slices)({ wrap: (spec) => spec }),
+		Layer.mock(Hc)({}),
+		Layer.mock(PiSessions)({}),
+		Layer.mock(HerdrApp)({}),
+		Layer.mock(Gh)({}),
+		Layer.mock(BriefSources)({}),
+		Layer.mock(PhiRouter)({}),
+		Layer.mock(ClaudeUsage)({}),
+		NodeServices.layer,
+	);
+
+	current.session = Option.some({
+		host: piHost(services),
+		lineage: { agentKey: "k1", stamp: 7 },
+		relay: { waiter: Option.none() },
+		ownTerminal: Option.none(),
+		passEnv: {},
+	});
+
+	return Effect.runPromise(
+		Effect.map(end(current)({ type: "session_shutdown", reason: "reload" }), () => {
+			expect({ sessionKnownAtFreeze, handedOver: Option.isSome(take()) }).toEqual({
+				sessionKnownAtFreeze: [false],
+				handedOver: true,
+			});
+		}),
+	);
 });

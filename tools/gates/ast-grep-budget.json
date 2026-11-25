@@ -27,7 +27,7 @@
 	"src/features/loaded/index.test.ts no-comments": 2,
 	"src/features/loaded/index.ts no-comments": 7,
 	"src/features/owned-work/session/params.ts no-comments": 2,
-	"src/features/owned-work/session/session.ts no-comments": 6,
+	"src/features/owned-work/session/session.ts no-comments": 1,
 	"src/features/owned-work/session/tools.ts no-comments": 3,
 	"src/features/phi/anthropic.fixture.ts no-comments": 6,
 	"src/features/phi/baa-repo.scenario.ts no-comments": 1,
