@@ -14,10 +14,8 @@ const held = (state: LedgerState): ReadonlyArray<Work> =>
 
 const refsOf = (works: ReadonlyArray<Work>): ReadonlyArray<WorkRef> => Arr.map(works, ({ ref }) => ref);
 
-/** The live work the agent holds itself: what a session switch would stop. */
 export const running = (state: LedgerState): ReadonlyArray<WorkRef> => refsOf(held(state));
 
-/** The live jobs the agent holds itself: what will wake it, since a serve's end never does. */
 export const waking = (state: LedgerState): ReadonlyArray<WorkRef> =>
 	refsOf(Arr.filter(held(state), (work) => !Draft.isServe(work)));
 
@@ -40,7 +38,6 @@ const rearmed =
 const delegatesLive = (state: LedgerState) =>
 	Arr.filter(Arr.filter([...state.work.values()], Work.$is("Delegate")), Draft.isLive);
 
-/** The sessions of the delegates still running, whose staged files the next load takes over. */
 export const liveDelegates = (state: LedgerState): ReadonlyArray<ChildSession> =>
 	Arr.map(delegatesLive(state), ({ childSession }) => childSession);
 

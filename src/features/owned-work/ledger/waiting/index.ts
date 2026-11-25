@@ -43,7 +43,6 @@ const take = (state: LedgerState, scope: WaitScope): Step<Waited> => {
 	return Draft.finish(draft, { results, running: Arr.filter(waking(state), withinScope(scope)) });
 };
 
-/** Blocks until a job in `scope` settles, none in it runs, or `stop` ends, then delivers every result due. */
 export type Wait = (scope: WaitScope, stop: Effect.Effect<void>) => Effect.Effect<Waited, LedgerError>;
 
 const waitOn =

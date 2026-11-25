@@ -31,7 +31,6 @@ export const HandleOut = Type.Object({
 	ready: Type.Optional(Type.Boolean()),
 	next: Type.Optional(Type.String()),
 	substituted: Type.Optional(Type.String()),
-	/** Set when a serve's or watch's command keeps its stdout off the pane the human watches. The command still runs. */
 	warning: Type.Optional(Type.String()),
 });
 
@@ -166,7 +165,6 @@ const resultOut = (settled: Settled): ResultJson => {
 	return { ...result, next: `call delegate with continues "${settled.ref}" to run it again in its own session` };
 };
 
-/** How to wait for the work. A serve's end never wakes the agent, so its handle has none. */
 const nextOf = (kind: WorkKind, waker: WorkRef) =>
 	kind === "serve" ? {} : { next: `call wait, or end your turn and ${waker} wakes you` };
 

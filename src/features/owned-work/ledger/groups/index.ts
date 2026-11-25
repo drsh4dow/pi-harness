@@ -46,7 +46,6 @@ const rejected = (draft: Draft, members: ReadonlyArray<WorkRef>): Option.Option<
 	return Option.isSome(problem) || hasJob ? problem : Option.some(NoJobs.make({ refs: members }));
 };
 
-/** The group's name on each member that has a terminal; a member still spawning gets it once it spawns. */
 const showInGroup = (draft: Draft, holder: Group, members: ReadonlyArray<Work>): void => {
 	for (const terminal of Arr.getSomes(Arr.map(members, Draft.terminalOf))) {
 		draft.commands.push(Command.ShowInGroup({ terminal, group: holder.ref, name: holder.name }));
@@ -136,7 +135,6 @@ const closure = (draft: Draft, refs: ReadonlyArray<WorkRef>): Set<WorkRef> => {
 	return found;
 };
 
-/** `ref` and each group above it: a cancelled member can be the last job its holders waited on. */
 const withHolders = (draft: Draft, ref: WorkRef): Array<WorkRef> => {
 	const holder = Option.flatMap(Draft.find(draft, ref), (work) => work.heldBy);
 

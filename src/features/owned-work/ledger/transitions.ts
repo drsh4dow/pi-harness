@@ -67,7 +67,6 @@ const startedOf = (request: TimedRequest, ref: WorkRef, now: MonotonicNanos): St
 	});
 };
 
-/** A delegate joins the group it names, and a watch's deadline starts counting. */
 const arrange = (draft: Draft, ref: WorkRef, request: StartRequest): void => {
 	Match.valueTags(request, {
 		Delegate: ({ group }) => {
@@ -190,11 +189,6 @@ interface DelegateEnd {
 	readonly reply: Option.Option<ChildReply>;
 }
 
-/**
- * Done(answer) needs both an answer and a clean exit, because `ctx.shutdown()` exits 0: a child killed mid-run or
- * while idle on a watcher has an assistant text that is not its answer. A provider error is the reason only when the
- * child exited with a code, since a kill or a lost terminal ended it first.
- */
 const answered = (state: LedgerState, { ref, end, reply }: DelegateEnd): Woke => {
 	const outcome = Option.match(reply, {
 		onNone: () => Draft.failure(end),

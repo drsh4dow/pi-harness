@@ -45,7 +45,6 @@ export type StartError = SpawnError | NameTaken;
 
 export type LedgerFailure = LedgerError | StartError | NotContinuable;
 
-/** What recording a verdict needs, which the ledger takes when it is built and hands on. */
 type VerdictServices = Effect.Services<ReturnType<ReturnType<typeof recordVerdict>>>;
 
 export class Host extends Context.Service<
@@ -97,7 +96,6 @@ interface Kit {
 	readonly deadlines: FiberMap.FiberMap<WorkRef>;
 }
 
-/** A pi that a serve or watch starts is a leaf at the last level, so it cannot delegate. */
 const commandChild = atLevel({ level: levels, role: "leaf" });
 
 /** Herdr's agents mod reads these to pick each row's icon and the group it sits under. */

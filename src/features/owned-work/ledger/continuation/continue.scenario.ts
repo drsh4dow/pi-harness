@@ -36,9 +36,6 @@ const nthWake = (run: Run, nth: number) =>
 
 const down = (run: Run) => `${run.home}/provider-down`;
 
-/**
- * The provider is down while a flag file exists in the run's HOME, since pi resolves a `!command` key at each request.
- */
 const key = String.raw`!test -e "$HOME/provider-down" && echo down || jq -r .openai.key "$HOME/.pi/agent/auth.json"`;
 
 const start = `Use the delegate tool once to start a leaf named "${leafName}" with model flaky/gpt-6-luna and goal "Get the word ok from a leaf". Its whole task: reply with the single word ok. Then end your turn without waiting for it. When its result wakes you, whatever it is, reply with the single word noted and call no tool.`;

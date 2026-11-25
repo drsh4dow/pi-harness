@@ -5,7 +5,6 @@ import * as FileSystem from "effect/FileSystem";
 import * as Scheduler from "effect/Scheduler";
 import * as TestClock from "effect/testing/TestClock";
 
-// Effect resumes fibers directly from file callbacks without scheduling a task, so file operations need a separate count.
 export interface InFlight {
 	tasks: number;
 	files: number;

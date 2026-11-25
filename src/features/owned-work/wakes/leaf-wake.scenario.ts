@@ -1,8 +1,3 @@
-/**
- * A root starts one leaf with the `delegate` tool, and the leaf's result wakes the root: owned-work appends the wake to
- * the root's session once the leaf settles, and the leaf's own session lands in the run's delegates folder. The leaf
- * runs the same pi as the root, on this worktree's extensions.
- */
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";

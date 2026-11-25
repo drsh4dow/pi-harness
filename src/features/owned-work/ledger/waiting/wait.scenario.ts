@@ -1,8 +1,3 @@
-/**
- * A root that holds a watch calls `wait`: the watch's result comes back in the wait's reply within a second of its
- * settle, and no wake carries it again. A second wait ends within a second of the human's steer, with its watch still
- * running.
- */
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Clock from "effect/Clock";

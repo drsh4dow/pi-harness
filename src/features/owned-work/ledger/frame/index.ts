@@ -62,7 +62,6 @@ const footerPatternOf = (code: number) =>
 		"u",
 	);
 
-/** Control characters show as `?`, so each header line reads back from the screen as the harness built it. */
 const visible = Str.replaceAll(/\p{Cc}/gu, "?");
 
 const extrasOf = (shown: PaneCommand): ReadonlyArray<string> =>
