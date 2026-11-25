@@ -7,7 +7,7 @@ import * as Schema from "effect/Schema";
 
 import type { GuideEvent } from "./events.ts";
 import { type GuideOnDisk, libraryOf } from "./guides.ts";
-import { factsOf } from "./session.ts";
+import { factsOf, startOf } from "./session.ts";
 
 const linesOf = (name: string, count: number) =>
 	Arr.makeBy(count, (line) => `Line ${String(line)} of the ${name} guide, long enough to mark it.`);
@@ -228,4 +228,8 @@ test("delegates a codemode script started count as delegate calls and fire the s
 		3,
 		["group of 3+ delegates"],
 	]);
+});
+
+test("a session file's name, as pi writes it, gives the time the session started", () => {
+	expect(startOf("--home-u-app--/2026-11-08T13-53-21-192Z_0f3c9a.jsonl")).toBe(Date.parse("2026-11-08T13:53:21.192Z"));
 });

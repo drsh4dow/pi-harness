@@ -70,7 +70,6 @@ const kindOfFolder = new Map([
 	["principles", "principle"],
 ]);
 
-/** Pi names a session file by the time it started, such as `2026-11-08T13-53-21-192Z_<id>.jsonl`. */
 const startedName =
 	/(?:^|\/)(?<date>\d{4}-\d{2}-\d{2})T(?<hours>\d{2})-(?<minutes>\d{2})-(?<seconds>\d{2})-(?<millis>\d{3})Z_[^/]*\.jsonl$/u;
 
