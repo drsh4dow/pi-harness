@@ -9,12 +9,10 @@ const Kind = Schema.Literals(["skill", "principle", "playbook"]);
 
 export type GuideKind = typeof Kind.Type;
 
-/** A skill, principle or playbook file: the instructions an agent reads into its context when its trigger matches. */
 export interface Guide {
 	readonly kind: GuideKind;
 	readonly name: string;
 	readonly path: string;
-	/** The body's lines no other guide shares, which mark the file wherever its text lands. */
 	readonly lines: ReadonlyArray<string>;
 }
 
@@ -23,7 +21,6 @@ export const Loaded = Schema.Struct({
 	kind: Kind,
 	name: Schema.String,
 	path: Schema.String,
-	/** `partial` when the model sees only some of the file, such as a ranged read or cut output. */
 	state: Schema.Literals(["full", "partial"]),
 	by: Schema.Literals(["agent", "person"]),
 });
@@ -32,7 +29,6 @@ export type Loaded = typeof Loaded.Type;
 
 type Loader = Loaded["by"];
 
-/** Shorter lines, such as `## Overview`, mark no file. */
 const minLineLength = 20;
 const fullShare = 0.9;
 const partialLines = 3;
@@ -43,7 +39,6 @@ const markLines = (text: string) =>
 		(line) => line.length >= minLineLength,
 	);
 
-/** Builds the guides from their files, keeping each body line that only one guide has. */
 export const guidesOf = (
 	files: ReadonlyArray<{
 		readonly kind: GuideKind;
@@ -148,10 +143,6 @@ const stateOf = (seen: number, total: number) => {
 	return seen >= Math.min(partialLines, total) ? "partial" : undefined;
 };
 
-/**
- * The guides whose text the model sees in this projection, in the order they first entered it. Branch, compaction and
- * context edits are already applied to a projection, so a guide that left the context is not in it.
- */
 export const inContext = ({
 	index,
 	entries,

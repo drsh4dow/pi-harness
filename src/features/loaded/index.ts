@@ -29,7 +29,6 @@ export const labelKey = "pi.context";
 
 const Count = Schema.Finite;
 
-/** What an agent's label holds: the guides in its context now, and how many of each kind it could load. */
 export const ContextLabel = Schema.Struct({
 	loaded: Schema.Array(Loaded),
 	available: Schema.Struct({ skill: Count, principle: Count, playbook: Count }),
@@ -57,7 +56,6 @@ export const readGuides = Effect.fn("readGuides")(function* (files: ReadonlyArra
 export const loadGuides = (files: ReadonlyArray<GuideFile>) =>
 	Effect.map(readGuides(files), (read) => indexOf(guidesOf(read)));
 
-/** Every `<name>.md` principle or playbook directly in `dir`, none when it is missing. A subfolder's files are not guides. */
 export const guideFilesIn = Effect.fn("guideFilesIn")(function* (kind: Exclude<GuideKind, "skill">, dir: string) {
 	const files = yield* markdownIn(dir);
 

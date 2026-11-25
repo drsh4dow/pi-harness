@@ -19,7 +19,6 @@ const lines = (name: string) =>
 const playbook = `---\nwhen: Fixing a bug.\n---\n\n# Bug fix\n\n${lines("bug-fix")}\n`;
 const notes = lines("notes");
 
-/** A playbooks folder with one playbook and a reference file in its subfolder. There is no principles folder. */
 const playbooksFolder = Effect.gen(function* () {
 	const fs = yield* FileSystem.FileSystem;
 	const dir = `${scratch}/playbooks`;
@@ -31,7 +30,6 @@ const playbooksFolder = Effect.gen(function* () {
 	return dir;
 });
 
-/** A session whose model has read each text whole. */
 const sessionReading = (texts: ReadonlyArray<string>) => {
 	const session = SessionManager.inMemory();
 
