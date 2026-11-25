@@ -12,7 +12,7 @@ import { roleFieldsFor } from "./brief.ts";
 import { type Brief, childExtensions, type ChildRole, inheritedEnv, launch, levels } from "./child.ts";
 import { type Alias, aliases, ModelName, modelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
-import { workFilesOf } from "./work-files.ts";
+import { workFilesOf } from "./work.ts";
 
 /** One delegate as its parent would start it, minus the systemd scope and hc terminal around it. */
 export interface StagedLaunch {

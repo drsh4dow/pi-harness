@@ -14,8 +14,7 @@ import type { Brief, ChildRole } from "./child.ts";
 import { type ModelCaller, modelChoices, modelDescription, modelNameOf, modelOf, type ModelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
 import { reviewsParam } from "./review.ts";
-import { workFilesOf } from "./work-files.ts";
-import { BadDelegate } from "./work.ts";
+import { BadDelegate, workFilesOf } from "./work.ts";
 
 export const roleUses =
 	"`owner` for a slice to build, verify and commit, which may need a playbook or delegates of its own; `leaf` for one bounded task, such as a search, a review, a verification lane or a scoped edit";
