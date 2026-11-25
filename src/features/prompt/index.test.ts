@@ -50,3 +50,21 @@ test.each(rows)("a $role reads its own role file, every principle, and only the 
 		}).pipe(Effect.provide(NodeServices.layer)),
 	),
 );
+
+test("an edit to a role file lands in the next layers", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const dir = `${agentDir}/edited`;
+			const roleFile = `${dir}/roles/root.md`;
+			const sources = { agentDir: dir, role: "root", brief: Option.none(), loaded: [] } as const;
+			const roleLayer = Effect.map(layersOf(sources), ({ layers }) => layers.role);
+
+			yield* Effect.promise(() => Bun.write(roleFile, "<role>\nbefore\n</role>"));
+			const before = yield* roleLayer;
+
+			yield* Effect.promise(() => Bun.write(roleFile, "<role>\nafter\n</role>"));
+			const after = yield* roleLayer;
+
+			expect([before, after]).toEqual(["<role>\nbefore\n</role>", "<role>\nafter\n</role>"]);
+		}).pipe(Effect.provide(NodeServices.layer)),
+	));

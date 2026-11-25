@@ -31,7 +31,6 @@ interface LayerSources {
 	readonly loaded: ReadonlyArray<Skill>;
 }
 
-/** Reads the prompt files on every run, so an edit lands on the next turn. Unchanged files give the same text, so pi sends no patch. */
 export const layersOf = Effect.fn("layersOf")(function* ({ agentDir, role, brief, loaded }: LayerSources) {
 	const roleText = yield* agentFileText(`${agentDir}/roles/${role}.md`);
 	const principles = yield* indexOf("principles", agentDir, role);
