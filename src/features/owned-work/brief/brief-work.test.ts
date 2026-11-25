@@ -16,7 +16,7 @@ import type { Static } from "typebox";
 import { Design, PiCli, piCliLayer, readStagedBrief } from "#src/client/pi/index.ts";
 import { callerOf, delegate, host, pinned, runtime, started, table } from "#src/features/owned-work/brief.fixture.ts";
 import { type Brief, launch } from "#src/features/owned-work/child.ts";
-import { Tools } from "#src/features/owned-work/tools.ts";
+import { Tools } from "#src/features/owned-work/session/index.ts";
 import { entryKind } from "#src/features/state-folder/index.ts";
 import type { DelegateParams } from "./brief.ts";
 

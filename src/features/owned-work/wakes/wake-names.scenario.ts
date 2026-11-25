@@ -4,8 +4,8 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
+import { entryKind } from "#src/features/owned-work/recorded.ts";
 import { type Run, scenario, type Sessions } from "#tools/driver/index.ts";
-import { entryKind } from "./recorded.ts";
 
 const ownerName = "wake owner";
 

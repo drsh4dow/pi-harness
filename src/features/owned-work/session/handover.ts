@@ -8,8 +8,8 @@ import * as Str from "effect/String";
 import { PiCli } from "#src/client/pi/index.ts";
 import { SourceStamp } from "#src/client/source-stamp/index.ts";
 import { ownCgroup, Slices, stopRoot } from "#src/client/terminals/index.ts";
-import { Ledger } from "./ledger/index.ts";
-import type { LedgerState } from "./step.ts";
+import { Ledger } from "#src/features/owned-work/ledger/index.ts";
+import type { LedgerState } from "#src/features/owned-work/step.ts";
 
 /** Names a pi's terminals in hc and its slice in systemd, and stamps the code that laid out its ledger state. */
 export interface Lineage {
@@ -31,7 +31,7 @@ declare global {
  * it stops the old work instead. An unreadable file gives a stamp no other load shares.
  */
 export const ledgerStamp = Effect.flatMap(SourceStamp, (stamp) =>
-	stamp.of([`${import.meta.dirname}/work.ts`, `${import.meta.dirname}/step.ts`]),
+	stamp.of([`${import.meta.dirname}/../work.ts`, `${import.meta.dirname}/../step.ts`]),
 );
 
 /** Empties the slot, so a handover reaches at most the one session start after it. */

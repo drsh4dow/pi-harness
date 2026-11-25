@@ -3,9 +3,9 @@ import { expect, test } from "bun:test";
 import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 
+import { Transitions } from "#src/features/owned-work/ledger/index.ts";
+import { MonotonicNanos } from "#src/features/owned-work/work.ts";
 import { Inheritance, inheritanceOf, rootSliceOf } from "./handover.ts";
-import { Transitions } from "./ledger/index.ts";
-import { MonotonicNanos } from "./work.ts";
 
 const state = Transitions.initial("root", 4, MonotonicNanos(0n));
 

@@ -17,8 +17,8 @@ import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/
 import { type Gh, ghLayer } from "#src/client/github/index.ts";
 import { makeSessionFolder, type PiHost, readStagedBrief, type SessionAddress } from "#src/client/pi/index.ts";
 import { type ClaudeUsage, claudeUsageFetchLayer, PhiRouter } from "#src/client/providers/index.ts";
-import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief/index.ts";
-import { type ChildRole, type ChildSession, childRoles, Self } from "./child.ts";
+import { type Caller, type DelegateParams, delegateParams, parseCall } from "#src/features/owned-work/brief/index.ts";
+import { type ChildRole, type ChildSession, childRoles, Self } from "#src/features/owned-work/child.ts";
 import {
 	freshCall,
 	parseContinuation,
@@ -28,8 +28,10 @@ import {
 	Out,
 	ResultsOut,
 	Waiting,
-} from "./ledger/index.ts";
-import { modelNameOf, modelOf, type ModelTable, modelTable } from "./models.ts";
+} from "#src/features/owned-work/ledger/index.ts";
+import { modelNameOf, modelOf, type ModelTable, modelTable } from "#src/features/owned-work/models.ts";
+import { withReview } from "#src/features/owned-work/review/index.ts";
+import { BadDelegate, StartRequest, WorkRef } from "#src/features/owned-work/work.ts";
 import {
 	delegateGuidelines,
 	GroupParams,
@@ -44,8 +46,6 @@ import {
 	waitTimeout,
 } from "./params.ts";
 import { stdoutRedirectOf } from "./redirect.ts";
-import { withReview } from "./review/index.ts";
-import { BadDelegate, StartRequest, WorkRef } from "./work.ts";
 
 const resultOf = (json: JsonValue, isError: boolean) =>
 	Effect.map(Out.text(json), (text) => ({

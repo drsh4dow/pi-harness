@@ -41,14 +41,14 @@ import {
 	slicesLayer,
 	TerminalAddress,
 } from "#src/client/terminals/index.ts";
-import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "./child.ts";
+import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "#src/features/owned-work/child.ts";
+import { Ledger, ledgerLayer } from "#src/features/owned-work/ledger/index.ts";
+import { firstRefAfter } from "#src/features/owned-work/recorded.ts";
+import type { Settled } from "#src/features/owned-work/work.ts";
 import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";
 import { hostLayer, messageOf, type Relay } from "./host.ts";
-import { Ledger, ledgerLayer } from "./ledger/index.ts";
-import { firstRefAfter } from "./recorded.ts";
 import { Tools, type ToolServices } from "./tools.ts";
-import type { Settled } from "./work.ts";
 
 type RuntimeServices = Ledger | ToolServices | Hc | Slices | PiCli | PiSessions | HerdrApp | NodeServices.NodeServices;
 

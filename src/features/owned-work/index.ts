@@ -4,4 +4,4 @@ export { type StagedLaunch, stagedLaunches } from "./brief/index.ts";
 
 export { entryKind } from "./recorded.ts";
 
-export { ownedWork } from "./session.ts";
+export { ownedWork } from "./session/index.ts";

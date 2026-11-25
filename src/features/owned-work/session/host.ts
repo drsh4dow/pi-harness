@@ -4,9 +4,9 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { Host, Out } from "./ledger/index.ts";
-import { entryKind } from "./recorded.ts";
-import type { Settled } from "./work.ts";
+import { Host, Out } from "#src/features/owned-work/ledger/index.ts";
+import { entryKind } from "#src/features/owned-work/recorded.ts";
+import type { Settled } from "#src/features/owned-work/work.ts";
 
 /** Where a settle's results go: to the turn that waits on them, or as a wake when none does. */
 export interface Relay {

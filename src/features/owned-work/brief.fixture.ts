@@ -19,7 +19,7 @@ import { ClaudeUsage, PhiRouter, PhiRouterError } from "#src/client/providers/in
 import type { DelegateParams } from "./brief/index.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { continueMessage, Ledger } from "./ledger/index.ts";
-import { Tools } from "./tools.ts";
+import { Tools } from "./session/index.ts";
 import { type ContinueRequest, type Handle, StartRequest, UnknownRef, WorkRef } from "./work.ts";
 
 const luna = getBuiltinModel("openai", "gpt-6-luna");

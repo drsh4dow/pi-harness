@@ -20,7 +20,7 @@ import {
 	type TerminalAddress,
 	terminalNameOf,
 } from "#src/client/terminals/index.ts";
-import { entryKind, unsettledRefs } from "./recorded.ts";
+import { entryKind, unsettledRefs } from "#src/features/owned-work/recorded.ts";
 
 type Sessions = ExtensionContext["sessionManager"];
 

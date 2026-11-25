@@ -14,11 +14,11 @@ import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh } from "#src/client/github/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
-import { Self } from "./child.ts";
-import { Ledger } from "./ledger/index.ts";
-import { modelTable } from "./models.ts";
+import { Self } from "#src/features/owned-work/child.ts";
+import { Ledger } from "#src/features/owned-work/ledger/index.ts";
+import { modelTable } from "#src/features/owned-work/models.ts";
+import { type Handle, StartRequest, WorkRef } from "#src/features/owned-work/work.ts";
 import { Tools } from "./tools.ts";
-import { type Handle, StartRequest, WorkRef } from "./work.ts";
 
 const runtime = piHost(
 	Layer.mergeAll(
