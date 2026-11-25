@@ -63,7 +63,8 @@ const filing = (timeline: Timeline) =>
 		firstStep({
 			timeline,
 			matches: (call) =>
-				Str.includes("gh issue create")(call.text) || (writesFile(call) && Str.includes(screenshot)(call.text)),
+				Str.includes("gh issue create")(call.argumentsJson) ||
+				(writesFile(call) && Str.includes(screenshot)(call.argumentsJson)),
 		}),
 		before,
 	);

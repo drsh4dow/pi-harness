@@ -42,7 +42,9 @@ const request =
 	"harborview's tide page is a wall of numbers. For the week ahead I keep going back and forth between a compact table and a small line chart per day, and I can't decide. Go with whichever actually reads better on a phone, and build that.";
 
 const writesCode = (call: Call) =>
-	writesFile(call) && !Str.includes("/.local/state/")(call.text) && !Option.exists(call.path, Str.endsWith(".md"));
+	writesFile(call) &&
+	!Str.includes("/.local/state/")(call.argumentsJson) &&
+	!Option.exists(call.path, Str.endsWith(".md"));
 
 const firstCode = (timeline: Timeline) => Option.map(firstStep({ timeline, matches: writesCode }), before);
 

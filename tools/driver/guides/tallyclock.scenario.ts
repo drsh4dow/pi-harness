@@ -67,13 +67,13 @@ const request =
 const handVerified = (timeline: Timeline) => {
 	const ran = firstStep({
 		timeline,
-		matches: ({ tool, text }) =>
-			(tool === "bash" || (tool === "codemode" && Str.includes("tools.bash")(text))) &&
-			Str.includes("-m tallyclock")(text),
+		matches: ({ tool, argumentsJson }) =>
+			(tool === "bash" || (tool === "codemode" && Str.includes("tools.bash")(argumentsJson))) &&
+			Str.includes("-m tallyclock")(argumentsJson),
 	});
 
 	return Option.map(
-		Option.filter(timeline.finalReply, () => Option.isSome(ran)),
+		Option.filter(timeline.settledReply, () => Option.isSome(ran)),
 		before,
 	);
 };

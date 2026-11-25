@@ -53,10 +53,11 @@ const byTime = Order.mapInput(Order.String, ({ at }: { readonly at: string }) =>
 const handBack = (timeline: Timeline) => {
 	const item = firstStep({
 		timeline,
-		matches: ({ text }) => Str.includes("USER_ACTION_ITEMS.md")(text) && Str.includes(secret)(text),
+		matches: ({ argumentsJson }) =>
+			Str.includes("USER_ACTION_ITEMS.md")(argumentsJson) && Str.includes(secret)(argumentsJson),
 	});
 
-	const reply = Option.filter(timeline.finalReply, ({ text }) => Str.includes(secret)(text));
+	const reply = Option.filter(timeline.settledReply, ({ text }) => Str.includes(secret)(text));
 
 	const moments = Arr.sort(Arr.getSomes([item, reply]), byTime);
 

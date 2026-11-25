@@ -49,18 +49,19 @@ const request =
 
 const statechart = "skills/statechart/SKILL.md";
 
-const handoff = ({ reads, steps, finalReply }: Timeline): Option.Option<Window> =>
+const handoff = ({ reads, steps, settledReply }: Timeline): Option.Option<Window> =>
 	Option.flatMap(
 		Arr.findFirst(reads, ({ guide }) => guide === statechart),
 		(chart) => {
 			const checked = Arr.some(
 				steps,
 				(step) =>
-					step.at > chart.at && Arr.some(step.calls, ({ text }) => Str.includes("scripts/statechart")(text)),
+					step.at > chart.at &&
+					Arr.some(step.calls, ({ argumentsJson }) => Str.includes("scripts/statechart")(argumentsJson)),
 			);
 
 			return Option.map(
-				Option.filter(finalReply, () => checked),
+				Option.filter(settledReply, () => checked),
 				({ at }) => ({ opens: Option.some(chart.at), closes: at }),
 			);
 		},

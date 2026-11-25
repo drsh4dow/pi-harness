@@ -10,7 +10,7 @@ import { type Commit, longestBodyLine, plant } from "#tools/driver/align/index.t
 import type { Run, ScenarioFailed } from "#tools/driver/index.ts";
 import {
 	type Ended,
-	type GuideFile,
+	type GuidePathInAgentDir,
 	type Marker,
 	reportOf,
 	type Timeline,
@@ -28,10 +28,10 @@ const markersOf = (run: Run) =>
 		const playbooks = yield* fs.readDirectory(`${run.agentDir}/playbooks`);
 		const principles = yield* fs.readDirectory(`${run.agentDir}/principles`);
 
-		const named: ReadonlyArray<GuideFile> = [
-			...Arr.map(skills, (name): GuideFile => `skills/${name}/SKILL.md`),
-			...Arr.map(markdown(playbooks), (name): GuideFile => `playbooks/${name}.md`),
-			...Arr.map(markdown(principles), (name): GuideFile => `principles/${name}.md`),
+		const named: ReadonlyArray<GuidePathInAgentDir> = [
+			...Arr.map(skills, (name): GuidePathInAgentDir => `skills/${name}/SKILL.md`),
+			...Arr.map(markdown(playbooks), (name): GuidePathInAgentDir => `playbooks/${name}.md`),
+			...Arr.map(markdown(principles), (name): GuidePathInAgentDir => `principles/${name}.md`),
 		];
 
 		const files = yield* Effect.filter(named, (guide) => fs.exists(`${run.agentDir}/${guide}`));
@@ -69,7 +69,7 @@ const stage = ({
 	history,
 }: {
 	readonly run: Run;
-	readonly guides: ReadonlyArray<GuideFile>;
+	readonly guides: ReadonlyArray<GuidePathInAgentDir>;
 	readonly history: ReadonlyArray<Commit>;
 }) =>
 	Effect.gen(function* () {
@@ -106,7 +106,7 @@ export const measure = ({
 	event,
 }: {
 	readonly run: Run;
-	readonly guides: Arr.NonEmptyReadonlyArray<GuideFile>;
+	readonly guides: Arr.NonEmptyReadonlyArray<GuidePathInAgentDir>;
 	readonly history: ReadonlyArray<Commit>;
 	readonly request: string;
 	readonly within: Duration.Input;
@@ -125,7 +125,7 @@ export const measure = ({
 				return Effect.succeed("event");
 			}
 
-			return Option.isSome(timeline.finalReply)
+			return Option.isSome(timeline.settledReply)
 				? Effect.succeed("settled")
 				: Effect.andThen(Effect.sleep("5 seconds"), look);
 		});

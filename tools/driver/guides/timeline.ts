@@ -9,16 +9,14 @@ import { entryKind } from "#src/features/owned-work/index.ts";
 import { settledReply } from "#tools/driver/align/index.ts";
 import type { Session, Sessions } from "#tools/driver/index.ts";
 
-/** A guide by its path inside the agent folder. */
-export type GuideFile = `skills/${string}/SKILL.md` | `playbooks/${string}.md` | `principles/${string}.md`;
+export type GuidePathInAgentDir = `skills/${string}/SKILL.md` | `playbooks/${string}.md` | `principles/${string}.md`;
 
 type Actor = "root" | "delegate";
 
-/** One tool call: the tool, its `path` argument if it has one, and its arguments as JSON. */
 export interface Call {
 	readonly tool: string;
 	readonly path: Option.Option<string>;
-	readonly text: string;
+	readonly argumentsJson: string;
 }
 
 /**
@@ -34,7 +32,7 @@ interface Step {
 }
 
 interface Read {
-	readonly guide: GuideFile;
+	readonly guide: GuidePathInAgentDir;
 	readonly at: string;
 	readonly by: Actor;
 }
@@ -43,8 +41,7 @@ interface Read {
 export interface Timeline {
 	readonly steps: ReadonlyArray<Step>;
 	readonly reads: ReadonlyArray<Read>;
-	/** The root's last turn-ending message, once every job it started has settled. */
-	readonly finalReply: Option.Option<{ readonly at: string; readonly text: string }>;
+	readonly settledReply: Option.Option<{ readonly at: string; readonly text: string }>;
 }
 
 /** A hit needs each guide read at or after `opens`, from the run's start when none, and before `closes`. */
@@ -55,7 +52,7 @@ export interface Window {
 
 /** A guide and the line of its body that shows it reached a session. */
 export interface Marker {
-	readonly guide: GuideFile;
+	readonly guide: GuidePathInAgentDir;
 	readonly line: string;
 }
 
@@ -96,7 +93,7 @@ const callsOf = (message: Assistant): ReadonlyArray<Call> =>
 					{
 						tool: part.name,
 						path: Option.map(pathOf(part.arguments), ({ path }) => path),
-						text: Option.getOrElse(jsonOf(part.arguments), () => ""),
+						argumentsJson: Option.getOrElse(jsonOf(part.arguments), () => ""),
 					},
 				]
 			: [],
@@ -170,7 +167,7 @@ export const timelineOf = ({
 	return {
 		steps: byTime(Arr.flatMap(everyone, stepsOf)),
 		reads: byTime(Arr.flatMap(everyone, readsOf(markers))),
-		finalReply: Option.flatMap(settledReply(sessions.root), (text) =>
+		settledReply: Option.flatMap(settledReply(sessions.root), (text) =>
 			Option.map(lastEnd, ({ timestamp }) => ({ at: timestamp, text })),
 		),
 	};
@@ -185,7 +182,7 @@ export const verdictOf = ({
 	window,
 }: {
 	readonly timeline: Timeline;
-	readonly guides: ReadonlyArray<GuideFile>;
+	readonly guides: ReadonlyArray<GuidePathInAgentDir>;
 	readonly window: Option.Option<Window>;
 }): Verdict =>
 	Option.match(window, {
@@ -205,7 +202,7 @@ export const verdictOf = ({
  * Whether `call` may write a file: a write or an edit, or a bash command or codemode script with a heredoc or a write
  * in it, whose path stays unknown. Counting those makes an event that closes at a write close early, never late.
  */
-export const writesFile = ({ tool, text }: Call) => {
+export const writesFile = ({ tool, argumentsJson }: Call) => {
 	if (tool === "write" || tool === "edit") {
 		return true;
 	}
@@ -213,7 +210,10 @@ export const writesFile = ({ tool, text }: Call) => {
 	const scripted = tool === "bash" || tool === "codemode";
 
 	return (
-		scripted && (Str.includes("<<")(text) || Str.includes("tools.write")(text) || Str.includes("tools.edit")(text))
+		scripted &&
+		(Str.includes("<<")(argumentsJson) ||
+			Str.includes("tools.write")(argumentsJson) ||
+			Str.includes("tools.edit")(argumentsJson))
 	);
 };
 
@@ -225,10 +225,9 @@ export const firstStep = ({
 	readonly matches: (call: Call) => boolean;
 }) => Arr.findFirst(timeline.steps, (step) => Arr.some(step.calls, matches));
 
-/** What stopped the run: its event, the root's final reply, or the time budget. */
 export type Ended = "event" | "settled" | "budget";
 
-const readLines = ({ timeline, guide }: { readonly timeline: Timeline; readonly guide: GuideFile }) => {
+const readLines = ({ timeline, guide }: { readonly timeline: Timeline; readonly guide: GuidePathInAgentDir }) => {
 	const reads = Arr.filter(timeline.reads, (read) => read.guide === guide);
 
 	return Arr.isReadonlyArrayNonEmpty(reads)
@@ -249,7 +248,7 @@ export const reportOf = ({
 }: {
 	readonly sessions: Sessions;
 	readonly timeline: Timeline;
-	readonly guides: ReadonlyArray<GuideFile>;
+	readonly guides: ReadonlyArray<GuidePathInAgentDir>;
 	readonly event: (timeline: Timeline) => Option.Option<Window>;
 	readonly ended: Ended;
 }): ReadonlyArray<string> => {
