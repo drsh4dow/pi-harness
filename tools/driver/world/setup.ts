@@ -1,4 +1,3 @@
-/** The run's `settings.json` and `models.json`, from the human's and what the scenario sets. Pure. */
 import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
@@ -9,10 +8,6 @@ const resourceKeys = new Set(["packages", "extensions", "skills", "prompts", "th
 
 const replaced = (_theirs: Schema.Json, ours: Schema.Json) => ours;
 
-/**
- * Pure. The run's `settings.json`: the human's without the resource keys, which could load the live harness into the
- * run, and with the setup's top-level keys replacing theirs.
- */
 export const settingsOf = (input: {
 	readonly human: Schema.JsonObject;
 	readonly overrides: Schema.JsonObject;
@@ -28,10 +23,6 @@ const isJsonObject = Schema.is(Schema.JsonObject);
 const merged = (theirs: Schema.Json, ours: Schema.Json): Schema.Json =>
 	isJsonObject(theirs) && isJsonObject(ours) ? Rec.union(theirs, ours, merged) : ours;
 
-/**
- * Pure. The run's `models.json`: the human's (or none), with each setup provider replacing the human's of that name,
- * except the `windowed` one, which merges into it.
- */
 export const modelsOf = (input: {
 	readonly human: Option.Option<Schema.JsonObject>;
 	readonly providers: Readonly<Record<string, Schema.JsonObject>>;
@@ -51,31 +42,18 @@ export const modelsOf = (input: {
 	return Rec.union(theirs, { providers }, replaced);
 };
 
-/** What a scenario changes about the run's world before the root starts. */
 export interface Setup {
-	/** Top-level keys that replace the same keys in the run's copy of the human's `settings.json`. */
 	readonly settings?: Schema.JsonObject;
-	/**
-	 * Provider entries by name, shaped like `models.json`'s `providers` values (`modelOverrides` included). Each replaces
-	 * the human's entry of that name in the run's copy of their `models.json`, or starts the file when they have none.
-	 */
 	readonly models?: Readonly<Record<string, Schema.JsonObject>>;
-	/**
-	 * JSON files the run writes under its HOME before the root starts, given the run's HOME and project folder, each by
-	 * its path under HOME, such as phi-router's `.config/phi-router/config.json`. Each is the owner's alone, in folders
-	 * that are too.
-	 */
 	readonly files?: (run: { readonly home: string; readonly project: string }) => Files;
 }
 
 type Files = Readonly<Record<string, Schema.JsonObject>>;
 
 export interface RunSetup extends Setup {
-	/** The provider whose `models` entry only `contextWindow` made. It merges into the human's, so a custom provider keeps its models. */
 	readonly windowed?: string | undefined;
 }
 
-/** Pure. A scenario's setup, with `contextWindow` turned into the compaction settings and the model entry it stands for. */
 export const setupOf = (spec: Setup & { readonly model: string; readonly contextWindow?: number }): RunSetup => {
 	if (spec.contextWindow === undefined) {
 		return spec;

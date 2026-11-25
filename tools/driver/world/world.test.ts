@@ -1,9 +1,14 @@
 import { expect, test } from "bun:test";
 
+import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as ConfigProvider from "effect/ConfigProvider";
+import * as Effect from "effect/Effect";
+import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 
-import { modelsOf, settingsOf, setupOf } from "./setup.ts";
-import { layoutOf, runEnv } from "./world.ts";
+import { modelsOf, type Setup, settingsOf, setupOf } from "./setup.ts";
+import { layoutOf, openWorld, runEnv } from "./world.ts";
 
 const layout = layoutOf({ tmp: "/t", name: "smoke", stamp: "20260514-101010", pid: 42, tag: "0abc12" });
 
@@ -132,3 +137,67 @@ test("modelsOf: contextWindow's override merges into the human's custom provider
 		}),
 	).toEqual({ providers: { local: { ...local, modelOverrides: { big: { maxTokens: 1, contextWindow: 40_000 } } } } });
 });
+
+const opened = (setup: Setup) =>
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		const tmp = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
+		const human = ConfigProvider.fromUnknown({ HOME: `${tmp}/human`, XDG_RUNTIME_DIR: `${tmp}/runtime` });
+
+		yield* fs.makeDirectory(`${tmp}/pi-driver`);
+		yield* fs.makeDirectory(`${tmp}/fake`);
+		yield* fs.writeFileString(`${tmp}/fake/pi`, "#!/bin/sh\necho 0.0.0\n", { mode: 0o755 });
+
+		return yield* openWorld({
+			layout: layoutOf({ tmp, name: "world", stamp: "t", pid: process.pid, tag: "0abc12" }),
+			setup,
+			own: { PATH: `${tmp}/fake:${Bun.env["PATH"] ?? ""}` },
+		}).pipe(Effect.provideService(ConfigProvider.ConfigProvider, human));
+	});
+
+const decodeJson = Schema.decodeEffect(Schema.fromJsonString(Schema.Json));
+
+const readJson = Effect.fn("readJson")(function* (path: string) {
+	const fs = yield* FileSystem.FileSystem;
+	const text = yield* fs.readFileString(path);
+
+	return yield* decodeJson(text);
+});
+
+const noCore = Bun.which("herdr-core") === null;
+
+test.skipIf(noCore)("openWorld writes the setup's settings and models into the run's agent folder", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const world = yield* opened({ settings: { compaction: { enabled: false } }, models: { "ultra-a": override } });
+			const settings = yield* readJson(`${world.layout.agent}/settings.json`);
+			const models = yield* readJson(`${world.layout.agent}/models.json`);
+
+			expect({ settings, models }).toEqual({
+				settings: { compaction: { enabled: false } },
+				models: { providers: { "ultra-a": override } },
+			});
+		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+	),
+);
+
+test.skipIf(noCore)("openWorld writes a setup file under HOME by its path, owner-only, in owner-only folders", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const world = yield* opened({ files: ({ home }) => ({ ".config/phi-router/config.json": { home } }) });
+			const config = `${world.layout.home}/.config`;
+			const file = `${config}/phi-router/config.json`;
+			const json = yield* readJson(file);
+
+			const modes = yield* Effect.forEach([config, `${config}/phi-router`, file], (path) =>
+				Effect.map(fs.stat(path), ({ mode }) => mode % 0o1000),
+			);
+
+			expect({ json, modes }).toEqual({
+				json: { home: world.layout.home },
+				modes: [0o700, 0o700, 0o600],
+			});
+		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+	),
+);
