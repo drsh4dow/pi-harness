@@ -146,3 +146,11 @@ test("the width gate rejects a folder of 21 entries and names the folder rule", 
 			"src/features/wide holds 21 entries, over 20. Folder rule: move each concept into a folder named for it, with its edge file inside.",
 		],
 	));
+
+test("the file cap rejects a file of 601 lines", () =>
+	failsWith(
+		"max-lines",
+		"max-lines",
+		[`${bin}/oxlint`, "--format", "default", "src"],
+		["eslint(max-lines): File has too many lines (601)."],
+	));
