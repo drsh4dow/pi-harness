@@ -19,7 +19,6 @@ import { Ledger } from "./ledger.ts";
 import { modelTable } from "./models.ts";
 import { Tools } from "./tools.ts";
 import { type Handle, StartRequest, WorkRef } from "./work.ts";
-import { sessionRoot } from "./world.fixture.ts";
 
 const runtime = piHost(
 	Layer.mergeAll(
@@ -181,7 +180,10 @@ const commandRuntime = piHost(
 	),
 );
 
-const commandPlace = { cwd: "/", dir: `${sessionRoot}/tools` };
+const commandPlace = {
+	cwd: "/",
+	dir: `${Bun.env["TMPDIR"] ?? "/tmp"}/owned-work-tools-commands-${String(process.pid)}`,
+};
 
 const Warned = Schema.Struct({ warning: Schema.optionalKey(Schema.String) });
 
