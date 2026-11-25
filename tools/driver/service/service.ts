@@ -18,20 +18,11 @@ const marker = "PI_DRIVER_SERVICE";
 
 export const inService = (env: Readonly<Record<string, string | undefined>>): boolean => env[marker] === "1";
 
-/**
- * Interrupts once stdin ends: the process the human started closed it, or died. It closes stdin when it ends or is
- * interrupted, so an open stdin never keeps the driver's process alive.
- */
 export const stdinEnded = Stream.runDrain(NodeStream.fromReadable({ evaluate: () => process.stdin })).pipe(
 	Effect.ignore,
 	Effect.andThen(Effect.interrupt),
 );
 
-/**
- * Pure. The `systemd-run` command that runs `argv` as the run's service, in the caller's folder and environment, with
- * the session and state folders under `home` read-only to every process in it. A folder `home` lacks is skipped, so a
- * fresh home still runs.
- */
 const serviceArgv = (command: {
 	readonly env: Readonly<Record<string, string | undefined>>;
 	readonly argv: ReadonlyArray<string>;
@@ -54,7 +45,6 @@ const serviceArgv = (command: {
 	...command.argv,
 ];
 
-/** Why `argv` did not run to a clean exit, if it did not. */
 const failureOf = (argv: Array<string>) =>
 	Effect.try({ try: () => Bun.spawn(argv, { stdout: "ignore", stderr: "pipe" }), catch: String }).pipe(
 		Effect.flatMap((probe) =>
@@ -68,7 +58,6 @@ const failureOf = (argv: Array<string>) =>
 		Effect.option,
 	);
 
-/** The process exit code: the service's, 130 when interrupted, 1 on a defect. */
 const exitCode: Runtime.Teardown = (exit, onExit) => {
 	if (Exit.isSuccess(exit)) {
 		onExit(Predicate.isNumber(exit.value) ? exit.value : 1);

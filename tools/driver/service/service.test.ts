@@ -27,7 +27,17 @@ const goneWithin = (pids: ReadonlyArray<number>, bound: Duration.Input) =>
 
 const run = ["sh", "-c", "setsid sleep 600 & echo $!; sh -c 'sleep 600 & echo $!'; cat >/dev/null; exit 7"];
 
-const driverOf = ({ argv, home }: { readonly argv: ReadonlyArray<string>; readonly home: string | undefined }) =>
+const driverOf = ({
+	argv,
+	home,
+	cwd = ".",
+	env,
+}: {
+	readonly argv: ReadonlyArray<string>;
+	readonly home: string | undefined;
+	readonly cwd?: string;
+	readonly env?: Readonly<Record<string, string>>;
+}) =>
 	Bun.spawn(
 		[
 			process.execPath,
@@ -35,7 +45,7 @@ const driverOf = ({ argv, home }: { readonly argv: ReadonlyArray<string>; readon
 			`import { runAsService } from "${import.meta.dirname}/service.ts"; runAsService({ name: "t", argv: process.argv.slice(1), env: process.env });`,
 			...argv,
 		],
-		{ stdout: "pipe", env: { ...Bun.env, HOME: home } },
+		{ cwd, stdout: "pipe", env: { ...Bun.env, ...env, HOME: home } },
 	);
 
 const linesOf = (driver: ReturnType<typeof driverOf>) =>
@@ -76,6 +86,68 @@ test("Ctrl-C ends the run through its stdin and waits for it", () =>
 
 			expect([code, Arr.map(pids, isAlive)]).toEqual([130, [false, false]]);
 		}),
+	));
+
+test("the run's command runs in the driver's folder and environment, and the driver exits with its code", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const folder = yield* fs.makeTempDirectoryScoped({ directory: "/tmp" });
+
+			const driver = driverOf({
+				argv: ["sh", "-c", 'echo "$(pwd -P) $RUN_MARK"; exit 7'],
+				home: Bun.env["HOME"],
+				cwd: folder,
+				env: { RUN_MARK: "marked" },
+			});
+
+			const lines = yield* linesOf(driver).pipe(Stream.take(1), Stream.runCollect);
+			const code = yield* Effect.promise(() => driver.exited);
+
+			expect([lines, code]).toEqual([[`${folder} marked`], 7]);
+		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+	));
+
+test("a driver whose systemd-run fails exits 2 with systemd-run's own words", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const driver = driverOf({
+				argv: ["true"],
+				home: Bun.env["HOME"],
+				env: { DBUS_SESSION_BUS_ADDRESS: "unix:path=/nonexistent", XDG_RUNTIME_DIR: "/nonexistent" },
+			});
+
+			const output = yield* Effect.promise(() => driver.stdout.text());
+			const code = yield* Effect.promise(() => driver.exited);
+
+			expect(code).toBe(2);
+			expect(output).toContain("broken t: the driver runs a scenario as a systemd user service: Failed to connect");
+		}),
+	));
+
+test("stdinEnded interrupts once stdin closes", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const raced = Bun.spawn(
+				[
+					process.execPath,
+					"-e",
+					`import * as Effect from "effect/Effect"; import * as Exit from "effect/Exit"; import { stdinEnded } from "${import.meta.dirname}/service.ts"; Effect.runPromiseExit(Effect.raceFirst(Effect.never, stdinEnded)).then((exit) => console.log(Exit.hasInterrupts(exit)));`,
+				],
+				{ stdin: "pipe", stdout: "pipe" },
+			);
+
+			yield* Effect.addFinalizer(() =>
+				Effect.sync(() => {
+					raced.kill();
+				}),
+			);
+			yield* Effect.promise(() => Promise.resolve(raced.stdin.end()));
+
+			const output = yield* Effect.promise(() => raced.stdout.text()).pipe(Effect.timeout("10 seconds"));
+
+			expect(output).toBe("true\n");
+		}).pipe(Effect.scoped),
 	));
 
 test("a scenario where systemd-run cannot start a service exits 2 and says so", () =>
