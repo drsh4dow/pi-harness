@@ -78,12 +78,17 @@ for await (const line of console) {
 		print(response);
 		continue;
 	}
+	const settled = () => {
+		text = process.env.FAKE_TEXT;
+		return { type: "agent_settled", aborted: process.env.FAKE_ABORTED !== undefined };
+	};
+	if (process.env.FAKE_SETTLES_AT_ONCE !== undefined) {
+		print(response, settled());
+		continue;
+	}
 	print(response, { type: "agent_start" });
 	if (process.env.FAKE_NEVER_SETTLES !== undefined) continue;
-	setTimeout(() => {
-		text = process.env.FAKE_TEXT;
-		print({ type: "agent_settled", aborted: process.env.FAKE_ABORTED !== undefined });
-	}, 200);
+	setTimeout(() => print(settled()), 200);
 }
 `;
 
@@ -127,6 +132,15 @@ test("prompt returns the text pi has once it settles, not before", () =>
 	withRoot({ FAKE_TEXT: "ok" }, (root) =>
 		Effect.gen(function* () {
 			const reply = yield* root.prompt("hi");
+
+			expect(reply).toEqual(Option.some("ok"));
+		}),
+	));
+
+test("prompt settles when pi writes agent_settled in the same chunk as its response", () =>
+	withRoot({ FAKE_TEXT: "ok", FAKE_SETTLES_AT_ONCE: "1" }, (root) =>
+		Effect.gen(function* () {
+			const reply = yield* root.prompt("hi", "5 seconds");
 
 			expect(reply).toEqual(Option.some("ok"));
 		}),

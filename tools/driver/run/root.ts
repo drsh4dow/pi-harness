@@ -177,7 +177,6 @@ const openWire = Effect.fn("openWire")(function* (root: { readonly world: World;
 	} satisfies Wire;
 });
 
-/** Sends `command` and returns the data of pi's response. Subscribe before, to also see what follows the response. */
 const request = Effect.fn("request")(function* (
 	wire: Wire,
 	subscription: PubSub.Subscription<Inbound>,
