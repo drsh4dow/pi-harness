@@ -209,7 +209,6 @@ const decodeDisposition = Schema.decodeUnknownEffect(Schema.Struct({ disposition
 
 const LastText = Schema.Struct({ text: Schema.String.pipe(Schema.NullOr, Schema.optionalKey) });
 
-/** `within` bounds the whole prompt: pi's acknowledgement, the settle, and the final text. */
 const prompted =
 	(wire: Wire, progress: (what: string) => Effect.Effect<void>) =>
 	(message: Message, within: Duration.Input = "10 minutes") =>

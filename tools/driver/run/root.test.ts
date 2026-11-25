@@ -79,6 +79,7 @@ for await (const line of console) {
 		continue;
 	}
 	print(response, { type: "agent_start" });
+	if (process.env.FAKE_NEVER_SETTLES !== undefined) continue;
 	setTimeout(() => {
 		text = process.env.FAKE_TEXT;
 		print({ type: "agent_settled", aborted: process.env.FAKE_ABORTED !== undefined });
@@ -153,16 +154,18 @@ test("prompt returns none when pi settles aborted, even with an earlier assistan
 		}),
 	));
 
-test.each(["prompt", "get_last_assistant_text"])(
-	"prompt fails within its deadline when pi never answers %s",
-	(ignored) =>
-		withRoot({ FAKE_IGNORES: ignored }, (root) =>
-			Effect.gen(function* () {
-				const failure = yield* Effect.flip(root.prompt("hi", "300 millis"));
+test.each([
+	{ name: "never answers prompt", env: { FAKE_IGNORES: "prompt" } },
+	{ name: "answers but never settles", env: { FAKE_NEVER_SETTLES: "1" } },
+	{ name: "never answers get_last_assistant_text", env: { FAKE_IGNORES: "get_last_assistant_text" } },
+])("prompt fails within its deadline when pi $name", ({ env }) =>
+	withRoot(env, (root) =>
+		Effect.gen(function* () {
+			const failure = yield* Effect.flip(root.prompt("hi", "300 millis"));
 
-				expect(failure.message).toBe('the root did not settle within 0.3 s after "hi"');
-			}),
-		),
+			expect(failure.message).toBe('the root did not settle within 0.3 s after "hi"');
+		}),
+	),
 );
 
 test("once the root pi exits, every call to it fails at once with its exit code", () =>
