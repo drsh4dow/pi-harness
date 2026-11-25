@@ -64,6 +64,7 @@ test(
 
 				expect({ ranEarly, codes, ran }).toEqual({ ranEarly: false, codes: [0, 4], ran: true });
 				expect(said).toContain("queue lane: queued, 1 ahead of this one");
+				expect(said).toMatch(/queue lane: got a place after \d+ s/u);
 			}),
 		),
 	{ timeout: 60_000 },

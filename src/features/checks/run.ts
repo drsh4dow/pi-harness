@@ -24,10 +24,8 @@ import {
 	worktreeAt,
 } from "#src/client/checks/index.ts";
 
-/** One check slot per four cores, and never fewer than two. */
 export const checkSlotsFor = (cores: number) => Math.max(2, Math.floor(cores / 4));
 
-/** Worktrees of one repository share receipts, and separate clones do not. */
 const receiptKey = ({ tree, repo, prefix }: Worktree, command: ReadonlyArray<string>) => {
 	const bytes = new TextEncoder().encode(Arr.join([tree, repo, prefix, ...command], "\0"));
 
@@ -43,7 +41,6 @@ const holdersText = (holders: ReadonlyArray<Holder>) =>
 		"; ",
 	);
 
-/** Holds a place in the queue for the scope, saying when it waits and, once it gets a place, how long it waited. */
 const queued = ({
 	what,
 	folder,
@@ -79,9 +76,7 @@ export interface CheckRun {
 	readonly cwd: string;
 	readonly home: string;
 	readonly slots: number;
-	/** A leaf's check runs at a lower CPU priority. */
 	readonly nice: boolean;
-	/** Run it even when a receipt says it passed on this tree. */
 	readonly fresh: boolean;
 }
 
@@ -90,7 +85,6 @@ const idOf = Str.slice(0, 12);
 const shellWord = (word: string) =>
 	/^[\w@%+=:,./-]+$/u.test(word) ? word : `'${Str.replaceAll("'", String.raw`'\''`)(word)}'`;
 
-/** The command as a shell would take it. */
 const shownOf = (command: ReadonlyArray<string>) => Arr.join(Arr.map(command, shellWord), " ");
 
 const served = (key: string, { command, root, tree, stdout, stderr, passedAt, seconds }: Receipt) =>
@@ -101,7 +95,6 @@ const served = (key: string, { command, root, tree, stdout, stderr, passedAt, se
 		),
 	);
 
-/** Records a receipt for a pass, unless the tree changed while the check ran or its output is too long to keep. */
 const recordPass = (
 	{ home, command, cwd }: CheckRun,
 	{
@@ -144,7 +137,6 @@ const runInSlot = ({ command, cwd, home, slots, nice }: CheckRun) => {
 	return Effect.scoped(Effect.andThen(place, timed));
 };
 
-/** Prints the receipt of the same command on the same tree, or else runs the check and records a pass. */
 const checkedOn = (run: CheckRun, worktree: Worktree) =>
 	Effect.gen(function* () {
 		const key = yield* receiptKey(worktree, run.command);
@@ -164,11 +156,6 @@ const checkedOn = (run: CheckRun, worktree: Worktree) =>
 		return ran.exitCode;
 	});
 
-/**
- * Runs a check in one of the machine's check slots, unless the same command already passed on the same tree; then it
- * prints that receipt instead. A pass records a receipt when the tree is still the one it started on. Its exit code is
- * the check's. Outside a git worktree it always runs and records nothing.
- */
 export const runCheck = (run: CheckRun) =>
 	Effect.flatMap(worktreeAt(run.cwd), (worktree) =>
 		Option.match(worktree, {
@@ -185,7 +172,6 @@ export interface QueueRun {
 	readonly home: string;
 }
 
-/** Runs the command once it holds one of the named queue's places, first come first served. Its exit code is the command's. */
 export const runQueued = ({ name, places, command, cwd, home }: QueueRun) => {
 	const holder = { command: shownOf(command), cwd };
 	const place = queued({ what: `queue ${name}`, folder: `${queuesFolder(home)}/${name}`, places, holder });

@@ -6,7 +6,6 @@ import * as Option from "effect/Option";
 
 import { checkSlotsFor, runCheck, runQueued } from "./run.ts";
 
-/** The words before `--` and the command after it, when there is one. */
 const split = (args: ReadonlyArray<string>) => {
 	const dashes = args.indexOf("--");
 	const command = args.slice(dashes + 1);
@@ -34,7 +33,6 @@ const checkSlots = Config.withDefault(Config.Int("PI_CHECK_SLOTS"), checkSlotsFo
 
 const checkOptions = new Set(["--nice", "--fresh"]);
 
-/** `check [--nice] [--fresh] -- <command>...`. PI_CHECK_SLOTS sets the number of check slots. */
 export const checkCli = ({ args, cwd }: { readonly args: ReadonlyArray<string>; readonly cwd: string }) =>
 	Effect.gen(function* () {
 		const parsed = Option.filter(split(args), ({ options }) =>
@@ -74,7 +72,6 @@ const placesOf = (options: ReadonlyArray<string>) => {
 		: Option.none();
 };
 
-/** `queue <name> [--places <n>] -- <command>...`, one place unless it names more. */
 export const queueCli = ({ args, cwd }: { readonly args: ReadonlyArray<string>; readonly cwd: string }) =>
 	Effect.gen(function* () {
 		const [name = "", ...rest] = args;

@@ -1,9 +1,12 @@
 import { afterAll, expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Str from "effect/String";
+
+import { eventually } from "#src/primitives/eventually.ts";
 
 const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/check-bin-test-${String(process.pid)}`;
 
@@ -14,9 +17,13 @@ afterAll(() => run(Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scrat
 
 const spawnLimit = { timeout: 60_000 };
 
+const path = Bun.env["PATH"] ?? "";
+
+const checkBin = `${import.meta.dirname}/../../../agent/bin/check`;
+
 const spawned = (argv: ReadonlyArray<string>, { cwd, home }: { readonly cwd: string; readonly home: string }) =>
 	Effect.gen(function* () {
-		const env = { PATH: Bun.env["PATH"] ?? "", HOME: home, RUNS: `${home}/runs` };
+		const env = { PATH: path, HOME: home, RUNS: `${home}/runs` };
 		const child = Bun.spawn([...argv], { cwd, env, stderr: "pipe" });
 		const read = Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
 		const [out, err, code] = yield* Effect.promise(() => read);
@@ -48,7 +55,7 @@ const world = (name: string) =>
 		yield* seeded(repo, home);
 
 		const check = (script: string, options: ReadonlyArray<string> = [], cwd = repo) =>
-			spawned([`${import.meta.dirname}/../../../agent/bin/check`, ...options, "--", "sh", "-c", script], {
+			spawned([checkBin, ...options, "--", "sh", "-c", script], {
 				cwd,
 				home,
 			});
@@ -56,7 +63,7 @@ const world = (name: string) =>
 		const lines = Effect.orElseSucceed(fs.readFileString(`${home}/runs`), () => "");
 		const runs = Effect.map(lines, (text) => Str.split(text, "\n").length - 1);
 
-		return { fs, repo, check, runs };
+		return { fs, home, repo, check, runs };
 	});
 
 const passing = 'echo run >> "$RUNS"; echo tests ok';
@@ -211,6 +218,113 @@ test(
 				const count = yield* runs;
 
 				expect(count).toBe(2);
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"check with no command after --, or with an option it does not know, prints its usage and exits 2",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { home, repo } = yield* world("usage");
+				const calls = [[], ["--"], ["--bogus", "--", "true"]];
+				const ran = yield* Effect.forEach(calls, (args) => spawned([checkBin, ...args], { cwd: repo, home }));
+
+				expect(Arr.map(ran, ({ code, err }) => ({ code, err }))).toEqual(
+					Arr.map(calls, () => ({ code: 2, err: "usage: check [--nice] [--fresh] -- <command>...\n" })),
+				);
+			}),
+		),
+	spawnLimit,
+);
+
+const slotHolders = (home: string, count: number) =>
+	Effect.flatMap(FileSystem.FileSystem, (fs) => {
+		const names = Effect.orElseSucceed(
+			fs.readDirectory(`${home}/.local/state/pi-agent/queues/check-slots`),
+			() => [],
+		);
+
+		return Effect.map(names, (found) => Arr.filter(found, Str.endsWith(".json")).length === count);
+	});
+
+test(
+	"with PI_CHECK_SLOTS=1, a second check queues until the first one's slot frees",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { fs, home, repo } = yield* world("one-slot");
+				const env = { PATH: path, HOME: home, PI_CHECK_SLOTS: "1" };
+
+				const started = (script: string) =>
+					Bun.spawn([checkBin, "--", "sh", "-c", script], { cwd: repo, env, stderr: "pipe" });
+
+				const first = started('touch "$HOME/first-started"; while [ ! -f "$HOME/release" ]; do sleep 0.05; done');
+
+				yield* eventually(fs.exists(`${home}/first-started`), "30 seconds");
+
+				const second = started("echo second");
+
+				yield* eventually(slotHolders(home, 2), "30 seconds");
+				yield* fs.writeFileString(`${home}/release`, "");
+
+				const said = yield* Effect.promise(() => new Response(second.stderr).text());
+
+				yield* Effect.promise(() => first.exited);
+
+				expect(said).toContain("check: queued, 1 ahead of this one");
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"--nice runs the check 10 steps nicer than a plain one",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { check } = yield* world("nice");
+				const plain = yield* check("nice", ["--fresh"]);
+				const niced = yield* check("nice", ["--nice", "--fresh"]);
+
+				expect(Number(niced.out)).toBe(Math.min(19, Number(plain.out) + 10));
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"a receipt shows the command quoted so a shell reads back the same words",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { check } = yield* world("quoted");
+
+				yield* check("echo 'a b'");
+
+				const second = yield* check("echo 'a b'");
+
+				expect(second.err).toContain("`sh -c 'echo '\\''a b'\\'''` passed on this tree");
+			}),
+		),
+	spawnLimit,
+);
+
+test(
+	"outside a git worktree a check runs every time and records no receipt",
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { home, check, runs } = yield* world("outside");
+				const first = yield* check(passing, [], home);
+
+				yield* check(passing, [], home);
+
+				const count = yield* runs;
+
+				expect({ count, err: first.err }).toEqual({ count: 2, err: "" });
 			}),
 		),
 	spawnLimit,
