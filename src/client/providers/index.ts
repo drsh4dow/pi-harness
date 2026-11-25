@@ -12,4 +12,4 @@ export {
 
 export { OpencodeGo, opencodeGoFetchLayer } from "./opencode-go/index.ts";
 
-export { PhiRouter, PhiRouterError, phiRouterLayer, routerExtensionOf } from "./phi-router/index.ts";
+export { routerExtensionOf } from "./phi-router/index.ts";

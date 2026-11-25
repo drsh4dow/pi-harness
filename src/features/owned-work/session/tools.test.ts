@@ -14,7 +14,7 @@ import * as Str from "effect/String";
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh } from "#src/client/github/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
-import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
+import { ClaudeUsage } from "#src/client/providers/index.ts";
 import { Self } from "#src/features/owned-work/child.ts";
 import { Ledger } from "#src/features/owned-work/ledger/index.ts";
 import { modelTable } from "#src/features/owned-work/models.ts";
@@ -26,7 +26,6 @@ const runtime = piHost(
 		Layer.provideMerge(briefSourcesLayer, NodeServices.layer),
 		Layer.mock(Ledger)({}),
 		Layer.mock(Gh)({}),
-		Layer.mock(PhiRouter)({}),
 		Layer.mock(ClaudeUsage)({}),
 	),
 );
@@ -183,7 +182,6 @@ const commandRuntime = piHost(
 			wait: (_scope, stop) => Effect.as(stop, { results: [], running: [WorkRef("watch-1")] }),
 		}),
 		Layer.mock(Gh)({}),
-		Layer.mock(PhiRouter)({}),
 		Layer.mock(ClaudeUsage)({}),
 	),
 );

@@ -116,8 +116,6 @@ export const holdsStub = (body: string) => {
 	return Option.exists(messages, Str.includes(withheld));
 };
 
-export const routerCommand = (checkout: string) => `${checkout}/plugins/claude/bin/phi-router`;
-
 const Line = Schema.Struct({
 	account: Schema.String,
 	lane: Schema.Literals(["clean", "sealed"]),
@@ -139,22 +137,3 @@ export const laneLog = (run: Pick<Run, "home">) =>
 
 		return Arr.getSomes(Arr.map(lines, (line) => decodeLine(line)));
 	}).pipe(Effect.orDie);
-
-const Status = Schema.fromJsonString(Schema.Struct({ pinned: Schema.Boolean }));
-
-const decodeStatus = Schema.decodeUnknownOption(Status);
-
-export const pinnedOf = ({
-	run,
-	checkout,
-	session,
-}: {
-	readonly run: Pick<Run, "exec">;
-	readonly checkout: string;
-	readonly session: string;
-}) =>
-	Effect.gen(function* () {
-		const { output } = yield* run.exec([routerCommand(checkout), "status", "--session", session]);
-
-		return Option.map(decodeStatus(Str.trim(output)), ({ pinned }) => pinned);
-	});

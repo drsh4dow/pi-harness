@@ -30,7 +30,7 @@ import {
 	piSessionsLayer,
 	unwrapMessage,
 } from "#src/client/pi/index.ts";
-import { phiRouterLayer, routerExtensionOf } from "#src/client/providers/index.ts";
+import { routerExtensionOf } from "#src/client/providers/index.ts";
 import { sourceStampLayer } from "#src/client/source-stamp/index.ts";
 import {
 	type Hc,
@@ -69,15 +69,14 @@ interface Parts {
 	readonly slices: ReturnType<typeof slicesLayer>;
 }
 
-const servicesOf = (pi: ExtensionAPI, parts: Pick<Start, "childExtensions" | "env"> & Parts) => {
+const servicesOf = (pi: ExtensionAPI, parts: Pick<Start, "childExtensions"> & Parts) => {
 	const router = routerExtensionOf(pi.getCommands());
 	const cli = piCliLayer([...parts.childExtensions, ...Option.toArray(router)]);
-	const tools = Layer.merge(Tools.layer, phiRouterLayer({ extension: router, env: parts.env }));
 	const hc = hcLayer({ agentKey: parts.agentKey, parent: parts.parent });
 	const host = hostLayer({ pi, relay: parts.relay });
 	const own = Layer.mergeAll(hc, host, parts.slices, piSessionsLayer, cli, herdrAppLayer);
 
-	return Layer.provideMerge(own, Layer.provideMerge(tools, NodeServices.layer));
+	return Layer.provideMerge(own, Layer.provideMerge(Tools.layer, NodeServices.layer));
 };
 
 const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, stamp, sliceOf }: Start, self: Self) => {
@@ -92,7 +91,7 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 		? slicesLayer({ slice: sliceOf(agentKey), rootPid: Option.some(process.pid) })
 		: slicesLayer({ slice: self.slice, rootPid: Option.none() });
 
-	const services = servicesOf(pi, { agentKey, parent, relay, slices, childExtensions, env });
+	const services = servicesOf(pi, { agentKey, parent, relay, slices, childExtensions });
 	const host = piHost(Layer.provideMerge(ledger, services));
 
 	return { host, lineage: { agentKey, stamp }, relay, ownTerminal: parent, passEnv };

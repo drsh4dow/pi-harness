@@ -8,7 +8,7 @@ import * as Str from "effect/String";
 import { type Run, type Session, scenario } from "#tools/driver/index.ts";
 import { type Asked, Reply, serveMock } from "./anthropic.fixture.ts";
 import { serveOpenAi } from "./openai.fixture.ts";
-import { holdsStub, laneLog, pinnedOf, routerCommand, routerSetup } from "./router.fixture.ts";
+import { holdsStub, laneLog, routerSetup } from "./router.fixture.ts";
 import { foundIn, manifestCases, recordText, toolUse, wakeAnswered } from "./wire.fixture.ts";
 
 type Carrier = "ultra-a" | "ultra-b" | "ent" | "openai" | "opencode-go";
@@ -23,7 +23,6 @@ interface ExpectedChild {
 	readonly startsOn: string;
 	readonly cleanLandsOn: ReadonlyArray<string>;
 	readonly sealedLandsOn: string;
-	readonly phiRouterReports: "pinned" | "not pinned" | "outside phi-router";
 }
 
 const onOpen = (id: string) => [`ultra-a/${id}`, `ultra-b/${id}`];
@@ -35,7 +34,6 @@ const children: ReadonlyArray<ExpectedChild> = [
 		startsOn: "phi/claude-opus-5-5",
 		cleanLandsOn: onOpen("claude-opus-5-5"),
 		sealedLandsOn: onEnt,
-		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "worker",
@@ -43,7 +41,6 @@ const children: ReadonlyArray<ExpectedChild> = [
 		startsOn: "phi/claude-opus-5-5",
 		cleanLandsOn: onOpen("claude-opus-5-5"),
 		sealedLandsOn: onEnt,
-		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "fable",
@@ -51,7 +48,6 @@ const children: ReadonlyArray<ExpectedChild> = [
 		startsOn: "phi/claude-fable-5-2",
 		cleanLandsOn: onOpen("claude-fable-5-2"),
 		sealedLandsOn: onEnt,
-		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "investigator",
@@ -59,7 +55,6 @@ const children: ReadonlyArray<ExpectedChild> = [
 		startsOn: "openai/gpt-6.1-sol",
 		cleanLandsOn: ["openai/gpt-6.1-sol"],
 		sealedLandsOn: "openai/gpt-6.1-sol",
-		phiRouterReports: "outside phi-router",
 	},
 	{
 		mark: "divergent",
@@ -67,19 +62,8 @@ const children: ReadonlyArray<ExpectedChild> = [
 		startsOn: "phi/sealed",
 		cleanLandsOn: [onEnt],
 		sealedLandsOn: onEnt,
-		phiRouterReports: "not pinned",
-	},
-	{
-		mark: "held",
-		alias: "worker",
-		startsOn: "phi/claude-opus-5-5",
-		cleanLandsOn: [onEnt],
-		sealedLandsOn: onEnt,
-		phiRouterReports: "pinned",
 	},
 ];
-
-const pinnedFrom = children.length - 1;
 
 const marksOf = ({ mark }: Pick<ExpectedChild, "mark">) => ({
 	rootPrompt: `STEP-${mark}`,
@@ -145,14 +129,6 @@ const openai = serveOpenAi({ reply: replying("openai"), sealed: holdsCanary });
 const opencodeGo = serveOpenAi({ reply: replying("opencode-go"), sealed: () => false });
 
 const router = routerSetup({ env: process.env, claude, openai });
-
-const pinRoot = (run: Run) =>
-	Effect.gen(function* () {
-		const session = yield* run.waitFor("the root's session", "10 seconds", ({ root }) => Option.some(root.id));
-		const pinned = yield* run.exec([routerCommand(router.checkout), "pin", "--session", session]);
-
-		yield* run.check(pinned.code === 0, `phi-router pinned the root (${Str.trim(pinned.output)})`);
-	});
 
 const openBodies = () => [...claude["ultra-a"].bodies(), ...claude["ultra-b"].bodies(), ...opencodeGo.bodies()];
 
@@ -226,20 +202,10 @@ const startedOn = (run: Run, child: ExpectedChild, sessions: ReadonlyArray<Sessi
 			() => "nothing recorded",
 		);
 
-		const pinned = yield* Option.match(session, {
-			onNone: () => Effect.succeedNone,
-			onSome: ({ id }) => pinnedOf({ run, checkout: router.checkout, session: id }),
-		});
-
-		yield* run.say({ child: child.mark, startedOn: model, pinned: Option.getOrNull(pinned) });
+		yield* run.say({ child: child.mark, startedOn: model });
 		yield* run.check(
 			model === child.startsOn,
 			`the ${child.mark} child's pi runs on ${child.startsOn} (it runs on ${model})`,
-		);
-		yield* run.check(
-			child.phiRouterReports === "outside phi-router" ||
-				Option.contains(pinned, child.phiRouterReports === "pinned"),
-			`phi-router reports the ${child.mark} child ${child.phiRouterReports}`,
 		);
 	});
 
@@ -277,12 +243,8 @@ scenario({
 	play: (run) =>
 		Effect.gen(function* () {
 			const planted = yield* plant(run);
-			const [beforePin, afterPin] = Arr.splitAt(children, pinnedFrom);
 
-			yield* Effect.forEach(beforePin, startChild(run));
-
-			yield* pinRoot(run);
-			yield* Effect.forEach(afterPin, (child, index) => startChild(run)(child, index + beforePin.length));
+			yield* Effect.forEach(children, startChild(run));
 
 			const sessions = yield* run.waitFor("every child's session", "10 seconds", ({ delegates }) =>
 				Option.liftPredicate(delegates, (all) => all.length === children.length),

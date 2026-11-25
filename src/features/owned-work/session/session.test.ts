@@ -9,7 +9,7 @@ import * as Option from "effect/Option";
 import { BriefSources } from "#src/client/brief-sources/index.ts";
 import { Gh } from "#src/client/github/index.ts";
 import { PiCli, piHost, PiSessions } from "#src/client/pi/index.ts";
-import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
+import { ClaudeUsage } from "#src/client/providers/index.ts";
 import { Hc, HerdrApp, Slices } from "#src/client/terminals/index.ts";
 import { Ledger, Transitions } from "#src/features/owned-work/ledger/index.ts";
 import { MonotonicNanos, WorkRef } from "#src/features/owned-work/work.ts";
@@ -155,7 +155,6 @@ test("a session that shuts down for a reload is forgotten before its ledger free
 		Layer.mock(HerdrApp)({}),
 		Layer.mock(Gh)({}),
 		Layer.mock(BriefSources)({}),
-		Layer.mock(PhiRouter)({}),
 		Layer.mock(ClaudeUsage)({}),
 		NodeServices.layer,
 	);

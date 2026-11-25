@@ -7,7 +7,7 @@ import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 
 import { piHost } from "#src/client/pi/index.ts";
-import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
+import { ClaudeUsage } from "#src/client/providers/index.ts";
 import { modelNameOf, modelOf, modelTable } from "./models.ts";
 
 const arena = Bun.file(new URL("../../../agent/skills/arena/SKILL.md", import.meta.url));
@@ -37,7 +37,7 @@ const meters = Layer.mock(ClaudeUsage)({
 	probe: () => Effect.succeed(weekly(10)),
 });
 
-const host = piHost(Layer.merge(meters, Layer.mock(PhiRouter)({})));
+const host = piHost(meters);
 
 const modelRegistry = {
 	getAll: () => [onAccount("ultra-a"), onAccount("ultra-b"), onAccount("ent")],
@@ -45,7 +45,7 @@ const modelRegistry = {
 };
 
 const startsOn = ({ parent, name, starts }: { parent: string; name: string; starts: string }) => {
-	const caller = { model: onAccount(parent), cwd: "/", modelRegistry, sessionManager: { getSessionId: () => parent } };
+	const caller = { model: onAccount(parent), cwd: "/", modelRegistry };
 	const placed = modelOf(caller, modelTable, modelNameOf(name));
 
 	return host.run(

@@ -12,7 +12,7 @@ import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { laneLog, pinnedOf, routerSetup } from "./router.fixture.ts";
+import { laneLog, routerSetup } from "./router.fixture.ts";
 
 const home = "/home/run";
 
@@ -203,32 +203,4 @@ test("laneLog of a run whose phi-router wrote no lane log is empty", () =>
 
 			expect(lines).toEqual([]);
 		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
-	));
-
-const statusSaying = (output: string) => {
-	const asked: Array<ReadonlyArray<string>> = [];
-
-	const exec = (argv: readonly [string, ...Array<string>]) => {
-		asked.push(argv);
-
-		return Effect.succeed({ code: 0, output });
-	};
-
-	return { asked, pinned: pinnedOf({ run: { exec }, checkout: "/checkout", session: "s-1" }) };
-};
-
-test("pinnedOf asks phi-router status about the session and reads its pinned flag, or none when it says nothing readable", () =>
-	Effect.runPromise(
-		Effect.gen(function* () {
-			const pinned = statusSaying('{"pinned":true,"sealed":2}\n');
-
-			const answers = yield* Effect.all([
-				pinned.pinned,
-				statusSaying('{"pinned":false}').pinned,
-				statusSaying("phi-router: no such session").pinned,
-			]);
-
-			expect(pinned.asked).toEqual([["/checkout/plugins/claude/bin/phi-router", "status", "--session", "s-1"]]);
-			expect(Arr.map(answers, Option.getOrUndefined)).toEqual([true, false, undefined]);
-		}),
 	));

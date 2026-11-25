@@ -15,7 +15,7 @@ import type { Static } from "typebox";
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh, GhError } from "#src/client/github/index.ts";
 import { type Design, piHost } from "#src/client/pi/index.ts";
-import { ClaudeUsage, PhiRouter, PhiRouterError } from "#src/client/providers/index.ts";
+import { ClaudeUsage } from "#src/client/providers/index.ts";
 import type { DelegateParams } from "./brief/index.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { continueMessage, Ledger } from "./ledger/index.ts";
@@ -157,32 +157,9 @@ const gh = Layer.succeed(
 	}),
 );
 
-export const router = { held: new Set(["held-parent"]), unanswered: "lost-parent", pinned: new Array<string>() };
-
-const phiRouter = Layer.succeed(
-	PhiRouter,
-	PhiRouter.of({
-		pinned: (session) =>
-			session === router.unanswered
-				? Effect.fail(PhiRouterError.make({ args: ["phi-router", "status"], why: "connection refused" }))
-				: Effect.succeed(router.held.has(session)),
-		pin: (session) =>
-			Effect.sync(() => {
-				router.pinned.push(session);
-			}),
-	}),
-);
-
 const noMeters = Layer.mock(ClaudeUsage)({});
 
-const services = Layer.mergeAll(
-	Layer.provideMerge(briefSourcesLayer, NodeServices.layer),
-	ledger,
-	home,
-	gh,
-	phiRouter,
-	noMeters,
-);
+const services = Layer.mergeAll(Layer.provideMerge(briefSourcesLayer, NodeServices.layer), ledger, home, gh, noMeters);
 
 export const runtime = ManagedRuntime.make(services);
 
