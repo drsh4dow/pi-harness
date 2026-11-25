@@ -88,30 +88,35 @@ const visibleText = (message: AgentMessage) => {
 const loaderOf = (message: AgentMessage): Loader =>
 	message.role === "user" || message.role === "bashExecution" ? "person" : "agent";
 
+interface Marker {
+	readonly guideAt: number;
+	readonly lineAt: number;
+}
+
+type Marks = ReadonlyMap<Marker["guideAt"], ReadonlySet<Marker["lineAt"]>>;
+
 export interface Index {
 	readonly guides: ReadonlyArray<Guide>;
-	/** Each marking line, to its guide and its place in that guide's lines. */
-	readonly owner: ReadonlyMap<string, { readonly guide: number; readonly line: number }>;
-	readonly seen: WeakMap<AgentMessage, ReadonlyMap<number, ReadonlySet<number>>>;
+	readonly markerByLine: ReadonlyMap<string, Marker>;
+	readonly marksByMessage: WeakMap<AgentMessage, Marks>;
 }
 
 export const indexOf = (guides: ReadonlyArray<Guide>): Index => ({
 	guides,
-	owner: new Map(
-		Arr.flatMap(guides, (guide, index) => Arr.map(guide.lines, (line, at) => [line, { guide: index, line: at }])),
+	markerByLine: new Map(
+		Arr.flatMap(guides, (guide, guideAt) => Arr.map(guide.lines, (line, lineAt) => [line, { guideAt, lineAt }])),
 	),
-	seen: new WeakMap(),
+	marksByMessage: new WeakMap(),
 });
 
-/** Which lines of which guides a message's text holds. */
-const marksIn = (index: Index, text: string) => {
-	const marks = new Map<number, Set<number>>();
+const marksIn = (index: Index, text: string): Marks => {
+	const marks = new Map<Marker["guideAt"], Set<Marker["lineAt"]>>();
 
 	for (const line of [...markLines(text), ...markLines(unescaped(text))]) {
-		const owner = index.owner.get(line);
+		const marker = index.markerByLine.get(line);
 
-		if (owner !== undefined) {
-			marks.set(owner.guide, (marks.get(owner.guide) ?? new Set()).add(owner.line));
+		if (marker !== undefined) {
+			marks.set(marker.guideAt, (marks.get(marker.guideAt) ?? new Set()).add(marker.lineAt));
 		}
 	}
 
@@ -119,14 +124,14 @@ const marksIn = (index: Index, text: string) => {
 };
 
 const marksOf = (index: Index, message: AgentMessage) => {
-	const cached = index.seen.get(message);
+	const cached = index.marksByMessage.get(message);
 
 	if (cached !== undefined) {
 		return cached;
 	}
 
 	const marks = marksIn(index, visibleText(message));
-	index.seen.set(message, marks);
+	index.marksByMessage.set(message, marks);
 
 	return marks;
 };
