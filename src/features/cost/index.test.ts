@@ -31,7 +31,6 @@ afterAll(() =>
 	),
 );
 
-/** A fresh sessions folder per test: the root's session goes in it, and every delegate's in `delegates/` below. */
 const sessionsDir = Effect.map(
 	Effect.flatMap(FileSystem.FileSystem, (fs) => fs.makeTempDirectory({ directory: scratch })),
 	(dir) => ({ dir, delegates: `${dir}/delegates` }),
@@ -152,7 +151,6 @@ test("a cache-warm call counts, since it calls the model", () =>
 		}),
 	));
 
-/** A session that spent $5 and started a delegate that spent $1, and returns the id of its last reply. */
 const sourceWithHistory = (dir: string, delegates: string) => {
 	const source = SessionManager.create("/work", dir);
 	const earlier = SessionManager.create("/work", delegates);
@@ -212,7 +210,6 @@ test("a later read picks up new replies and a delegate whose file appears after 
 		}),
 	));
 
-/** A compaction line with a timestamp after any header, as pi writes it, minus the fields the reader never reads. */
 const compactionLine =
 	'{"type":"compaction","id":"c1","timestamp":"2999-01-01T00:00:00.000Z","usage":{"cost":{"total":0.5}}}';
 

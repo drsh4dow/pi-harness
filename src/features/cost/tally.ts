@@ -57,7 +57,6 @@ type Line = typeof Line.Type;
 
 const decodeLine = Schema.decodeOption(Schema.fromJsonString(Line));
 
-/** A line can run to hundreds of kilobytes, so only one that can be counted is parsed. */
 const mayCount = (text: string) =>
 	Str.startsWith('{"type":"session"')(text) ||
 	Str.includes('"usage":')(text) ||

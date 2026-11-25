@@ -18,7 +18,6 @@ export const labelKey = "pi.cost";
 
 const Usd = Schema.Finite;
 
-/** What a root's session has spent at list prices: its own model calls, and each delegate's below it at any level. */
 export const CostLabel = Schema.Struct({
 	own: Usd,
 	delegates: Schema.Array(Schema.Struct({ name: Schema.String, usd: Usd })),
@@ -115,10 +114,6 @@ export const treeReader = (files: TreeFiles) => {
 
 const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
-/**
- * Rereads the tree every two seconds, since a delegate's spend lands in its own file, which pi sends no event for, and
- * removes the label when interrupted.
- */
 const publish = (files: TreeFiles, terminal: TerminalAddress) => {
 	const reader = treeReader(files);
 	let published = "";
