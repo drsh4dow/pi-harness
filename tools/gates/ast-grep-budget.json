@@ -27,7 +27,6 @@
 	"src/features/loaded/index.test.ts no-comments": 2,
 	"src/features/loaded/index.ts no-comments": 7,
 	"src/features/owned-work/session/fork.ts no-comments": 10,
-	"src/features/owned-work/session/handover.ts no-comments": 9,
 	"src/features/owned-work/session/host.ts no-comments": 2,
 	"src/features/owned-work/session/params.ts no-comments": 2,
 	"src/features/owned-work/session/session.ts no-comments": 7,

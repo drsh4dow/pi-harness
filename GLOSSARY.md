@@ -36,6 +36,7 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 
 - **Owned work.** Every delegate, serve, watch and group a pi process started. It survives a reload, and stops when the process quits or leaves its session.
 - **Handover.** What a reload passes from one load of the owned-work extension to the next in the same process, so the work keeps running.
+- **Inheritance.** What a session start takes from the load before it: nothing (fresh), the **handover**'s work to keep running (carried), or work laid out by other ledger code, which it stops (stale). Its agent key is the one the new load runs under.
 - **Agent key.** Eight characters that name one pi's terminals and its slice for one session.
 - **Herdr-App.** The window that shows the terminals hc runs, in spaces and tabs, and moves the person's typing to the terminal it focuses. It runs no terminal itself; hc does.
 - **Fork tab.** The herdr-app tab where `/fork` and `/clone` put the copy of a session: a new pi in a new tab of the same space, while the source tab keeps its session and its work.

@@ -28,7 +28,6 @@ export const ledgerStamp = Effect.flatMap(SourceStamp, (stamp) =>
 	stamp.of([`${import.meta.dirname}/../work.ts`, `${import.meta.dirname}/../step.ts`]),
 );
 
-/** Empties the slot, so a handover reaches at most the one session start after it. */
 export const take = (): Option.Option<Handover> => {
 	const found = Option.fromUndefinedOr(globalThis.piOwnedWorkHandover);
 
@@ -37,13 +36,9 @@ export const take = (): Option.Option<Handover> => {
 	return found;
 };
 
-/** What a session start takes from the load before it. `agentKey` is the key this load runs under. */
 export type Inheritance = Data.TaggedEnum<{
-	/** Nothing was handed over, or this start is not a reload. */
 	Fresh: { readonly agentKey: string };
-	/** The work keeps running, under the same agent key and slice. */
 	Carried: { readonly agentKey: string; readonly state: LedgerState };
-	/** The reload changed the ledger's layout, so the old work, under `stale`, has to stop. */
 	Stale: { readonly agentKey: string; readonly stale: string };
 }>;
 
@@ -53,10 +48,6 @@ export const newAgentKey = (): string => Str.takeRight(uuidv7(), 8);
 
 const ownedScope = /\/(?<unit>pi-ow-[^/\n]+)\.scope$/mu;
 
-/**
- * Names a root's slice from its `/proc/self/cgroup`. A root that runs inside owned work, such as a `pi -p` that a watch
- * started with a scrubbed env, nests its slice in that work's, so stopping the work stops the root's delegates too.
- */
 export const rootSliceOf =
 	(cgroup: string) =>
 	(agentKey: string): string =>
@@ -65,7 +56,6 @@ export const rootSliceOf =
 			onSome: (unit) => `${unit}-${agentKey}`,
 		});
 
-/** This process's root slice names. Off Linux there is no cgroup to read, and a root gets a slice of its own. */
 export const rootSlices = Effect.map(ownCgroup, rootSliceOf);
 
 export const inheritanceOf =
@@ -85,9 +75,14 @@ export const inheritanceOf =
 export const stateOf = (inheritance: Inheritance): Option.Option<LedgerState> =>
 	Inheritance.$is("Carried")(inheritance) ? Option.some(inheritance.state) : Option.none();
 
-/** A reload that changed the ledger's layout cannot take the old work over, so it stops it, as a session switch would. */
 export const stopStale =
-	({ ui, sliceOf }: { readonly ui: ExtensionContext["ui"]; readonly sliceOf: (agentKey: string) => string }) =>
+	({
+		ui,
+		sliceOf,
+	}: {
+		readonly ui: Pick<ExtensionContext["ui"], "notify">;
+		readonly sliceOf: (agentKey: string) => string;
+	}) =>
 	(inheritance: Inheritance) =>
 		Inheritance.$is("Stale")(inheritance)
 			? Effect.andThen(
@@ -101,7 +96,6 @@ export const stopStale =
 				)
 			: Effect.void;
 
-/** A reload hands the ledger's state to the next load, and the work keeps running. Anything else that ends the session stops it. */
 const handOver = (lineage: Lineage) =>
 	Effect.gen(function* () {
 		const state = yield* Effect.flatMap(Ledger, (ledger) => ledger.freeze);
