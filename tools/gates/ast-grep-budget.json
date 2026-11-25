@@ -99,7 +99,6 @@
 	"tools/driver/sessions/probe.ts no-comments": 3,
 	"tools/driver/sessions/sessions.ts no-comments": 2,
 	"tools/driver/sessions/took.ts no-comments": 2,
-	"tools/driver/world/world.ts no-comments": 1,
 	"tools/harness.ts no-comments": 1,
 	"tools/prompts/index.ts no-comments": 1,
 	"tools/usage/events.ts no-comments": 1

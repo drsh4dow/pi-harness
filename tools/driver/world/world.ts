@@ -24,7 +24,6 @@ export interface Layout {
 	readonly agent: string;
 	readonly bin: string;
 	readonly refused: string;
-	/** `PI_DRIVER_PROBE`: one JSON lines file per pi process. */
 	readonly probe: string;
 	readonly project: string;
 	readonly sessions: string;
