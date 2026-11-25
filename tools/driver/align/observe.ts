@@ -48,11 +48,9 @@ const endsTurn = (message: Assistant) => message.stopReason !== "toolUse";
 
 const everyone = (sessions: Sessions) => [sessions.root, ...sessions.delegates];
 
-/** The text of each turn the root ended, oldest first. A turn that ends to wait on a delegate counts. */
 export const turnEnds = (root: Session): ReadonlyArray<string> =>
 	Arr.map(Arr.getSomes(Arr.map(root.entries, (entry) => Option.filter(assistantOf(entry), endsTurn))), textOf);
 
-/** The root's last turn-ending text, once every job it started has settled and nothing of owned-work came after. */
 export const settledReply = (root: Session): Option.Option<string> => {
 	const work = Arr.getSomes(
 		Arr.map(root.entries, (entry, index) => Option.map(decodeWork(entry), ({ data }) => ({ ...data, index }))),
@@ -72,7 +70,6 @@ export const settledReply = (root: Session): Option.Option<string> => {
 
 const byLength = Order.mapInput(Order.Number, Str.length);
 
-/** The longest line of a guide's body, frontmatter left out: the line that shows the guide reached a session. */
 export const longestBodyLine = (text: string) => {
 	const body = Str.replace(/^---\n[\s\S]*?\n---\n/u, "")(text);
 
@@ -223,18 +220,13 @@ interface Watched {
 	readonly editedFiles: ReadonlyArray<string>;
 }
 
-/**
- * Reads `sessions`, then `files`, until a look finds a file `stopAt` matches edited or the root settled idle. On an edit
- * it returns the sessions of the look before, which predate the edit because that look found none after reading them.
- * `start` is the sessions before the human's message.
- */
 export const watch = <Failure>({
-	start,
+	beforeRequest,
 	sessions,
 	files,
 	stopAt,
 }: {
-	readonly start: Sessions;
+	readonly beforeRequest: Sessions;
 	readonly sessions: Effect.Effect<Sessions, Failure>;
 	readonly files: Effect.Effect<ReadonlyArray<string>, Failure>;
 	readonly stopAt: (file: string) => boolean;
@@ -251,7 +243,7 @@ export const watch = <Failure>({
 			return Option.isSome(settledReply(now.root)) ? { sessions: now, editedFiles: edited } : yield* look(now);
 		});
 
-	return look(start);
+	return look(beforeRequest);
 };
 
 /**
@@ -277,7 +269,7 @@ export const observe = ({
 		const settling = `the root settles idle within ${Duration.format(Duration.fromInputUnsafe(within))}`;
 
 		const watching = watch({
-			start: yield* sessions,
+			beforeRequest: yield* sessions,
 			sessions: Effect.andThen(Effect.sleep("5 seconds"), sessions),
 			files: filesChangedSince({ run, base }),
 			stopAt: stopAt ?? (() => false),
