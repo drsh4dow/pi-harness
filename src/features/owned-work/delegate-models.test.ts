@@ -69,7 +69,6 @@ const onEnt = on("ent", opus.id);
 
 const onOpenai = on("openai", "gpt-6.1-sol");
 
-/** What a protected parent's delegate runs when neither phi-router nor a BAA provider carries the id named. */
 const onSealed = (named: string) => ({
 	model: "phi/sealed",
 	substituted: `${named}, which neither phi-router nor a BAA provider carries, so this delegate runs on phi/sealed.`,
@@ -77,7 +76,6 @@ const onSealed = (named: string) => ({
 
 const divergent = onSealed("The alias `divergent` names opencode-go/glm-5.3-flash");
 
-/** A routing parent's delegate runs an id phi-router carries as `phi/<id>`, unpinned, so the router picks per request. */
 const routingRows = (from: string, parent: Model<Api>): ReadonlyArray<Row> => [
 	{ from, parent, name: "judgment", runs: "phi/claude-opus-5-5" },
 	{ from, parent, name: "worker", runs: "phi/claude-opus-5-5" },
@@ -91,7 +89,6 @@ const routingRows = (from: string, parent: Model<Api>): ReadonlyArray<Row> => [
 	{ from, parent, name: "ent/claude-opus-5-5", runs: "ent/claude-opus-5-5" },
 ];
 
-/** A held parent's delegate runs the same models, and every `phi` one of them pinned. */
 const heldRows = (from: string, parent: Model<Api>, session = "parent"): ReadonlyArray<Row> =>
 	Arr.map(
 		[
@@ -110,7 +107,6 @@ const heldRows = (from: string, parent: Model<Api>, session = "parent"): Readonl
 		(row) => ({ from, parent, session, ...row }),
 	);
 
-/** An open parent's delegate runs the alias's model, on the parent's provider when that provider has the id. */
 const openRows: ReadonlyArray<Row> = [
 	{ from: "an ultra-a parent", parent: on("ultra-a", opus.id), name: "investigator", runs: "openai/gpt-6.1-sol" },
 	{ from: "an ultra-a parent", parent: on("ultra-a", opus.id), name: "fable", runs: "ultra-a/claude-fable-5-2" },

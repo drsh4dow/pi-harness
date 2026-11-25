@@ -11,7 +11,6 @@ import type { ChildPi, Design, PiCli, SessionAddress, StagedBrief } from "#src/c
 import { type RunSpec, terminalNameOf } from "#src/client/terminals/index.ts";
 import type { ReviewTarget } from "#src/features/pr/index.ts";
 
-/** How deep a chain of owners goes, counting the root as level 1. An owner at the last level starts leaves only, one level below it. */
 export const levels = 3;
 
 export const Role = Schema.Literals(["root", "owner", "leaf"]);
@@ -70,10 +69,6 @@ export const childRoles = (self: Self): ReadonlyArray<ChildRole> => {
 	return self.level < levels ? ["owner", "leaf"] : ["leaf"];
 };
 
-/**
- * `choom -n` sets the OOM score adjustment, so deeper levels die first when memory runs out. The kernel caps it at 1000,
- * which the deepest agent, a leaf one level below the last owner, gets.
- */
 export const atLevel = ({ level, role }: { readonly level: number; readonly role: ChildRole }) => ({
 	oomScoreAdj: String(Math.round((1000 * (level - 1)) / levels)),
 	env: { PI_OWNED_WORK_LEVEL: String(level), PI_OWNED_WORK_ROLE: role },
@@ -84,7 +79,6 @@ export const inheritedEnv = (env: Readonly<Record<string, string | undefined>>):
 		value === undefined || /^HC_TERMINAL_|^PI_OWNED_WORK_/u.test(key) ? Result.failVoid : Result.succeed(value),
 	);
 
-/** The bash tool of pi adds the agent's `bin/` only when PATH lacks it. This also moves a later entry to the front. */
 export const withAgentBin = (agentDir: string) => (env: Readonly<Record<string, string | undefined>>) => {
 	const bin = `${agentDir}/bin`;
 	const path = env["PATH"] ?? "";
@@ -93,7 +87,6 @@ export const withAgentBin = (agentDir: string) => (env: Readonly<Record<string, 
 	return { ...env, PATH: Arr.join([bin, ...rest], ":") };
 };
 
-/** `dir` is the `delegates/` subfolder of the root's session folder, so `pi -c` never picks a child. */
 export type ChildSession = SessionAddress;
 
 const extensionsFolder = `${import.meta.dirname}/../../../agent/extensions`;
@@ -118,7 +111,6 @@ interface BriefCommon extends Omit<ChildPi, "session" | "brief"> {
 	readonly destinationFile: Option.Option<string>;
 	/** The glossary, coding standards and ADR folder at the root of the repo the delegate works in, by absolute path. */
 	readonly sharedDocuments: ReadonlyArray<string>;
-	/** The file the caller named and its text, read at the call. Only the text is staged, so a later edit never reaches the child. */
 	readonly instructions: Option.Option<{ readonly file: string; readonly text: string }>;
 }
 

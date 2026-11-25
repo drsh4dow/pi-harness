@@ -35,12 +35,10 @@ export interface LedgerState {
 
 export type Command = Data.TaggedEnum<{
 	Kill: { readonly terminal: TerminalAddress };
-	/** Show `terminal` under its group in Herdr's agents list. */
 	ShowInGroup: { readonly terminal: TerminalAddress; readonly group: WorkRef; readonly name: string };
 	StopSlice: { readonly ref: WorkRef };
 	ReadAnswer: { readonly ref: WorkRef; readonly session: ChildSession; readonly end: TerminalEnd };
 	ReadTail: { readonly watch: WatchWork; readonly terminal: TerminalAddress; readonly end: TerminalEnd };
-	/** `after` counts from now, which a reload makes shorter than the watch's deadline. */
 	ArmDeadline: { readonly ref: WorkRef; readonly after: Duration.Duration };
 	Disarm: { readonly ref: WorkRef };
 	Wake: { readonly results: ReadonlyArray<Settled> };

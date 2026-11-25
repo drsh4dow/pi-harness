@@ -37,7 +37,6 @@ export interface ModelTable {
 	readonly panel: ReadonlyArray<string>;
 }
 
-/** An alias never looks like a `provider/id`, so a spelled model always means that model. */
 type Aliases = Readonly<Record<string, Alias> & Record<ModelKey, never>>;
 
 export const aliases = {
@@ -140,10 +139,6 @@ type Resolved = Effect.Success<ReturnType<typeof resolvedOf>>;
 const isRegistered = (ctx: ModelCaller) => (key: string) =>
 	Arr.some(ctx.modelRegistry.getAll(), ({ provider, id }) => `${provider}/${id}` === key);
 
-/**
- * How a parent stands toward PHI. A parent on a `phi` model routes, or is held when phi-router pins it or it runs
- * `phi/sealed`. A parent on a BAA provider is held too, since no judge saw what it holds. Any other parent is open.
- */
 type Standing = "open" | "routing" | "held";
 
 const standingOf = Effect.fn("standingOf")(function* (ctx: ModelCaller) {
@@ -170,7 +165,6 @@ const standingOf = Effect.fn("standingOf")(function* (ctx: ModelCaller) {
 	return pinned ? ("held" satisfies Standing) : ("routing" satisfies Standing);
 });
 
-/** Where a delegate runs, why, and whether phi-router pins its session before it starts. */
 interface Placement {
 	readonly model: string;
 	/** Why it runs there, as the refusal of a model the registry lacks words it. */
@@ -203,7 +197,6 @@ const openPlacement = Effect.fn("openPlacement")(function* (
 	return runs(`${roomiest.id}/${id}`, source, false);
 });
 
-/** The whole run on `phi/sealed`, since nothing that may hold PHI carries the model `naming` names. */
 const substituted = (naming: string): Placement => {
 	const model = `${phiProvider}/${sealedId}`;
 	const sentence = `${naming}, which neither phi-router nor a BAA provider carries, so this delegate runs on ${model}.`;
@@ -211,12 +204,6 @@ const substituted = (naming: string): Placement => {
 	return { model, source: routerPicks, pin: false, substitution: Option.some(sentence) };
 };
 
-/**
- * A protected parent's delegate. A spelled BAA model runs as named. Any other name, a `phi` model's included, names a
- * model id, which runs as `phi/<id>` when phi-router carries it, so the router picks the account per request. Else the
- * first BAA provider that carries the id runs it, and else the whole run lands on `phi/sealed`. A held parent's
- * delegate on a `phi` model is pinned, so every request of it goes to a BAA account.
- */
 const protectedPlacement = (ctx: ModelCaller, standing: Exclude<Standing, "open">, resolved: Resolved): Placement => {
 	const carries = (provider: string) => isRegistered(ctx)(`${provider}/${resolved.id}`);
 	const pin = standing === "held";
@@ -236,10 +223,6 @@ const protectedPlacement = (ctx: ModelCaller, standing: Exclude<Standing, "open"
 	});
 };
 
-/**
- * A protected session's delegate runs where phi-router keeps session content inside its boundary. `substitution` says
- * when the whole run lands on another model because nothing that may hold PHI carries the one named.
- */
 export const modelOf = Effect.fn("modelOf")(function* (ctx: ModelCaller, table: ModelTable, name: ModelName) {
 	const resolved = yield* resolvedOf(ctx, table, name);
 	const standing = yield* standingOf(ctx);

@@ -24,14 +24,9 @@ const recordedIn = (entries: ReadonlyArray<SessionEntry>): ReadonlyArray<Recorde
 
 const numberOf = ({ handle }: Recorded): number => Number(Str.split(handle, "-")[1]);
 
-/**
- * A fork or a resumed session already names work in its transcript, such as `delegate-3`, that this process never
- * started, so its own refs start past the highest one.
- */
 export const firstRefAfter = (entries: ReadonlyArray<SessionEntry>): number =>
 	Arr.reduce(Arr.map(recordedIn(entries), numberOf), 0, Math.max) + 1;
 
-/** The work `entries` start and never settle, in the order they start it. */
 export const unsettledRefs = (entries: ReadonlyArray<SessionEntry>): ReadonlyArray<string> => {
 	const recorded = recordedIn(entries);
 	const settled = new Set(Arr.flatMap(recorded, ({ type, handle }) => (type === "job-settled" ? [handle] : [])));

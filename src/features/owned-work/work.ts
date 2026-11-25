@@ -120,12 +120,10 @@ export const whoOf = (work: Work): Identity =>
 		Group: ({ name }): Identity => ({ kind: "group", name }),
 	});
 
-/** A watch has a log once its command started. */
 export const logOf = (work: Work): Option.Option<string> =>
 	Work.$is("Watch")(work) ? Option.as(work.spawn, work.log) : Option.none();
 
 export type StartRequest = Data.TaggedEnum<{
-	/** `group` names the group the delegate joins, or starts when none of that name is live. */
 	Delegate: { readonly brief: Brief; readonly childSession: ChildSession; readonly group: Option.Option<string> };
 	Serve: { readonly name: string; readonly command: string; readonly ready: Option.Option<string> };
 	Watch: {
@@ -225,7 +223,6 @@ export const WorkEntry = Data.taggedEnum<WorkEntry>();
 
 const sharedDocumentAliases = [["GLOSSARY.md", "GLOSSARY-MAP.md"], ["CODING_STANDARDS.md"], ["docs/adr/"]];
 
-/** The files a delegate's `<work>` names: the state folder's `STATE.md`, and the shared documents at the root of the git repo that holds `folder`, as far as they exist. */
 export const workFilesOf = Effect.fn("workFilesOf")(
 	function* (folder: string, state: Option.Option<string>) {
 		const sources = yield* BriefSources;
