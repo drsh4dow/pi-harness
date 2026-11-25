@@ -128,6 +128,13 @@ const withRoot = <Value, Failure>(
 		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
 	);
 
+test("startRoot returns the session pi reports to get_state", () =>
+	withRoot({}, (root) =>
+		Effect.sync(() => {
+			expect(root.session).toEqual({ id: "s", file: "/s.jsonl" });
+		}),
+	));
+
 test("prompt returns the text pi has once it settles, not before", () =>
 	withRoot({ FAKE_TEXT: "ok" }, (root) =>
 		Effect.gen(function* () {

@@ -27,7 +27,6 @@ export interface Root {
 }
 
 export interface RootProcess extends Root {
-	/** From `get_state` at start. pi creates the file at the first message, so it can be missing early on. */
 	readonly session: { readonly id: string; readonly file: string };
 	readonly exited: Effect.Effect<never, ScenarioFailed>;
 }
@@ -244,7 +243,6 @@ const prompted =
 
 const State = Schema.Struct({ sessionId: Schema.String, sessionFile: Schema.String });
 
-/** Starts the root and returns once it answered `get_state`. */
 export const startRoot = (input: {
 	readonly world: World;
 	readonly model: string;
