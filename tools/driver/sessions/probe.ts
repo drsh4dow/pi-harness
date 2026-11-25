@@ -25,8 +25,7 @@ import * as Str from "effect/String";
 export const Loaded = Schema.Struct({
 	/** The running pi's own `VERSION`. */
 	version: Schema.String,
-	/** `provider/id`. */
-	model: Schema.String,
+	model: Schema.TemplateLiteral([Schema.String, "/", Schema.String]),
 	/** The model's context window, after any `modelOverrides` of the setup. */
 	contextWindow: Schema.Finite,
 	/** Extension files that registered a tool or a command, links resolved, sorted, distinct. */

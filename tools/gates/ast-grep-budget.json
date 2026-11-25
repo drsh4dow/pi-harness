@@ -98,7 +98,7 @@
 	"tools/driver/run/message.ts no-comments": 2,
 	"tools/driver/service/service.ts no-comments": 4,
 	"tools/driver/service/tripwire.ts no-comments": 5,
-	"tools/driver/sessions/probe.ts no-comments": 10,
+	"tools/driver/sessions/probe.ts no-comments": 9,
 	"tools/driver/sessions/sessions.ts no-comments": 10,
 	"tools/driver/sessions/took.ts no-comments": 11,
 	"tools/driver/world/core.ts no-comments": 4,

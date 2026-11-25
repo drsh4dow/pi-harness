@@ -7,7 +7,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { entryKind } from "#src/features/owned-work/index.ts";
-import type { Session, Sessions } from "#tools/driver/index.ts";
+import type { Loaded, Session, Sessions } from "#tools/driver/index.ts";
 import {
 	before,
 	firstStep,
@@ -215,7 +215,7 @@ test("a report prints the reads of the measured guides, the window and the princ
 			started(5),
 			started(5),
 		]),
-		loaded: Option.some({
+		loaded: Option.some<Loaded>({
 			version: "1.5.2",
 			model: "p/m",
 			contextWindow: 40_000,
