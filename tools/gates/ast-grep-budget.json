@@ -12,7 +12,7 @@
 	"src/features/compaction/summary.ts no-comments": 2,
 	"src/features/cost/index.test.ts no-comments": 1,
 	"src/features/cost/index.ts no-comments": 7,
-	"src/features/cost/tally.ts no-comments": 3,
+	"src/features/cost/tally.ts no-comments": 1,
 	"src/features/diff-size/index.ts no-comments": 2,
 	"src/features/footer/duration.ts no-comments": 1,
 	"src/features/footer/index.test.ts no-comments": 1,

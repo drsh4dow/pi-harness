@@ -23,8 +23,7 @@ const DelegateStarted = Schema.Struct({
 	child_session_id: Schema.String,
 });
 
-/** Only the lines a tally reads, and only the fields it reads from them. */
-const Line = Schema.Union([
+const CountedLine = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("session"), timestamp: Schema.String }),
 	// A reply, or a tool result that called a model, carries its usage on the message.
 	Schema.Struct({
@@ -45,16 +44,16 @@ const Line = Schema.Union([
 	}),
 ]);
 
-type Line = typeof Line.Type;
+type CountedLine = typeof CountedLine.Type;
 
-const decodeLine = Schema.decodeOption(Schema.fromJsonString(Line));
+const decodeLine = Schema.decodeOption(Schema.fromJsonString(CountedLine));
 
 const mayCount = (text: string) =>
 	Str.startsWith('{"type":"session"')(text) ||
 	Str.includes('"usage":')(text) ||
 	Str.includes('"delegate-started"')(text);
 
-const add = (tally: Tally, line: Line): Tally => {
+const add = (tally: Tally, line: CountedLine): Tally => {
 	if (line.type === "session") {
 		return { ...tally, sessionStart: Date.parse(line.timestamp) };
 	}
@@ -76,9 +75,8 @@ const add = (tally: Tally, line: Line): Tally => {
 	return { ...tally, usd: tally.usd + usage.cost.total };
 };
 
-/** Adds whole JSONL lines to a tally. */
-export const tallyLines = ({ tally, text }: { readonly tally: Tally; readonly text: string }): Tally => {
-	const countable = Arr.filter(Str.split(text, "\n"), mayCount);
+export const tallyLines = ({ tally, wholeLines }: { readonly tally: Tally; readonly wholeLines: string }): Tally => {
+	const countable = Arr.filter(Str.split(wholeLines, "\n"), mayCount);
 
 	return Arr.reduce(Arr.getSomes(Arr.map(countable, (line) => decodeLine(line))), tally, add);
 };

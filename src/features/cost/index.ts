@@ -76,12 +76,12 @@ export const treeReader = (files: TreeFiles) => {
 			return emptyTally;
 		}
 
-		const { replaced, text, offset } = appended.value;
-		const next: Followed = { offset, tally: tallyLines({ tally: replaced ? emptyTally : before.tally, text }) };
+		const { replaced, text: wholeLines, offset } = appended.value;
+		const tally = tallyLines({ tally: replaced ? emptyTally : before.tally, wholeLines });
 
-		followed.set(path, next);
+		followed.set(path, { offset, tally });
 
-		return next.tally;
+		return tally;
 	});
 
 	/** Each delegate, then the ones it started, in the order they started. */
