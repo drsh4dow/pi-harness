@@ -81,7 +81,6 @@ export const treeReader = (files: SessionTreeFiles) => {
 		return tally;
 	});
 
-	/** Each delegate, then the ones it started, in the order they started. */
 	const spentBelow = (
 		started: ReadonlyArray<StartedDelegate>,
 	): Effect.Effect<CostLabel["delegates"], PlatformError.PlatformError, Effect.Services<ReturnType<typeof locate>>> =>

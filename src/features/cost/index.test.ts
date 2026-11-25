@@ -116,6 +116,30 @@ test("a session with no reply yet has no file and has spent nothing", () =>
 		}),
 	));
 
+test("the label lists each delegate, then the ones it started, in the order they started", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir, delegates } = yield* sessionsDir;
+			const [root, first, second, below] = [open(dir), open(delegates), open(delegates), open(delegates)];
+
+			reply(root, 1);
+			startDelegate(root, first, "review auth");
+			startDelegate(root, second, "write docs");
+			reply(first, 0.5);
+			startDelegate(first, below, "scout docs");
+			reply(below, 0.25);
+			reply(second, 0.125);
+
+			const label = yield* readerOf(root, delegates).read;
+
+			expect(label.delegates).toEqual([
+				{ name: "review auth", usd: 0.5 },
+				{ name: "scout docs", usd: 0.25 },
+				{ name: "write docs", usd: 0.125 },
+			]);
+		}),
+	));
+
 test("a continued delegate's one session file, with both runs, counts each reply once", () =>
 	run(
 		Effect.gen(function* () {
