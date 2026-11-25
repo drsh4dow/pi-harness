@@ -65,7 +65,6 @@ const leavesOf = (value: Schema.Json): ReadonlyArray<string> => {
 	return Arr.flatMap(Rec.values(value), leavesOf);
 };
 
-/** Every string in a provider payload, in traversal order, one per line. Scenarios search it with `includes`. */
 export const textOf = (payload: Schema.Json): string => Arr.join(leavesOf(payload), "\n");
 
 const target = Config.option(Config.String("PI_DRIVER_PROBE"));
