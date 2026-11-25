@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { SessionManager } from "@earendil-works/pi-coding-agent";
@@ -8,30 +8,12 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { ChildReply, PiSessions, piSessionsLayer } from "./index.ts";
 
 const piSessions = Layer.provideMerge(piSessionsLayer, NodeServices.layer);
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/pi-sessions-answer-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("pi-sessions-answer");
 
 const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 

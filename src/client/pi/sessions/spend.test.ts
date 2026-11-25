@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -8,28 +8,10 @@ import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as Rec from "effect/Record";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { spendSince } from "./index.ts";
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/pi-sessions-spend-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("pi-sessions-spend");
 
 const since = DateTime.makeUnsafe("2026-10-11T12:00:00Z");
 

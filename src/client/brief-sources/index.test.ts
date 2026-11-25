@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
@@ -6,30 +6,12 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { BriefSources, briefSourcesLayer } from "./index.ts";
 
 const briefSources = Layer.provideMerge(briefSourcesLayer, NodeServices.layer);
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/brief-sources-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("brief-sources");
 
 test("readIfPresent gives None for a missing file and the text of one that exists", () =>
 	Effect.runPromise(

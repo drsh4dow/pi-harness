@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
@@ -7,30 +7,12 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { StateFolder, stateFolderLayer } from "./index.ts";
 
 const stateFolders = Layer.provideMerge(stateFolderLayer, NodeServices.layer);
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/state-folder-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("state-folder");
 
 const fingerprint = (folder: string) => Effect.flatMap(StateFolder, (state) => state.fingerprint(folder));
 

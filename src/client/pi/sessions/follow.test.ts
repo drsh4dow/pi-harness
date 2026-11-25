@@ -1,32 +1,14 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
 
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { appendedLines } from "./index.ts";
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/pi-sessions-follow-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("pi-sessions-follow");
 
 test("appended lines stop at the last newline, and a file shorter than what was read is read again from the start", () =>
 	Effect.runPromise(

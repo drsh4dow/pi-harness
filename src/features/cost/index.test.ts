@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 
 import { SessionManager } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -13,28 +13,10 @@ import * as Str from "effect/String";
 
 import { childExtensions } from "#src/features/owned-work/index.ts";
 import { eventually } from "#src/primitives/eventually.ts";
+import { scratchFolder } from "#src/primitives/scratch.fixture.ts";
 import { labelSpend, treeReader } from "./index.ts";
 
-const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/cost-${String(process.pid)}`;
-
-beforeAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) =>
-			Effect.andThen(
-				fs.remove(scratch, { recursive: true, force: true }),
-				fs.makeDirectory(scratch, { recursive: true }),
-			),
-		).pipe(Effect.provide(NodeServices.layer)),
-	),
-);
-
-afterAll(() =>
-	Effect.runPromise(
-		Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(scratch, { recursive: true })).pipe(
-			Effect.provide(NodeServices.layer),
-		),
-	),
-);
+const scratch = scratchFolder("cost");
 
 const sessionsDir = Effect.map(
 	Effect.flatMap(FileSystem.FileSystem, (fs) => fs.makeTempDirectory({ directory: scratch })),
