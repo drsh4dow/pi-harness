@@ -24,21 +24,23 @@ const skillFilesIn = Effect.fn("skillFilesIn")(function* (dir: string) {
 	return Arr.map(names, (name): GuideFile => ({ kind: "skill", name, path: `${dir}/${name}/SKILL.md` }));
 });
 
-/** The arguments of a call that can name a file: a read's path or a shell command. */
-const Naming = Schema.Struct({ path: Schema.optional(Schema.String), command: Schema.optional(Schema.String) });
+const FileNamingArguments = Schema.Struct({
+	path: Schema.optional(Schema.String),
+	command: Schema.optional(Schema.String),
+});
 
-const NestedCalls = Schema.Struct({ calls: Schema.Array(Schema.Struct({ arguments: Naming })) });
+const NestedCalls = Schema.Struct({ calls: Schema.Array(Schema.Struct({ arguments: FileNamingArguments })) });
 
-const decodeNaming = Schema.decodeUnknownOption(Naming);
+const decodeFileNamingArguments = Schema.decodeUnknownOption(FileNamingArguments);
 const decodeNested = Schema.decodeUnknownOption(Schema.Struct({ nestedCalls: NestedCalls }));
 
-const namingText = ({ path, command }: typeof Naming.Type) =>
+const namingText = ({ path, command }: typeof FileNamingArguments.Type) =>
 	Arr.getSomes([Option.fromUndefinedOr(path), Option.fromUndefinedOr(command)]);
 
 const callTexts = (message: AgentMessage) =>
 	message.role === "assistant"
 		? Arr.flatMap(message.content, (block) => {
-				const naming = decodeNaming(block.type === "toolCall" ? block.arguments : undefined);
+				const naming = decodeFileNamingArguments(block.type === "toolCall" ? block.arguments : undefined);
 
 				return block.type === "toolCall"
 					? [[block.id, Option.match(naming, { onNone: () => [], onSome: namingText })] as const]
