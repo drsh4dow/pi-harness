@@ -70,6 +70,10 @@ const kindOfFolder = new Map([
 	["principles", "principle"],
 ]);
 
+/** Pi names a session file by the time it started, such as `2026-11-08T13-53-21-192Z_<id>.jsonl`. */
+const startedName =
+	/(?:^|\/)(?<date>\d{4}-\d{2}-\d{2})T(?<hours>\d{2})-(?<minutes>\d{2})-(?<seconds>\d{2})-(?<millis>\d{3})Z_[^/]*\.jsonl$/u;
+
 const harnessFolders = ["/.pi", "pi-agent/pi", "phi-router"];
 
 const scopeOf = (cwd: string): Scope => {
@@ -256,6 +260,16 @@ const factsFrom = (scan: Scan): SessionFacts => {
 		events: new Set([...scan.events, ...firedByGroups(startedGroups(scan.delegateCalls))]),
 		delegateCalls: scan.delegateCalls,
 	};
+};
+
+export const startOf = (file: string) => {
+	const groups = startedName.exec(file)?.groups;
+
+	return groups === undefined
+		? Number.NaN
+		: Date.parse(
+				`${groups["date"]}T${groups["hours"]}:${groups["minutes"]}:${groups["seconds"]}.${groups["millis"]}Z`,
+			);
 };
 
 export const factsOf = ({ library, text }: { readonly library: Library; readonly text: string }) => {

@@ -14,7 +14,7 @@ import { git } from "#src/client/git/index.ts";
 import { type GuideFile, guideFilesIn, readGuides } from "#src/features/loaded/index.ts";
 import { libraryOf } from "./guides.ts";
 import { reportOf } from "./report.ts";
-import { factsOf } from "./session.ts";
+import { factsOf, startOf } from "./session.ts";
 
 const root = Str.replace(/\/tools\/usage$/u, "")(import.meta.dirname);
 const week = 7 * 24 * 60 * 60 * 1000;
@@ -24,10 +24,6 @@ const guideFolders = ["agent/skills", "agent/playbooks", "agent/principles", "sr
 
 const guidePath =
 	/^(?:agent\/skills\/(?<skill>[^/]+)\/SKILL\.md|src\/features\/web\/(?<web>[^/]+)\/SKILL\.md|agent\/(?:playbooks|principles)\/(?<file>[^/]+)\.md)$/u;
-
-/** Pi names a session file by the time it started, such as `2026-11-08T13-53-21-192Z_<id>.jsonl`. */
-const startedName =
-	/(?:^|\/)(?<date>\d{4}-\d{2}-\d{2})T(?<hours>\d{2})-(?<minutes>\d{2})-(?<seconds>\d{2})-(?<millis>\d{3})Z_[^/]*\.jsonl$/u;
 
 class UsageError extends Schema.TaggedError<UsageError, { readonly brand: unique symbol }>()("UsageError", {
 	message: Schema.String,
@@ -111,16 +107,6 @@ const todayGuides = Effect.gen(function* () {
 
 	return yield* readGuides([...Arr.flatten(skills), ...principles, ...playbooks]);
 });
-
-const startOf = (file: string) => {
-	const groups = startedName.exec(file)?.groups;
-
-	return groups === undefined
-		? Number.NaN
-		: Date.parse(
-				`${groups["date"]}T${groups["hours"]}:${groups["minutes"]}:${groups["seconds"]}.${groups["millis"]}Z`,
-			);
-};
 
 const sessionFiles = Effect.fn("sessionFiles")(function* ({ since, until, sessions }: Window) {
 	const fs = yield* FileSystem.FileSystem;
