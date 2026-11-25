@@ -14,7 +14,7 @@ import * as TestClock from "effect/testing/TestClock";
 import { piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, ClaudeUsageError, weeklyWindow } from "#src/client/providers/index.ts";
 import { type AccountId, accounts } from "./accounts.ts";
-import { type PlanReader, roomiestAccount } from "./quota.ts";
+import { type PlanReader, planOf, roomiestAccount } from "./quota.ts";
 
 const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
 
@@ -148,4 +148,68 @@ test("a meter that never answers is left out after five seconds", () => {
 	});
 
 	return piHost(Layer.merge(meters({ "ultra-a": 90 }, [], ["ultra-b"]), TestClock.layer())).run(starting);
+});
+
+const week = [{ name: weeklyWindow, percent: 40, resetsAt: Option.none() }];
+
+const extraUsage = { used: { minor: 1200, exponent: 2, currency: "USD" }, cap: Option.none(), off: Option.none() };
+
+const usageReads = (asked: Array<string>) =>
+	Layer.mock(ClaudeUsage)({
+		plan: (token) => {
+			asked.push(`usage page with ${Redacted.value(token)}`);
+
+			return Effect.succeed({ windows: week, spend: Option.some(extraUsage) });
+		},
+		probe: ({ token, model }) => {
+			asked.push(`probe with ${Redacted.value(token)} on ${model}`);
+
+			return Effect.succeed(week);
+		},
+	});
+
+const pricedModels = [
+	{ ...opus, provider: "ultra-b", id: "claude-dear", cost: { ...opus.cost, input: 15 } },
+	{ ...opus, provider: "ultra-b", id: "claude-cheap", cost: { ...opus.cost, input: 1 } },
+	{ ...opus, provider: "ultra-a", id: "claude-free", cost: { ...opus.cost, input: 0 } },
+];
+
+const loggedInTo = (logins: ReadonlyArray<AccountId>): PlanReader => ({
+	getAll: () => pricedModels,
+	getApiKeyForProvider: (provider) =>
+		Promise.resolve(Arr.contains(logins, provider) ? `${provider}-token` : undefined),
+});
+
+test("a setup-token account reads its windows from a probe on its cheapest model, and no extra usage", () => {
+	const asked: Array<string> = [];
+	const read = planOf({ registry: loggedInTo(["ultra-b"]), account: accountNamed("ultra-b") });
+
+	return piHost(usageReads(asked)).run(
+		Effect.map(read, (plan) => {
+			expect(plan).toEqual({ windows: week, spend: Option.none() });
+			expect(asked).toEqual(["probe with ultra-b-token on claude-cheap"]);
+		}),
+	);
+});
+
+test("an OAuth account reads its windows and extra usage from the usage page", () => {
+	const asked: Array<string> = [];
+	const read = planOf({ registry: loggedInTo(["ultra-a"]), account: accountNamed("ultra-a") });
+
+	return piHost(usageReads(asked)).run(
+		Effect.map(read, (plan) => {
+			expect(plan).toEqual({ windows: week, spend: Option.some(extraUsage) });
+			expect(asked).toEqual(["usage page with ultra-a-token"]);
+		}),
+	);
+});
+
+test("an account with no login fails with what the user runs to log in", () => {
+	const read = planOf({ registry: loggedInTo([]), account: accountNamed("ultra-b") });
+
+	return piHost(usageReads([])).run(
+		Effect.map(Effect.flip(read), (reason) => {
+			expect(reason).toBe("ultra-b has no login. Run /login ultra-b.");
+		}),
+	);
 });

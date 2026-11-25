@@ -26,7 +26,6 @@ const byInputPrice = Order.mapInput(
 	({ cost }: { readonly cost: { readonly input: number } }) => cost.input,
 );
 
-/** The account's cheapest model, so a probe that gets through costs the least. */
 const cheapestModel = (registry: PlanReader, provider: string) => {
 	const models = Arr.filter(registry.getAll(), (model) => model.provider === provider);
 	const cheapest = Arr.head(Arr.sort(models, byInputPrice));
@@ -47,10 +46,6 @@ const probedPlan = (registry: PlanReader, provider: string) =>
 		return { windows, spend: Option.none() } satisfies PlanUsage;
 	});
 
-/**
- * What an account has used. An OAuth login reads the usage page. A setup-token lacks the `user:profile` scope, so a
- * probe's headers give its windows and nothing tells its extra usage. A failure is the reason, as the user reads it.
- */
 export const planOf = ({
 	registry,
 	account: { id, login },
