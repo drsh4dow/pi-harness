@@ -6,11 +6,11 @@ import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
-import { Groups } from "./groups.ts";
-import { waking } from "./lifetime.ts";
-import { Out } from "./out.ts";
-import { Draft, type LedgerState, type Step } from "./step.ts";
-import type { LedgerError, Settled, WorkRef } from "./work.ts";
+import { Groups } from "#src/features/owned-work/ledger/groups/index.ts";
+import { waking } from "#src/features/owned-work/ledger/lifetime/index.ts";
+import { Out } from "#src/features/owned-work/ledger/out/index.ts";
+import { Draft, type LedgerState, type Step } from "#src/features/owned-work/step.ts";
+import type { LedgerError, Settled, WorkRef } from "#src/features/owned-work/work.ts";
 
 /** The jobs a wait is for: any the agent holds, or the ones it names. */
 type WaitScope = Option.Option<ReadonlyArray<WorkRef>>;

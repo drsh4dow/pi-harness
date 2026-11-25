@@ -3,12 +3,12 @@ import { afterAll, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
-import { messageOf } from "./host.ts";
-import { Act, type Row, runRow } from "./ledger.fixture.ts";
+import { messageOf } from "#src/features/owned-work/host.ts";
+import { Act, type Row, runRow } from "#src/features/owned-work/ledger/ledger.fixture.ts";
+import { exit, sessionRoot } from "#src/features/owned-work/ledger/world.fixture.ts";
+import { Outcome, WorkRef } from "#src/features/owned-work/work.ts";
+import { Waiting } from "./index.ts";
 import { together, waitReturns, waitStarts, waitStops, waitsBlocking } from "./wait.fixture.ts";
-import { Waiting } from "./waiting.ts";
-import { Outcome, WorkRef } from "./work.ts";
-import { exit, sessionRoot } from "./world.fixture.ts";
 
 const { Hook, Start, Answer, End, TurnEnds } = Act;
 

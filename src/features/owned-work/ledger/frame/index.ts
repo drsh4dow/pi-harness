@@ -9,7 +9,7 @@ import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
 import { type Hc, type HcError, isHeartbeat, type TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
-import type { TimedRequest, WatchWork, WorkRef } from "./work.ts";
+import type { TimedRequest, WatchWork, WorkRef } from "#src/features/owned-work/work.ts";
 
 export type CommandRequest = Data.TaggedEnum.Value<TimedRequest, "Serve" | "Watch">;
 
@@ -35,7 +35,7 @@ export const startTimeNow: Effect.Effect<string> = Effect.map(DateTime.now, (now
 	return `${twoDigits(hour)}:${twoDigits(minute)}:${twoDigits(second)}`;
 });
 
-const heartbeatEntry = `${import.meta.dirname}/../../../agent/bin/heartbeat.ts`;
+const heartbeatEntry = `${import.meta.dirname}/../../../../../agent/bin/heartbeat.ts`;
 
 const printHeader = `printf '\\033[2m%s\\033[0m\\n' "$1"
 `;

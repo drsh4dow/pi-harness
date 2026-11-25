@@ -2,8 +2,8 @@ import { afterAll, test } from "bun:test";
 
 import * as Effect from "effect/Effect";
 
-import { Act, type Row, runRow } from "./ledger.fixture.ts";
-import { exit, sessionRoot } from "./world.fixture.ts";
+import { Act, type Row, runRow } from "#src/features/owned-work/ledger/ledger.fixture.ts";
+import { exit, sessionRoot } from "#src/features/owned-work/ledger/world.fixture.ts";
 
 const { Hook, Start, Spawned, Answer, Group, Cancel, TurnEnds, Wakes, Shown } = Act;
 

@@ -2,7 +2,7 @@ import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 
-import { Command, Draft, type Group, type LedgerState, type Step, type Woke } from "./step.ts";
+import { Command, Draft, type Group, type LedgerState, type Step, type Woke } from "#src/features/owned-work/step.ts";
 import {
 	FailReason,
 	type GroupRequest,
@@ -14,7 +14,7 @@ import {
 	Work,
 	WorkEntry,
 	WorkRef,
-} from "./work.ts";
+} from "#src/features/owned-work/work.ts";
 
 const refused = (draft: Draft, ref: WorkRef): Option.Option<LedgerError> => {
 	const work = draft.work.get(ref);

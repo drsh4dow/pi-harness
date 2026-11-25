@@ -8,8 +8,7 @@ import * as Schema from "effect/Schema";
 import { Type } from "typebox";
 
 import type { TerminalEnd } from "#src/client/terminals/index.ts";
-import { VerdictResult } from "#src/features/pr/index.ts";
-import type { LedgerFailure } from "./ledger.ts";
+import type { LedgerFailure } from "#src/features/owned-work/ledger/ledger.ts";
 import {
 	type BadDelegate,
 	FailReason,
@@ -21,7 +20,8 @@ import {
 	type WorkEntry,
 	type WorkKind,
 	type WorkRef,
-} from "./work.ts";
+} from "#src/features/owned-work/work.ts";
+import { VerdictResult } from "#src/features/pr/index.ts";
 
 export const HandleOut = Type.Object({
 	ref: Type.String(),

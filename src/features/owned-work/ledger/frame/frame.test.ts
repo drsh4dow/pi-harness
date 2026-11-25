@@ -10,12 +10,12 @@ import * as Str from "effect/String";
 
 import { piSessionsLayer } from "#src/client/pi/index.ts";
 import { Hc, Slices, TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
+import { Self } from "#src/features/owned-work/child.ts";
+import { commandSpec, Host, Ledger, ledgerLayer } from "#src/features/owned-work/ledger/ledger.ts";
+import { node, sessionRoot } from "#src/features/owned-work/ledger/world.fixture.ts";
+import { StartRequest, WorkRef } from "#src/features/owned-work/work.ts";
 import { eventually } from "#src/primitives/eventually.ts";
-import { Self } from "./child.ts";
-import { type CommandRequest, watchOutputOf } from "./frame.ts";
-import { commandSpec, Host, Ledger, ledgerLayer } from "./ledger.ts";
-import { StartRequest, WorkRef } from "./work.ts";
-import { node, sessionRoot } from "./world.fixture.ts";
+import { type CommandRequest, watchOutputOf } from "./index.ts";
 
 const passEnv = { PATH: Bun.env["PATH"] ?? "/bin" };
 

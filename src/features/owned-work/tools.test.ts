@@ -15,7 +15,7 @@ import { Gh } from "#src/client/github/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
 import { Self } from "./child.ts";
-import { Ledger } from "./ledger.ts";
+import { Ledger } from "./ledger/index.ts";
 import { modelTable } from "./models.ts";
 import { Tools } from "./tools.ts";
 import { type Handle, StartRequest, WorkRef } from "./work.ts";

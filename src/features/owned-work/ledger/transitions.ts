@@ -6,11 +6,17 @@ import * as Result from "effect/Result";
 
 import type { ChildReply } from "#src/client/pi/index.ts";
 import { type TerminalAddress, TerminalEnd, type TerminalSnapshot } from "#src/client/terminals/index.ts";
-import type { Role } from "./child.ts";
-import { Groups } from "./groups.ts";
-import { carried, deadlineOf, nameTaken, running } from "./lifetime.ts";
-import { doneOf } from "./review/index.ts";
-import { Command, Draft, type Job, type LedgerState, type Step, type Woke, Verdict } from "./step.ts";
+import type { Role } from "#src/features/owned-work/child.ts";
+import { doneOf } from "#src/features/owned-work/review/index.ts";
+import {
+	Command,
+	Draft,
+	type Job,
+	type LedgerState,
+	type Step,
+	type Woke,
+	Verdict,
+} from "#src/features/owned-work/step.ts";
 import {
 	FailReason,
 	type Handle,
@@ -21,7 +27,9 @@ import {
 	Work,
 	WorkEntry,
 	WorkRef,
-} from "./work.ts";
+} from "#src/features/owned-work/work.ts";
+import { Groups } from "./groups/index.ts";
+import { carried, deadlineOf, nameTaken, running } from "./lifetime/index.ts";
 
 const initial = (role: Role, next: number, now: MonotonicNanos): LedgerState => ({
 	role,

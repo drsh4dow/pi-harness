@@ -8,7 +8,7 @@ import * as Str from "effect/String";
 import { PiCli } from "#src/client/pi/index.ts";
 import { SourceStamp } from "#src/client/source-stamp/index.ts";
 import { ownCgroup, Slices, stopRoot } from "#src/client/terminals/index.ts";
-import { Ledger } from "./ledger.ts";
+import { Ledger } from "./ledger/index.ts";
 import type { LedgerState } from "./step.ts";
 
 /** Names a pi's terminals in hc and its slice in systemd, and stamps the code that laid out its ledger state. */

@@ -19,13 +19,13 @@ import * as Str from "effect/String";
 
 import { PiCli, piCliLayer, piSessionsLayer } from "#src/client/pi/index.ts";
 import { type Hc, type HcNotice, type Slices, TerminalEnd } from "#src/client/terminals/index.ts";
-import { type ChildSession, type Role, Self } from "./child.ts";
+import { type ChildSession, type Role, Self } from "#src/features/owned-work/child.ts";
+import type { LedgerState, Verdict } from "#src/features/owned-work/step.ts";
+import { type FailReason, Outcome, type Settled, WorkEntry } from "#src/features/owned-work/work.ts";
 import { Host, Ledger, ledgerLayer } from "./ledger.ts";
-import { Out } from "./out.ts";
+import { Out } from "./out/index.ts";
 import { hcOf, slicesOf } from "./outside.fixture.ts";
 import { countingFiles, type Pacing } from "./settle.fixture.ts";
-import type { LedgerState, Verdict } from "./step.ts";
-import { type FailReason, Outcome, type Settled, WorkEntry } from "./work.ts";
 
 export type HeldSpawn = "succeeds" | "fails";
 

@@ -5,10 +5,10 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import type { Static } from "typebox";
 
-import { callerOf, continued, delegate, runtime, started } from "./brief.fixture.ts";
-import type { DelegateParams } from "./brief/index.ts";
-import { Act, type Row, runRow } from "./ledger.fixture.ts";
-import { exit, killed, sessionRoot } from "./world.fixture.ts";
+import { callerOf, continued, delegate, runtime, started } from "#src/features/owned-work/brief.fixture.ts";
+import type { DelegateParams } from "#src/features/owned-work/brief/index.ts";
+import { Act, type Row, runRow } from "#src/features/owned-work/ledger/ledger.fixture.ts";
+import { exit, killed, sessionRoot } from "#src/features/owned-work/ledger/world.fixture.ts";
 
 const { Hook, Start, Answer, End, Launched, TurnEnds, Delivered, SpawnLevels, Pause } = Act;
 

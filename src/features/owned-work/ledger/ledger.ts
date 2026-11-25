@@ -14,14 +14,8 @@ import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { PiCli, PiSessions } from "#src/client/pi/index.ts";
 import { Hc, type HcError, type RunSpec, Slices, terminalNameOf } from "#src/client/terminals/index.ts";
-import { recordVerdict, type VerdictRecord, verdictsFolder } from "#src/features/pr/index.ts";
-import { atLevel, launch, levels, type Self } from "./child.ts";
-import { continuationOf } from "./continuation.ts";
-import { type CommandRequest, framedArgv, serveReady, startTimeNow, watchTail } from "./frame.ts";
-import { liveDelegates } from "./lifetime.ts";
-import { Command, Draft, type LedgerState, type Step, type Verdict } from "./step.ts";
-import { Transitions } from "./transitions.ts";
-import { type Wait, Waiting } from "./waiting.ts";
+import { atLevel, launch, levels, type Self } from "#src/features/owned-work/child.ts";
+import { Command, Draft, type LedgerState, type Step, type Verdict } from "#src/features/owned-work/step.ts";
 import {
 	type ContinueRequest,
 	type DelegateStart,
@@ -37,7 +31,13 @@ import {
 	type TimedRequest,
 	type WorkEntry,
 	type WorkRef,
-} from "./work.ts";
+} from "#src/features/owned-work/work.ts";
+import { recordVerdict, type VerdictRecord, verdictsFolder } from "#src/features/pr/index.ts";
+import { continuationOf } from "./continuation/index.ts";
+import { type CommandRequest, framedArgv, serveReady, startTimeNow, watchTail } from "./frame/index.ts";
+import { liveDelegates } from "./lifetime/index.ts";
+import { Transitions } from "./transitions.ts";
+import { type Wait, Waiting } from "./waiting/index.ts";
 
 type SpawnError = HcError | PlatformError.PlatformError;
 
@@ -54,7 +54,7 @@ export class Host extends Context.Service<
 		readonly wake: (results: ReadonlyArray<Settled>) => Effect.Effect<void>;
 		readonly append: (entry: WorkEntry) => Effect.Effect<void>;
 	}
->()("pi-harness/features/owned-work/ledger/Host") {}
+>()("pi-harness/features/owned-work/ledger/ledger/Host") {}
 
 export class Ledger extends Context.Service<
 	Ledger,
@@ -71,7 +71,7 @@ export class Ledger extends Context.Service<
 		/** The state, for the next load of this extension after a reload. The ledger makes no more changes, so nothing it does after reaches the agent twice. */
 		readonly freeze: Effect.Effect<LedgerState>;
 	}
->()("pi-harness/features/owned-work/ledger") {}
+>()("pi-harness/features/owned-work/ledger/ledger") {}
 
 export interface LedgerOptions {
 	readonly self: Self;

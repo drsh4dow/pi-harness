@@ -12,8 +12,8 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
+import { entryKind } from "#src/features/owned-work/recorded.ts";
 import { type Run, scenario } from "#tools/driver/index.ts";
-import { entryKind } from "./recorded.ts";
 
 const Settled = Schema.Struct({
 	type: Schema.Literal("custom"),

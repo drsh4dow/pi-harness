@@ -4,8 +4,8 @@ import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import type { Static } from "typebox";
 
-import type { DelegateParams } from "./brief/index.ts";
-import { Draft, type LedgerState } from "./step.ts";
+import type { DelegateParams } from "#src/features/owned-work/brief/index.ts";
+import { Draft, type LedgerState } from "#src/features/owned-work/step.ts";
 import {
 	BadDelegate,
 	UnknownRef,
@@ -15,7 +15,7 @@ import {
 	StartRequest,
 	Work,
 	WorkRef,
-} from "./work.ts";
+} from "#src/features/owned-work/work.ts";
 
 export const continueMessage =
 	"You run again in your own session. If your last turn ended in a tool call, check what that call already did, such as the files it changed or the commands it started, before you run it again. Then finish your task.";

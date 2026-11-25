@@ -2,9 +2,9 @@ import * as Arr from "effect/Array";
 import * as Duration from "effect/Duration";
 import * as Option from "effect/Option";
 
-import type { ChildSession } from "./child.ts";
-import { Command, Draft, type LedgerState, type Woke } from "./step.ts";
-import { type MonotonicNanos, NameTaken, StartRequest, Work, type WorkRef } from "./work.ts";
+import type { ChildSession } from "#src/features/owned-work/child.ts";
+import { Command, Draft, type LedgerState, type Woke } from "#src/features/owned-work/step.ts";
+import { type MonotonicNanos, NameTaken, StartRequest, Work, type WorkRef } from "#src/features/owned-work/work.ts";
 
 export const deadlineOf = (work: Work): Option.Option<Duration.Duration> =>
 	Work.$is("Watch")(work) ? work.deadline : Option.none();

@@ -6,11 +6,11 @@ import * as Fiber from "effect/Fiber";
 import * as Latch from "effect/Latch";
 import * as Option from "effect/Option";
 
-import { Act } from "./act.fixture.ts";
-import { Out } from "./out.ts";
-import type { Waited } from "./waiting.ts";
-import { WorkRef } from "./work.ts";
-import { showAll, type World } from "./world.fixture.ts";
+import { Act } from "#src/features/owned-work/ledger/act.fixture.ts";
+import { Out } from "#src/features/owned-work/ledger/out/index.ts";
+import { showAll, type World } from "#src/features/owned-work/ledger/world.fixture.ts";
+import { WorkRef } from "#src/features/owned-work/work.ts";
+import type { Waited } from "./index.ts";
 
 const noneIfEmpty = (shown: string) => (shown === "" ? "none" : shown);
 

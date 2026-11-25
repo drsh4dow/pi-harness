@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 
 import * as Option from "effect/Option";
 
-import { Out } from "./out.ts";
-import { FailReason, Outcome, WorkRef } from "./work.ts";
+import { FailReason, Outcome, WorkRef } from "#src/features/owned-work/work.ts";
+import { Out } from "./index.ts";
 
 const ref = WorkRef("watch-3");
 

@@ -45,7 +45,7 @@ import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "./child.ts";
 import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";
 import { hostLayer, messageOf, type Relay } from "./host.ts";
-import { Ledger, ledgerLayer } from "./ledger.ts";
+import { Ledger, ledgerLayer } from "./ledger/index.ts";
 import { firstRefAfter } from "./recorded.ts";
 import { Tools, type ToolServices } from "./tools.ts";
 import type { Settled } from "./work.ts";

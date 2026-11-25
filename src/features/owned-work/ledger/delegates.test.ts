@@ -6,10 +6,10 @@ import * as Option from "effect/Option";
 
 import { Design, PiCli } from "#src/client/pi/index.ts";
 import type { RunSpec } from "#src/client/terminals/index.ts";
-import { type ChildRole, inheritedEnv, launch } from "./child.ts";
+import { type ChildRole, inheritedEnv, launch } from "#src/features/owned-work/child.ts";
+import { StartRequest, WorkRef } from "#src/features/owned-work/work.ts";
 import { Act, type Row, runRow } from "./ledger.fixture.ts";
 import { commandSpec } from "./ledger.ts";
-import { StartRequest, WorkRef } from "./work.ts";
 import { exit, killed, node, sessionRoot } from "./world.fixture.ts";
 
 const { Hook, Start, Answer, Cancel, TurnEnds, Wakes, Leftovers } = Act;

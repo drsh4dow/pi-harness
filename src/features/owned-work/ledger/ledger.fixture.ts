@@ -15,13 +15,21 @@ import * as Semaphore from "effect/Semaphore";
 import * as Str from "effect/String";
 
 import { HcNotice, TerminalAddress, type TerminalEnd } from "#src/client/terminals/index.ts";
+import { Verdict } from "#src/features/owned-work/step.ts";
+import {
+	type Handle,
+	MonotonicNanos,
+	monotonicNow,
+	Outcome,
+	type Settled,
+	StartRequest,
+	WorkRef,
+} from "#src/features/owned-work/work.ts";
 import { type Act, recordsAre, type Row } from "./act.fixture.ts";
 import type { LedgerFailure } from "./ledger.ts";
-import { Out } from "./out.ts";
+import { Out } from "./out/index.ts";
 import { printed } from "./outside.fixture.ts";
 import { drained, settling } from "./settle.fixture.ts";
-import { Verdict } from "./step.ts";
-import { type Handle, MonotonicNanos, monotonicNow, Outcome, type Settled, StartRequest, WorkRef } from "./work.ts";
 import {
 	deliveredRefs,
 	leftovers,
