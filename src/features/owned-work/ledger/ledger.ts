@@ -149,12 +149,14 @@ const run = (kit: Kit, command: Command): Effect.Effect<unknown> =>
 		StopSlice: ({ ref }) => kit.slices.stop(ref),
 		ReadAnswer: ({ ref, session, end }) =>
 			Effect.flatMap(kit.sessions.readAnswer(session), (answer) =>
-				apply(kit, (current) => Transitions.answered(current, ref, end, answer)),
+				apply(kit, (current) => Transitions.answered(current, { ref, end, reply: answer })),
 			),
 		ReadTail: ({ watch, terminal, end }) =>
 			watchTail({ hc: kit.hc, terminal, end, frame: { ref: watch.ref, cwd: kit.options.cwd, shown: watch } }).pipe(
 				Effect.orElseSucceed(() => ""),
-				Effect.flatMap((tail) => apply(kit, (current) => Transitions.watchEnded(current, watch.ref, end, tail))),
+				Effect.flatMap((tail) =>
+					apply(kit, (current) => Transitions.watchEnded(current, { ref: watch.ref, end, tail })),
+				),
 			),
 		ArmDeadline: ({ ref, after }) => {
 			const passed = apply(kit, (current) => Transitions.deadlinePassed(current, ref));

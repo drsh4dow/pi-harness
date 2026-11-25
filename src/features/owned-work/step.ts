@@ -59,6 +59,11 @@ export type Verdict = Data.TaggedEnum<{
 
 export const Verdict = Data.taggedEnum<Verdict>();
 
+export interface Ending {
+	readonly outcome: Outcome;
+	readonly end: Option.Option<TerminalEnd>;
+}
+
 export interface Step<Reply> {
 	readonly state: LedgerState;
 	readonly commands: ReadonlyArray<Command>;
@@ -167,7 +172,7 @@ const finish = <Reply>(draft: Draft, reply: Reply): Step<Reply> => {
 
 const woke = (draft: Draft): Woke => stepOf(draft, wake(draft));
 
-const recordEnd = (draft: Draft, work: Work, outcome: Outcome, end: Option.Option<TerminalEnd>): void => {
+const recordEnd = (draft: Draft, work: Work, { outcome, end }: Ending): void => {
 	const durationMs = Number((draft.now - work.startedAt) / 1_000_000n);
 	const entry = WorkEntry.JobSettled({ handle: work.ref, outcome, log: logOf(work), end, durationMs });
 
@@ -194,15 +199,15 @@ const holderOf = (draft: Draft, work: Work): Option.Option<Group> =>
 const groupAwaiting = (draft: Draft, work: Work): Option.Option<Group> =>
 	isJob(work) ? holderOf(draft, work) : Option.none();
 
-const settle = (draft: Draft, settling: Work, outcome: Outcome, end: Option.Option<TerminalEnd>): void => {
+const settle = (draft: Draft, settling: Work, ending: Ending): void => {
 	if (!isLive(settling)) {
 		return;
 	}
 
 	const holder = groupAwaiting(draft, settling);
 
-	draft.work.set(settling.ref, { ...settling, settled: Option.some({ outcome, delivered: false }) });
-	recordEnd(draft, settling, outcome, end);
+	draft.work.set(settling.ref, { ...settling, settled: Option.some({ outcome: ending.outcome, delivered: false }) });
+	recordEnd(draft, settling, ending);
 
 	if (Option.isSome(holder)) {
 		settleGroup(draft, holder.value);
@@ -217,7 +222,7 @@ const halt = (draft: Draft, ref: WorkRef, reason: FailReason): void => {
 	}
 
 	if (Option.isSome(live)) {
-		settle(draft, live.value, Outcome.Failed({ reason }), Option.none());
+		settle(draft, live.value, { outcome: Outcome.Failed({ reason }), end: Option.none() });
 	}
 };
 
@@ -234,7 +239,7 @@ const settleGroup = (draft: Draft, holder: Group): void => {
 
 	const taken = Arr.filter(findAll(draft, holder.members), isUnconsumed);
 
-	settle(draft, holder, Outcome.Members({ results: resultsOf(taken) }), Option.none());
+	settle(draft, holder, { outcome: Outcome.Members({ results: resultsOf(taken) }), end: Option.none() });
 	markDelivered(draft, taken);
 };
 

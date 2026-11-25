@@ -11,6 +11,7 @@ import { doneOf } from "#src/features/owned-work/review/index.ts";
 import {
 	Command,
 	Draft,
+	type Ending,
 	type Job,
 	type LedgerState,
 	type Step,
@@ -148,7 +149,7 @@ const endWork = (draft: Draft, work: Work, end: TerminalEnd): void => {
 				({ terminal }) => Command.ReadTail({ watch, terminal, end }),
 			),
 		Serve: (serve) => {
-			Draft.settle(draft, serve, Draft.failure(end), Option.some(end));
+			Draft.settle(draft, serve, { outcome: Draft.failure(end), end: Option.some(end) });
 
 			return Option.none<Command>();
 		},
@@ -172,23 +173,29 @@ const ended = (state: LedgerState, terminal: TerminalAddress, end: TerminalEnd):
 	return Draft.woke(draft);
 };
 
-const settleJob = (state: LedgerState, ref: WorkRef, outcome: Outcome, end: Option.Option<TerminalEnd>): Woke => {
+const settleJob = (state: LedgerState, ref: WorkRef, ending: Ending): Woke => {
 	const draft = Draft.of(state);
 	const job = Draft.job(draft, ref);
 
 	if (Option.isSome(job)) {
-		Draft.settle(draft, job.value, outcome, end);
+		Draft.settle(draft, job.value, ending);
 	}
 
 	return Draft.woke(draft);
 };
+
+interface DelegateEnd {
+	readonly ref: WorkRef;
+	readonly end: TerminalEnd;
+	readonly reply: Option.Option<ChildReply>;
+}
 
 /**
  * Done(answer) needs both an answer and a clean exit, because `ctx.shutdown()` exits 0: a child killed mid-run or
  * while idle on a watcher has an assistant text that is not its answer. A provider error is the reason only when the
  * child exited with a code, since a kill or a lost terminal ended it first.
  */
-const answered = (state: LedgerState, ref: WorkRef, end: TerminalEnd, reply: Option.Option<ChildReply>): Woke => {
+const answered = (state: LedgerState, { ref, end, reply }: DelegateEnd): Woke => {
 	const outcome = Option.match(reply, {
 		onNone: () => Draft.failure(end),
 		onSome: Match.valueTags({
@@ -201,16 +208,22 @@ const answered = (state: LedgerState, ref: WorkRef, end: TerminalEnd, reply: Opt
 		}),
 	});
 
-	return settleJob(state, ref, outcome, Option.some(end));
+	return settleJob(state, ref, { outcome, end: Option.some(end) });
 };
 
-const watchEnded = (state: LedgerState, ref: WorkRef, end: TerminalEnd, tail: string): Woke => {
+interface WatchEnd {
+	readonly ref: WorkRef;
+	readonly end: TerminalEnd;
+	readonly tail: string;
+}
+
+const watchEnded = (state: LedgerState, { ref, end, tail }: WatchEnd): Woke => {
 	const outcome = Option.match(Draft.exitCode(end), {
 		onNone: () => Draft.failure(end),
 		onSome: (exitCode) => Outcome.Fired({ exitCode, tail }),
 	});
 
-	return settleJob(state, ref, outcome, Option.some(end));
+	return settleJob(state, ref, { outcome, end: Option.some(end) });
 };
 
 const deadlinePassed = (state: LedgerState, ref: WorkRef): Woke => {
