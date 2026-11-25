@@ -34,7 +34,6 @@
 	"src/features/prompt/compose.ts no-comments": 4,
 	"src/features/prompt/index.ts no-comments": 1,
 	"src/features/prompt/kinds.test.ts no-comments": 2,
-	"src/features/prompt/routing.ts no-comments": 3,
 	"src/features/prompt/self-contained-skills.test.ts no-comments": 3,
 	"src/features/prompt/skills.test.ts no-comments": 4,
 	"src/features/skill-menu/index.test.ts no-comments": 1,

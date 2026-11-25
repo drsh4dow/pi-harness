@@ -71,6 +71,34 @@ test("a prompt ranks the skill whose name and description share its words first"
 	expect(order).toEqual(["flaky-tests", "release-notes"]);
 });
 
+test("a trigger fails when its skill falls outside its top K, 3 unless set, or shares no word, takes a prompt it must lose, or outranks the prompt's owner", () => {
+	const prompt = "apple banana cherry date";
+	const quoted = `"${prompt}"`;
+
+	const corpus = corpusOf([
+		{ name: "k1", description: "apple banana cherry date" },
+		{ name: "k2", description: "apple banana cherry" },
+		{ name: "k3", description: "apple banana" },
+		{ name: "k4", description: "apple" },
+		{ name: "k5", description: "zebra" },
+	]);
+
+	const triggers = {
+		k1: { positive: [], negative: [{ prompt }] },
+		k2: { positive: [], negative: [{ prompt, owner: "k1" }] },
+		k3: { positive: [{ prompt }], negative: [{ prompt, owner: "k4" }] },
+		k4: { positive: [{ prompt }, { prompt, topK: 4 }], negative: [] },
+		k5: { positive: [{ prompt, topK: 5 }], negative: [] },
+	};
+
+	expect(routingFailures({ corpus, triggers })).toEqual([
+		`k1 ranks first for ${quoted}, which is not its prompt`,
+		`k4 does not outrank k3 for ${quoted}`,
+		`k4 is not in the top 3 for ${quoted}; top: k1, k2, k3`,
+		`k5 is not in the top 5 for ${quoted}; top: k1, k2, k3`,
+	]);
+});
+
 test("every trigger prompt routes to its own skill or playbook over every other one the model sees", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {

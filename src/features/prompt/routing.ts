@@ -9,7 +9,6 @@ export interface Skill {
 	readonly description: string;
 }
 
-/** Prompts a skill must win, within `topK` places (3 when absent), and prompts it must lose, to `owner` when named. */
 export interface Triggers {
 	readonly positive: ReadonlyArray<{ readonly prompt: string; readonly topK?: number }>;
 	readonly negative: ReadonlyArray<{ readonly prompt: string; readonly owner?: string }>;
@@ -132,7 +131,6 @@ export const rank = ({ prompt, corpus }: { prompt: string; corpus: Corpus }): Re
 	return Arr.sort(scored, Order.flip(byScore));
 };
 
-/** The 1-based place of `name` in `ranking`, counting only skills that share a word with the prompt. */
 const placeOf = (ranking: ReadonlyArray<Ranked>, name: string) => {
 	const index = Arr.findFirstIndex(ranking, (entry) => entry.name === name && entry.score > 0);
 
@@ -171,7 +169,6 @@ const negativeFailures = (corpus: Corpus, skill: string, { negative }: Triggers)
 		return ownerWins ? failures : [...failures, `${owner} does not outrank ${skill} for ${quote(prompt)}`];
 	});
 
-/** Each trigger the corpus breaks, as one line naming the skill, the prompt, and what outranked it. */
 export const routingFailures = ({
 	corpus,
 	triggers,
