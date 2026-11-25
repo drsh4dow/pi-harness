@@ -14,7 +14,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
 import { guideFiles, readGuides } from "#src/features/loaded/index.ts";
 import { selfFromEnv } from "#src/features/owned-work/index.ts";

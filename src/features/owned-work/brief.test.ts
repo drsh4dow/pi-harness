@@ -6,7 +6,7 @@ import type * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { Design } from "#src/client/pi-cli/index.ts";
+import { Design } from "#src/client/pi/index.ts";
 import {
 	body,
 	type BriefRow,

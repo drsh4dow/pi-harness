@@ -12,7 +12,7 @@ import * as Redacted from "effect/Redacted";
 import * as TestClock from "effect/testing/TestClock";
 
 import { ClaudeUsage, ClaudeUsageError, weeklyWindow } from "#src/client/claude-usage/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { type AccountId, accounts } from "./accounts.ts";
 import { type PlanReader, roomiestAccount } from "./quota.ts";
 

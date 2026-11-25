@@ -8,7 +8,7 @@ import * as Str from "effect/String";
 import { type Static, Type } from "typebox";
 
 import { BriefSources } from "#src/client/brief-sources/index.ts";
-import { Design, type StagedBrief } from "#src/client/pi-cli/index.ts";
+import { Design, type StagedBrief } from "#src/client/pi/index.ts";
 import { lastFolder } from "#src/features/state-folder/index.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { type ModelCaller, modelChoices, modelDescription, modelNameOf, modelOf, type ModelTable } from "./models.ts";

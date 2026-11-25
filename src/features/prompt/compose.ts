@@ -3,7 +3,7 @@ import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { Design, type StagedBrief } from "#src/client/pi-cli/index.ts";
+import { Design, type StagedBrief } from "#src/client/pi/index.ts";
 import { skillsSection } from "./skills.ts";
 
 export interface Layers {

@@ -19,7 +19,7 @@ import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 import * as Str from "effect/String";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { formatDuration, sessionDuration } from "./duration.ts";
 
 export interface FooterContext {

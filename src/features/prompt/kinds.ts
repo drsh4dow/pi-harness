@@ -6,7 +6,7 @@ import * as Order from "effect/Order";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { agentFileText, type MarkdownFile, markdownIn } from "#src/client/agent-files/index.ts";
+import { agentFileText, type MarkdownFile, markdownIn } from "#src/client/pi/index.ts";
 import { Role, Roles } from "#src/features/owned-work/index.ts";
 
 /** A kind of prompt file the prompt lists by name and trigger: its folder under the agent dir, and the tag of its index. */

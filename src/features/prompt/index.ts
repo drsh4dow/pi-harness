@@ -9,9 +9,7 @@ import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
 import type * as Option from "effect/Option";
 
-import { agentFileText } from "#src/client/agent-files/index.ts";
-import { readStagedBrief, type StagedBrief } from "#src/client/pi-cli/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
+import { agentFileText, piHost, readStagedBrief, type StagedBrief } from "#src/client/pi/index.ts";
 import { type Role, Self, selfFromEnv } from "#src/features/owned-work/index.ts";
 import { compose } from "./compose.ts";
 import { entryIndex, type Kind, loadEntries } from "./kinds.ts";

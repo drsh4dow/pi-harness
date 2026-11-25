@@ -4,7 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { cacheRootOf, noStoreLayer, Store, storeLayer } from "#src/client/web-cache/index.ts";
 import { webLayer } from "#src/client/web/index.ts";
 import { webTools } from "./tools.ts";

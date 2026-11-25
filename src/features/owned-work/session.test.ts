@@ -4,7 +4,7 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { awaitOn, delegatesDirOf, exitsWhenPromptResolves } from "./session.ts";
 
 const rows = [

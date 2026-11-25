@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { backAt } from "#src/client/claude-usage/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 
 type ApiKeyAuth = NonNullable<Provider["auth"]["apiKey"]>;
 

@@ -24,9 +24,15 @@ import * as Str from "effect/String";
 import { type Hc, hcLayer, TerminalAddress } from "#src/client/hc/index.ts";
 import { type HerdrApp, herdrAppLayer } from "#src/client/herdr-app/index.ts";
 import { phiRouterLayer, routerExtensionOf } from "#src/client/phi-router/index.ts";
-import { type PiCli, piCliLayer, unwrapMessage } from "#src/client/pi-cli/index.ts";
-import { type PiHost, piHost } from "#src/client/pi-host/index.ts";
-import { type PiSessions, piSessionsLayer } from "#src/client/pi-sessions/index.ts";
+import {
+	type PiCli,
+	piCliLayer,
+	type PiHost,
+	piHost,
+	type PiSessions,
+	piSessionsLayer,
+	unwrapMessage,
+} from "#src/client/pi/index.ts";
 import { sourceStampLayer } from "#src/client/source-stamp/index.ts";
 import { type Slices, slicesLayer } from "#src/client/systemd/index.ts";
 import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "./child.ts";

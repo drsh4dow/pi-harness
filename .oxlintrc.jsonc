@@ -108,51 +108,51 @@
 			"error",
 			{
 				"property": "runPromise",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runPromiseExit",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runPromiseWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runPromiseExitWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runFork",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runForkWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runSync",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runSyncExit",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runSyncWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runSyncExitWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runCallback",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"property": "runCallbackWith",
-				"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+				"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 			},
 			{
 				"object": "Bun",
@@ -271,58 +271,58 @@
 					},
 					{
 						"property": "runPromise",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runPromiseExit",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runPromiseWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runPromiseExitWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runFork",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runForkWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runSync",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runSyncExit",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runSyncWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runSyncExitWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runCallback",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 					{
 						"property": "runCallbackWith",
-						"message": "Return the Effect and hand it to run or fork from #src/client/pi-host/index.ts, the one place that runs Effects.",
+						"message": "Return the Effect and hand it to run or fork from #src/client/pi/index.ts, the one place that runs Effects.",
 					},
 				],
 			},
 		},
 		{
 			// pi-host owns the Effect runners
-			"files": ["src/client/pi-host/**"],
+			"files": ["src/client/pi/host/**"],
 			"rules": {
 				"eslint/no-restricted-imports": "off",
 				"eslint/no-restricted-properties": [

@@ -13,8 +13,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { agentFileText } from "#src/client/agent-files/index.ts";
-import { type PiHost, piHost } from "#src/client/pi-host/index.ts";
+import { agentFileText, type PiHost, piHost } from "#src/client/pi/index.ts";
 
 type AutocompleteProvider = Parameters<AutocompleteProviderFactory>[0];
 

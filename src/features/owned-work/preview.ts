@@ -7,7 +7,7 @@ import * as Rec from "effect/Record";
 import * as Str from "effect/String";
 
 import { BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { PiCli, piCliLayer } from "#src/client/pi-cli/index.ts";
+import { PiCli, piCliLayer } from "#src/client/pi/index.ts";
 import { roleFieldsFor } from "./brief.ts";
 import { type Brief, childExtensions, type ChildRole, inheritedEnv, launch, levels } from "./child.ts";
 import { type Alias, aliases, ModelName, modelTable } from "./models.ts";

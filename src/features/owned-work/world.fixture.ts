@@ -18,8 +18,7 @@ import * as Semaphore from "effect/Semaphore";
 import * as Str from "effect/String";
 
 import { type Hc, type HcNotice, TerminalEnd } from "#src/client/hc/index.ts";
-import { PiCli, piCliLayer } from "#src/client/pi-cli/index.ts";
-import { piSessionsLayer } from "#src/client/pi-sessions/index.ts";
+import { PiCli, piCliLayer, piSessionsLayer } from "#src/client/pi/index.ts";
 import type { Slices } from "#src/client/systemd/index.ts";
 import { type ChildSession, type Role, Self } from "./child.ts";
 import { Host, Ledger, ledgerLayer } from "./ledger.ts";

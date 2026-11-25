@@ -14,7 +14,7 @@ import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { ClaudeUsage } from "#src/client/claude-usage/index.ts";
 import { Gh } from "#src/client/gh/index.ts";
 import { PhiRouter } from "#src/client/phi-router/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { Self } from "./child.ts";
 import { Ledger } from "./ledger.ts";
 import { modelTable } from "./models.ts";

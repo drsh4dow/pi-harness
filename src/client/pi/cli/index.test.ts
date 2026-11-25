@@ -11,7 +11,7 @@ import * as Option from "effect/Option";
 import * as Scope from "effect/Scope";
 import * as Str from "effect/String";
 
-import type { SessionAddress } from "#src/client/pi-sessions/index.ts";
+import type { SessionAddress } from "#src/client/pi/sessions/index.ts";
 import { Design, PiCli, piCliLayer, readStagedBrief, type StagedBrief } from "./index.ts";
 
 const cli = Layer.provideMerge(piCliLayer(["/entrypoint.ts"]), NodeServices.layer);

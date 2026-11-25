@@ -10,8 +10,7 @@ import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
 import { labelTerminal, TerminalAddress } from "#src/client/hc/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
-import { appendedLines, sessionFileById } from "#src/client/pi-sessions/index.ts";
+import { appendedLines, piHost, sessionFileById } from "#src/client/pi/index.ts";
 import { emptyTally, type Started, type Tally, tallyLines } from "./tally.ts";
 
 /** The hc label on a root agent's own terminal that holds its `CostLabel`, which herdr-app's status bar reads. */

@@ -8,8 +8,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { type RunSpec, terminalNameOf } from "#src/client/hc/index.ts";
-import type { ChildPi, Design, PiCli, StagedBrief } from "#src/client/pi-cli/index.ts";
-import type { SessionAddress } from "#src/client/pi-sessions/index.ts";
+import type { ChildPi, Design, PiCli, SessionAddress, StagedBrief } from "#src/client/pi/index.ts";
 import type { ReviewTarget } from "#src/features/pr/index.ts";
 
 /** How deep a chain of owners goes, counting the root as level 1. An owner at the last level starts leaves only, one level below it. */

@@ -17,9 +17,7 @@ import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/
 import { type ClaudeUsage, claudeUsageFetchLayer } from "#src/client/claude-usage/index.ts";
 import { type Gh, ghLayer } from "#src/client/gh/index.ts";
 import { PhiRouter } from "#src/client/phi-router/index.ts";
-import { makeSessionFolder, readStagedBrief } from "#src/client/pi-cli/index.ts";
-import type { PiHost } from "#src/client/pi-host/index.ts";
-import type { SessionAddress } from "#src/client/pi-sessions/index.ts";
+import { makeSessionFolder, type PiHost, readStagedBrief, type SessionAddress } from "#src/client/pi/index.ts";
 import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief.ts";
 import { type ChildRole, type ChildSession, childRoles, Self } from "./child.ts";
 import { freshCall, parseContinuation } from "./continuation.ts";

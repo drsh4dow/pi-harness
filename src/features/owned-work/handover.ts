@@ -5,7 +5,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { PiCli } from "#src/client/pi-cli/index.ts";
+import { PiCli } from "#src/client/pi/index.ts";
 import { SourceStamp } from "#src/client/source-stamp/index.ts";
 import { ownCgroup, Slices, stopRoot } from "#src/client/systemd/index.ts";
 import { Ledger } from "./ledger.ts";

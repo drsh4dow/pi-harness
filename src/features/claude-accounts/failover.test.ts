@@ -9,7 +9,7 @@ import * as Function from "effect/Function";
 import * as Option from "effect/Option";
 import * as TestClock from "effect/testing/TestClock";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { accounts } from "./accounts.ts";
 import { endedOnRateLimit, failOver, failoverOf, type Limits } from "./failover.ts";
 

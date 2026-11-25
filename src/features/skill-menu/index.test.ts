@@ -6,7 +6,7 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 
-import { piHost } from "#src/client/pi-host/index.ts";
+import { piHost } from "#src/client/pi/index.ts";
 import { hidesFromMenu, withoutHiddenSkills } from "./index.ts";
 
 const host = piHost(NodeServices.layer);

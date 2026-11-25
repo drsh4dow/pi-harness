@@ -9,7 +9,7 @@ import * as Option from "effect/Option";
 import * as Str from "effect/String";
 import type { Static } from "typebox";
 
-import { PiCli, piCliLayer, readStagedBrief } from "#src/client/pi-cli/index.ts";
+import { PiCli, piCliLayer, readStagedBrief } from "#src/client/pi/index.ts";
 import { briefBlocks } from "#src/features/prompt/index.ts";
 import { callerOf, delegate, goal, started } from "./brief.fixture.ts";
 import type { DelegateParams } from "./brief.ts";

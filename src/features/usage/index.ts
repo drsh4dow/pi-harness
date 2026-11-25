@@ -13,8 +13,7 @@ import * as Schema from "effect/Schema";
 
 import { type ClaudeUsage, claudeUsageFetchLayer, type Window } from "#src/client/claude-usage/index.ts";
 import { OpencodeGo, opencodeGoFetchLayer } from "#src/client/opencode-go/index.ts";
-import { piHost } from "#src/client/pi-host/index.ts";
-import { spendSince } from "#src/client/pi-sessions/index.ts";
+import { piHost, spendSince } from "#src/client/pi/index.ts";
 import { type Account, accounts, type Login, planOf } from "#src/features/claude-accounts/index.ts";
 import { type Block, blockOf, Card, type Meter, type Outcome, readAtOf } from "./card.ts";
 import { cardComponent, liveCard } from "./view.ts";

@@ -8,7 +8,7 @@ import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { agentFileText } from "#src/client/agent-files/index.ts";
+import { agentFileText } from "#src/client/pi/index.ts";
 import { Role, Roles } from "#src/features/owned-work/index.ts";
 import type { Problem } from "./kinds.ts";
 

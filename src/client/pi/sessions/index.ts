@@ -50,7 +50,7 @@ export class PiSessions extends Context.Service<
 		/** Writes a new session file holding the path to `leaf`, like pi's `/fork`, and returns its path. */
 		readonly branch: (request: BranchRequest) => Effect.Effect<string, SessionUnwritable>;
 	}
->()("pi-harness/client/pi-sessions/PiSessions") {}
+>()("pi-harness/client/pi/sessions/PiSessions") {}
 
 export class SessionUnwritable extends Schema.TaggedError<SessionUnwritable, { readonly brand: unique symbol }>()(
 	"SessionUnwritable",

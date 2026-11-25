@@ -3,7 +3,7 @@ import type * as Fiber from "effect/Fiber";
 import type * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-export interface RunOptions {
+interface RunOptions {
 	readonly signal?: AbortSignal | undefined;
 }
 

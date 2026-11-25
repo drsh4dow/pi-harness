@@ -9,7 +9,7 @@ import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import type { SessionAddress } from "#src/client/pi-sessions/index.ts";
+import type { SessionAddress } from "#src/client/pi/sessions/index.ts";
 
 const briefFields = {
 	goal: Schema.String,
@@ -69,7 +69,7 @@ export class PiCli extends Context.Service<
 		/** Takes over the staged files of children that a released layer started, so closing this one removes them. */
 		readonly adopt: (sessions: ReadonlyArray<SessionAddress>) => Effect.Effect<void>;
 	}
->()("pi-harness/client/pi-cli/PiCli") {}
+>()("pi-harness/client/pi/cli/PiCli") {}
 
 /** One argv word holds at most 128 KiB, so the message goes in a file beside the child's session. */
 const stagedFiles = ({ dir, id }: Pick<SessionAddress, "dir" | "id">) => ({
@@ -155,7 +155,7 @@ export const makeSessionFolder = (
 ): Effect.Effect<void, PlatformError.PlatformError, FileSystem.FileSystem> =>
 	Effect.flatMap(FileSystem.FileSystem, (fs) => fs.makeDirectory(dir, { recursive: true, mode: 0o700 }));
 
-export class BriefUnreadable extends Schema.TaggedError<BriefUnreadable, { readonly brand: unique symbol }>()(
+class BriefUnreadable extends Schema.TaggedError<BriefUnreadable, { readonly brand: unique symbol }>()(
 	"BriefUnreadable",
 	{ file: Schema.String, why: Schema.String },
 ) {}

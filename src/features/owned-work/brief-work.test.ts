@@ -13,7 +13,7 @@ import * as Str from "effect/String";
 import * as Struct from "effect/Struct";
 import type { Static } from "typebox";
 
-import { Design, PiCli, piCliLayer, readStagedBrief } from "#src/client/pi-cli/index.ts";
+import { Design, PiCli, piCliLayer, readStagedBrief } from "#src/client/pi/index.ts";
 import { entryKind } from "#src/features/state-folder/index.ts";
 import { callerOf, delegate, host, pinned, runtime, started, table } from "./brief.fixture.ts";
 import type { DelegateParams } from "./brief.ts";
