@@ -2,16 +2,15 @@ import * as Arr from "effect/Array";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-/** A delegate a session started: its child session's id, and the name its parent gave it. */
-export interface Started {
-	readonly id: string;
+export interface StartedDelegate {
+	readonly childSessionId: string;
 	readonly name: string;
 }
 
 export interface Tally {
 	readonly sessionStart: number;
 	readonly usd: number;
-	readonly started: ReadonlyArray<Started>;
+	readonly started: ReadonlyArray<StartedDelegate>;
 }
 
 export const emptyTally: Tally = { sessionStart: Number.POSITIVE_INFINITY, usd: 0, started: [] };
@@ -65,11 +64,11 @@ const add = (tally: Tally, line: Line): Tally => {
 	}
 
 	if (line.type === "custom") {
-		const { child_session_id: id, name } = line.data;
+		const { child_session_id: childSessionId, name } = line.data;
 
-		return Arr.some(tally.started, (started) => started.id === id)
+		return Arr.some(tally.started, (started) => started.childSessionId === childSessionId)
 			? tally
-			: { ...tally, started: [...tally.started, { id, name }] };
+			: { ...tally, started: [...tally.started, { childSessionId, name }] };
 	}
 
 	const { usage } = line.type === "message" ? line.message : line;

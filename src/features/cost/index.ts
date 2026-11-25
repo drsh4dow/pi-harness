@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema";
 
 import { appendedLines, piHost, sessionFileById } from "#src/client/pi/index.ts";
 import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
-import { emptyTally, type Started, type Tally, tallyLines } from "./tally.ts";
+import { emptyTally, type StartedDelegate, type Tally, tallyLines } from "./tally.ts";
 
 /** The hc label on a root agent's own terminal that holds its `CostLabel`, which herdr-app's status bar reads. */
 export const labelKey = "pi.cost";
@@ -43,17 +43,21 @@ const unread: Followed = { offset: 0, tally: emptyTally };
 
 const usd = (amount: number) => Math.round(amount * 10_000) / 10_000;
 
-const locate = Effect.fn("locate")(function* (located: Map<string, string>, dir: string, { id }: Started) {
-	const known = located.get(id);
+const locate = Effect.fn("locate")(function* (
+	located: Map<string, string>,
+	dir: string,
+	{ childSessionId }: StartedDelegate,
+) {
+	const known = located.get(childSessionId);
 
 	if (known !== undefined) {
 		return Option.some(known);
 	}
 
-	const path = yield* sessionFileById({ dir, id });
+	const path = yield* sessionFileById({ dir, id: childSessionId });
 
 	if (Option.isSome(path)) {
-		located.set(id, path.value);
+		located.set(childSessionId, path.value);
 	}
 
 	return path;
@@ -82,7 +86,7 @@ export const treeReader = (files: TreeFiles) => {
 
 	/** Each delegate, then the ones it started, in the order they started. */
 	const spentBelow = (
-		started: ReadonlyArray<Started>,
+		started: ReadonlyArray<StartedDelegate>,
 	): Effect.Effect<CostLabel["delegates"], PlatformError.PlatformError, Effect.Services<ReturnType<typeof locate>>> =>
 		Effect.map(
 			Effect.forEach(started, (delegate) =>
