@@ -27,8 +27,7 @@ export type CostLabel = typeof CostLabel.Type;
 
 const encodeLabel = Schema.encodeEffect(Schema.fromJsonString(CostLabel));
 
-/** A root's own session file, and the folder that holds every delegate's session file below it, at any level. */
-export interface TreeFiles {
+export interface SessionTreeFiles {
 	readonly root: string;
 	readonly delegates: string;
 }
@@ -62,7 +61,7 @@ const locate = Effect.fn("locate")(function* (
 	return path;
 });
 
-export const treeReader = (files: TreeFiles) => {
+export const treeReader = (files: SessionTreeFiles) => {
 	const followed = new Map<string, Followed>();
 	const located = new Map<string, string>();
 
@@ -112,7 +111,7 @@ export const treeReader = (files: TreeFiles) => {
 
 const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
-const publish = (files: TreeFiles, terminal: TerminalAddress) => {
+const publish = (files: SessionTreeFiles, terminal: TerminalAddress) => {
 	const reader = treeReader(files);
 	let published = "";
 
