@@ -35,7 +35,6 @@ const command = (name: string, path: string): SlashCommandInfo => ({
 	sourceInfo: { path, source: "local", scope: "user", origin: "top-level" },
 });
 
-/** A stand-in for pi's own provider: it suggests the given values for any input. */
 const fixedProvider = (values: ReadonlyArray<string>): AutocompleteProvider => ({
 	getSuggestions: () => Promise.resolve({ prefix: "/", items: Arr.map(values, (value) => ({ value, label: value })) }),
 	applyCompletion: (lines, cursorLine, cursorCol) => ({ lines, cursorLine, cursorCol }),

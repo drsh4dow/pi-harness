@@ -28,7 +28,6 @@ export const hidesFromMenu = (skillFile: string) =>
 		Option.exists((fields) => fields["user-invocable"] === false),
 	);
 
-/** The `skill:<name>` commands whose skill sets `user-invocable: false`. A file that cannot be read stays in the menu, as pi shows it. */
 export const hiddenCommands = Effect.fn("hiddenCommands")(function* (commands: ReadonlyArray<SlashCommandInfo>) {
 	const skills = Arr.filter(commands, (command) => command.source === "skill");
 
@@ -47,10 +46,6 @@ export const hiddenCommands = Effect.fn("hiddenCommands")(function* (commands: R
 
 const isSkillCommand = Str.startsWith("skill:");
 
-/**
- * Leaves the hidden skill commands out of the `/` menu's suggestions and passes everything else through. It rereads
- * the skill files on each lookup that suggests a skill, so a frontmatter edit shows on the next keystroke.
- */
 export const withoutHiddenSkills =
 	({
 		host,
