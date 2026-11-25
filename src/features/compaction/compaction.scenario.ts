@@ -29,10 +29,6 @@ const denseFiller = (seed: string) =>
 
 const words = Str.split("the quiet river runs past the old stone mill and the long field of wheat", " ");
 
-/**
- * About 3,000 tokens of plain words, which pi estimates at about what they cost. The root's prompts stay in the
- * messages pi keeps by its estimate, so dense filler there would keep more than the window holds after a compaction.
- */
 const plainFiller = Arr.join(
 	Arr.makeBy(3000, (index) => words[index % words.length] ?? ""),
 	" ",

@@ -10,7 +10,6 @@ import * as Str from "effect/String";
 
 import type { Guides } from "./guides.ts";
 
-/** The file lists live here because pi drops a hook entry's file lists. */
 export const Details = Schema.Struct({
 	narrative: Schema.String,
 	readFiles: Schema.Array(Schema.String),

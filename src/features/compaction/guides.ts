@@ -31,7 +31,6 @@ const lostGuides = ({ files, branch, firstKeptEntryId }: Before) => {
 	return Arr.flatMap(lost, ({ path }) => Option.toArray(Option.fromNullishOr(byPath.get(path))));
 };
 
-/** The lost guides restore as their files read now, until one passes the budget. That one and the rest are listed. */
 export const guidesToRestore = (before: Before): Guides => {
 	const lost = lostGuides(before);
 	const totals = Arr.scan(lost, 0, (sum, { text }) => sum + text.length).slice(1);
