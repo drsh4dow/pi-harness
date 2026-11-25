@@ -7,14 +7,8 @@ import * as Schema from "effect/Schema";
 import { type Asked, Reply } from "./anthropic.fixture.ts";
 
 export interface MockOpenAi {
-	/**
-	 * The provider's `baseUrl`, ending in `/v1`: pi-ai posts chat to `<url>/responses` (openai-responses) or
-	 * `<url>/chat/completions` (openai-completions), and phi-router's judge to `<url>/decisions`.
-	 */
 	readonly url: string;
-	/** Every request body but the Decisions ones, oldest first. */
 	readonly bodies: () => ReadonlyArray<string>;
-	/** Every Decisions request body, oldest first. */
 	readonly decisions: () => ReadonlyArray<string>;
 	readonly stop: Effect.Effect<void>;
 }
@@ -42,7 +36,6 @@ const decodeTurn = Schema.decodeUnknownOption(Turn);
 const turnText = (item: Schema.Json) =>
 	Option.map(decodeTurn(item), (turn) => contentText("output" in turn ? turn.output : turn.content));
 
-/** A request from pi-ai may end with a system, developer or configuration item, so the last turn is the last user or tool one. */
 const lastTurnText = (items: ReadonlyArray<Schema.Json>) => {
 	const turns = Arr.getSomes(Arr.map(items, turnText));
 
@@ -83,7 +76,6 @@ const argumentsOf = (reply: Reply) =>
 		ToolUse: ({ input }) => encodeJson(input),
 	});
 
-/** Responses streams each output item whole, so `output_item.added` and `.done` carry the same item. */
 const responsesFrames = Effect.fn("responsesFrames")(function* (reply: Reply, id: string) {
 	const args = yield* argumentsOf(reply);
 
@@ -137,7 +129,6 @@ const completionsFrames = Effect.fn("completionsFrames")(function* (reply: Reply
 	return `${frames}data: [DONE]\n\n`;
 });
 
-/** Holds an identifier exactly when `sealed` holds for the piece, and names no kind of it, as phi-router's own mock does. */
 const decisionsAnswer = Effect.fn("decisionsAnswer")(function* (body: string, sealed: (piece: string) => boolean) {
 	const { input, questions } = yield* decodeDecisions(body);
 	const isSealed = sealed(input.piece);
@@ -209,11 +200,6 @@ const respond = ({
 		Effect.catchTags({ SchemaError: badRequest, NoSuchElementError: badRequest }),
 	);
 
-/**
- * A mock of the OpenAI-shaped routes pi-ai uses: Responses and Chat Completions chat, scripted by `reply` as the
- * Anthropic mock is, and the Decisions classifier phi-router's judge asks, which answers that a piece holds an
- * identifier exactly when `sealed` holds for it.
- */
 export const serveOpenAi = (script: Script): MockOpenAi => {
 	const bodies: Array<string> = [];
 	const decisions: Array<string> = [];
