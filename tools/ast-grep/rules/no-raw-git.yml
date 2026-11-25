@@ -1,7 +1,7 @@
 id: no-raw-git
 language: TypeScript
 severity: error
-message: "Run git through `git` from #src/client/git/index.ts, which drops the caller's GIT_* variables."
+message: "Run git through `git` from #src/client/git/index.ts, which drops the caller's repository variables such as GIT_DIR."
 ignores:
    - src/client/git/**
    - "**/*.test.ts"

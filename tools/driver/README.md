@@ -9,7 +9,7 @@ runs it for you.
 ## Run one
 
 ```sh
-bun src/features/owned-work/leaf-wake.scenario.ts
+bun src/features/owned-work/wakes/leaf-wake.scenario.ts
 ```
 
 ```
@@ -200,6 +200,6 @@ Of the rest of `models`, it confirms only that pi kept the file, not that pi app
 
 - `tools/driver/smoke.scenario.ts`: the run uses pi 1.5.2, the worktree's extensions, and the context window `contextWindow` sets.
 - `tools/driver/compaction.scenario.ts`: `contextWindow` makes pi compact.
-- `src/features/owned-work/leaf-wake.scenario.ts`: the root starts a leaf and wakes with its result, and the leaf runs the
+- `src/features/owned-work/wakes/leaf-wake.scenario.ts`: the root starts a leaf and wakes with its result, and the leaf runs the
   same pi on the worktree's extensions.
 - `tools/driver/false-fact.scenario.ts`: a false claim exits 1.

@@ -122,7 +122,9 @@ test("the git ban rejects a git spawned outside src/client/git", () =>
 		fixture: "raw-git",
 		gate: "raw-git",
 		command: [`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "src"],
-		messages: ["Run git through `git` from #src/client/git/index.ts, which drops the caller's GIT_* variables."],
+		messages: [
+			"Run git through `git` from #src/client/git/index.ts, which drops the caller's repository variables such as GIT_DIR.",
+		],
 	}));
 
 test("the comment check rejects a line comment, a doc comment and an oxlint-disable directive", () =>

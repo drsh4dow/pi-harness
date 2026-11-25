@@ -23,7 +23,7 @@ A scenario runs the worktree as it is, uncommitted edits included. A headless ro
 
 ```sh
 bun install
-bun src/features/owned-work/brief.scenario.ts
+bun src/features/owned-work/brief/brief.scenario.ts
 ```
 
 Run the scenario the feature file names. This one proves each delegate gets its brief by role. The driver builds a scratch world on this worktree's `agent/` and tears it down. It is up once it prints `agent <path>`.

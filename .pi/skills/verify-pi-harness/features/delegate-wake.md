@@ -25,7 +25,7 @@ Preconditions:
 - **Read the record.** Run `jq -c 'select(.customType == "owned-work") | .data // empty | {type, handle, name, model, outcome}' "$run"/sessions/*.jsonl`. It shows `{"type":"delegate-started","handle":"delegate-1",...}` and then `{"type":"job-settled","handle":"delegate-1",...,"outcome":{"status":"done","text":"hello",...}}`.
 - **Check the files.** Run `ls "$run/sessions/delegates"`. It holds one `<iso>_<id>.jsonl` and one `<id>.answer.md` with the same id.
 - **Check the reply.** Run `cat "$run/reply.txt"`. It names `hello` after the settle, not before it.
-- **Scenario entry.** Run `bun src/features/owned-work/leaf-wake.scenario.ts` for `wake-config`. It prints `pass leaf-wake` when the leaf settles `ok` and runs the worktree's extensions.
+- **Scenario entry.** Run `bun src/features/owned-work/wakes/leaf-wake.scenario.ts` for `wake-config`. It prints `pass leaf-wake` when the leaf settles `ok` and runs the worktree's extensions.
 
 ## Gotchas
 
