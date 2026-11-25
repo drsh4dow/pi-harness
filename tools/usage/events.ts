@@ -56,10 +56,6 @@ const callTools = new Set(["bash", "codemode", "watch", "serve", "write"]);
 
 const codemodeEdit = /tools\.(?:edit|write)\(\{\s*\\?"?path\\?"?:\s*[\\"'`]+(?<path>[^"'`\\]+)/gu;
 
-/**
- * The paths a call edits or writes, including the literal paths a codemode script hands to `tools.edit` or `tools.write`.
- * A path the script computes is missing here, and shows up in the nested call pi records instead.
- */
 export const editedPaths = ({ tool, args, path }: Call) => {
 	if (tool === "edit" || tool === "write") {
 		return [path ?? ""];
@@ -84,7 +80,6 @@ export const firedBy = (each: Call): ReadonlyArray<GuideEvent> => {
 	return Arr.filter(guideEvents, ({ trigger }) => fires(trigger, each, paths));
 };
 
-/** The events a session's new delegates fire, given the group each one joined. A continuation is not a new delegate. */
 export const firedByGroups = (groups: ReadonlyArray<string>): ReadonlyArray<GuideEvent> => {
 	const sizes = new Map<string, number>();
 

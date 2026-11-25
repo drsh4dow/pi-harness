@@ -258,7 +258,6 @@ const factsFrom = (scan: Scan): SessionFacts => {
 	};
 };
 
-/** The facts of one session file's text, none when the model never took a turn. */
 export const factsOf = ({ library, text }: { readonly library: Library; readonly text: string }) => {
 	const scan: Scan = {
 		byKey: new Map(Arr.map(library.guides, (guide) => [`${guide.kind}:${guide.name}`, guide])),
