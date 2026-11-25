@@ -32,9 +32,11 @@ test("a pick is the root's own, never one it waits to hear from the human", () =
 		"Which channel do you recommend?",
 		"My pick is email.",
 		"Email (recommended), or push.",
+		"I'd go with email.",
+		"➡ Email, since every user has an address.",
 	];
 
-	expect(Arr.map(replies, (reply) => Option.isSome(pickIn(reply)))).toEqual([false, false, true, true]);
+	expect(Arr.map(replies, (reply) => Option.isSome(pickIn(reply)))).toEqual([false, false, true, true, true, true]);
 });
 
 test("an audit, a report or an edit that ends waiting on the human breaks the rule they share", () => {

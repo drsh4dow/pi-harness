@@ -94,7 +94,6 @@
 	"src/features/usage/card.ts no-comments": 11,
 	"src/features/usage/index.ts no-comments": 6,
 	"src/features/usage/view.ts no-comments": 4,
-	"tools/driver/align/judge.ts no-comments": 3,
 	"tools/driver/align/observe.ts no-comments": 11,
 	"tools/driver/compaction.scenario.ts no-comments": 1,
 	"tools/driver/failed.ts no-comments": 1,

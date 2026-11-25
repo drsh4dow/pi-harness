@@ -16,11 +16,9 @@ const handBack = [
 	/\b(?:do|would) you (?:prefer|rather)\b|\bwhich (?:\w+ ){0,3}(?:do|would|should) you\b/iu,
 ];
 
-/** The first wording in `text` that hands a decision to the human, if any. */
 export const handsBack = (text: string): Option.Option<string> =>
 	Arr.findFirst(handBack, (pattern) => Option.map(Str.match(pattern)(text), ([found]) => found));
 
-/** The first wording in `text` that gives the agent's own pick for a call: a pick, a recommendation, or the arrow that marks one. */
 export const pickIn = (text: string): Option.Option<string> =>
 	Option.map(
 		Str.match(
@@ -31,7 +29,6 @@ export const pickIn = (text: string): Option.Option<string> =>
 
 type Rule = readonly [held: boolean, claim: string];
 
-/** The rule an audit, a report and a fully specified edit share: the root settles idle on a reply that hands no call to the human. */
 export const handsNothingBack = (reply: Option.Option<string>): Rule => {
 	const found = Option.flatMap(reply, handsBack);
 
