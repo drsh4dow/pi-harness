@@ -17,6 +17,8 @@ const watch = Start({ kind: "watch" });
 
 const delegate = Start({ kind: "delegate" });
 
+const freezes = Act.Drive({ run: (world) => Effect.asVoid(world.ledger.freeze) });
+
 const rows: ReadonlyArray<Row> = [
 	{
 		name: "what a session switch would stop is the live work the agent holds, a group standing for its members, and all but its serves will wake it",
@@ -99,6 +101,19 @@ const rows: ReadonlyArray<Row> = [
 			Leftovers({ expect: ["t1.brief.json", "t1.message"] }),
 			Answer({ terminal: "t1", text: "a", end: exit(0) }),
 			Leftovers({ expect: ["t1.answer.md"] }),
+		],
+	},
+	{
+		name: "a ledger frozen for a reload changes nothing more, so a watch that ends after the freeze never wakes the agent through it",
+		role: "root",
+		acts: [
+			runs,
+			watch,
+			idles,
+			freezes,
+			End({ terminal: "t1", end: exit(0) }),
+			Wakes({ expect: [] }),
+			Hook({ event: "parent dies" }),
 		],
 	},
 	{

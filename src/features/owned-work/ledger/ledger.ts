@@ -67,7 +67,6 @@ export class Ledger extends Context.Service<
 		readonly wait: Wait;
 		readonly wentIdle: Effect.Effect<void>;
 		readonly running: Effect.Effect<ReadonlyArray<WorkRef>>;
-		/** The state, for the next load of this extension after a reload. The ledger makes no more changes, so nothing it does after reaches the agent twice. */
 		readonly freeze: Effect.Effect<LedgerState>;
 	}
 >()("pi-harness/features/owned-work/ledger/ledger") {}
