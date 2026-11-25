@@ -6,7 +6,6 @@ import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 import * as Str from "effect/String";
 
-import { PhiRouter } from "#src/client/providers/index.ts";
 import { accountOf, type PlanReader, roomiestAccount } from "#src/features/claude-accounts/index.ts";
 import { baaProviders, isBaa, isPhi, phiProvider, sealedId } from "#src/features/phi/index.ts";
 import { BadDelegate } from "./work.ts";
@@ -72,7 +71,6 @@ export const modelTable: ModelTable = { aliases, panel };
 
 export type ModelCaller = Pick<ExtensionContext, "model" | "cwd"> & {
 	readonly modelRegistry: PlanReader;
-	readonly sessionManager: Pick<ExtensionContext["sessionManager"], "getSessionId">;
 };
 
 export const modelDescription = (table: ModelTable) => {
@@ -140,43 +138,31 @@ const isRegistered = (ctx: ModelCaller) => (key: string) =>
 
 type Standing = "open" | "routing" | "held";
 
-const standingOf = Effect.fn("standingOf")(function* (ctx: ModelCaller) {
-	const parent = ctx.model;
-
+const standingOf = (parent: ModelCaller["model"]): Standing => {
 	if (parent !== undefined && isBaa(parent.provider)) {
-		return "held" satisfies Standing;
+		return "held";
 	}
 
 	if (!isPhi(parent)) {
-		return "open" satisfies Standing;
+		return "open";
 	}
 
-	if (parent?.id === sealedId) {
-		return "held" satisfies Standing;
-	}
-
-	const router = yield* PhiRouter;
-
-	const pinned = yield* Effect.mapError(router.pinned(ctx.sessionManager.getSessionId()), ({ why }) =>
-		BadDelegate.make({ why: `cannot ask phi-router whether this session is pinned: ${why}` }),
-	);
-
-	return pinned ? ("held" satisfies Standing) : ("routing" satisfies Standing);
-});
+	return parent?.id === sealedId ? "held" : "routing";
+};
 
 interface Placement {
 	readonly model: string;
 	readonly whyClause: string;
-	readonly pin: boolean;
 	readonly substitution: Option.Option<string>;
 }
 
 const routerPicks = ", which phi-router picks,";
 
-const runs = (model: string, whyClause: string, pin: boolean): Placement => ({
+const sealedModel = `${phiProvider}/${sealedId}`;
+
+const runs = (model: string, whyClause: string): Placement => ({
 	model,
 	whyClause,
-	pin,
 	substitution: Option.none(),
 });
 
@@ -187,43 +173,41 @@ const openPlacement = Effect.fn("openPlacement")(function* (
 	const account = accountOf(Arr.headNonEmpty(Str.split(model, "/")));
 
 	if (Option.isSome(spelled) || Option.isNone(account)) {
-		return runs(model, whyClause, false);
+		return runs(model, whyClause);
 	}
 
 	const roomiest = yield* roomiestAccount({ registry: ctx.modelRegistry, from: account.value, id });
 
-	return runs(`${roomiest.id}/${id}`, whyClause, false);
+	return runs(`${roomiest.id}/${id}`, whyClause);
 });
 
-const substituted = (naming: string): Placement => {
-	const model = `${phiProvider}/${sealedId}`;
-	const sentence = `${naming}, which neither phi-router nor a BAA provider carries, so this delegate runs on ${model}.`;
+const substituted = (naming: string, standing: Exclude<Standing, "open">): Placement => {
+	const carriers = standing === "held" ? "no BAA provider" : "neither phi-router nor a BAA provider";
+	const sentence = `${naming}, which ${carriers} carries, so this delegate runs on ${sealedModel}.`;
 
-	return { model, whyClause: routerPicks, pin: false, substitution: Option.some(sentence) };
+	return { model: sealedModel, whyClause: routerPicks, substitution: Option.some(sentence) };
 };
 
 const protectedPlacement = (ctx: ModelCaller, standing: Exclude<Standing, "open">, resolved: Resolved): Placement => {
 	const carries = (provider: string) => isRegistered(ctx)(`${provider}/${resolved.id}`);
-	const pin = standing === "held";
-	const baa = Arr.findFirst(baaProviders, carries);
 
-	if (Option.exists(resolved.spelled, isBaa)) {
-		return runs(resolved.model, "", false);
+	if (Option.exists(resolved.spelled, isBaa) || resolved.model === sealedModel) {
+		return runs(resolved.model, "");
 	}
 
-	if (carries(phiProvider)) {
-		return runs(`${phiProvider}/${resolved.id}`, routerPicks, pin);
+	if (standing === "routing" && carries(phiProvider)) {
+		return runs(`${phiProvider}/${resolved.id}`, routerPicks);
 	}
 
-	return Option.match(baa, {
-		onSome: (provider) => runs(`${provider}/${resolved.id}`, routerPicks, false),
-		onNone: () => substituted(resolved.naming),
+	return Option.match(Arr.findFirst(baaProviders, carries), {
+		onSome: (provider) => runs(`${provider}/${resolved.id}`, routerPicks),
+		onNone: () => substituted(resolved.naming, standing),
 	});
 };
 
 export const modelOf = Effect.fn("modelOf")(function* (ctx: ModelCaller, table: ModelTable, name: ModelName) {
 	const resolved = yield* resolvedOf(ctx, table, name);
-	const standing = yield* standingOf(ctx);
+	const standing = standingOf(ctx.model);
 
 	const placement =
 		standing === "open" ? yield* openPlacement(ctx, resolved) : protectedPlacement(ctx, standing, resolved);

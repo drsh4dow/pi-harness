@@ -156,8 +156,8 @@ Terms for the harness's side of PHI routing. phi-router routes each request of a
 - **`phi` model.** A model of the `phi` provider that phi-router's pi package registers: `phi/auto`, `phi/sealed`, and `phi/<id>` for each Anthropic model of pi's catalog.
 - **BAA provider.** A pi provider whose models may read PHI, so it runs outside phi-router: `ent`, then `openai`.
 - **Protected session.** A session on a `phi` model or a BAA provider. Its delegates stay inside the BAA boundary, and its codemode scripts may not call models.
-- **Held parent.** A protected session whose delegates start pinned: one on a BAA provider or `phi/sealed`, or one phi-router reports pinned.
-- **Pinned session.** A session phi-router keeps on the sealed lane, so every request of it runs on a BAA account. The harness pins one with `phi-router pin` and asks about it with `phi-router status`.
+- **Held parent.** A protected session on a BAA provider or `phi/sealed`. Its delegates run on a BAA provider or `phi/sealed`, never on `phi/<id>`.
+- **Routing parent.** A protected session on any other `phi` model. Its delegates run on `phi/<id>` when phi-router carries the id.
 - **Canary.** A synthetic identifier planted in a scenario's files, so the scenario can search request bodies for it. Never real PHI.
 
 ## Compaction
