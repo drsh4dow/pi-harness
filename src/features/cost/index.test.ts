@@ -151,6 +151,29 @@ test("a cache-warm call counts, since it calls the model", () =>
 		}),
 	));
 
+test("a tool result that called a model counts", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir, delegates } = yield* sessionsDir;
+			const root = open(dir);
+
+			reply(root, 1);
+			root.appendMessage({
+				role: "toolResult",
+				toolCallId: "call-1",
+				toolName: "web_search",
+				content: [{ type: "text", text: "Found." }],
+				usage: usageOf(0.25),
+				isError: false,
+				timestamp: 0,
+			});
+
+			const label = yield* readerOf(root, delegates).read;
+
+			expect(label.own).toBe(1.25);
+		}),
+	));
+
 const sourceWithHistory = (dir: string, delegates: string) => {
 	const source = SessionManager.create("/work", dir);
 	const earlier = SessionManager.create("/work", delegates);

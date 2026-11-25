@@ -25,7 +25,6 @@ const DelegateStarted = Schema.Struct({
 
 const CountedLine = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("session"), timestamp: Schema.String }),
-	// A reply, or a tool result that called a model, carries its usage on the message.
 	Schema.Struct({
 		type: Schema.Literal("message"),
 		timestamp: Schema.String,
