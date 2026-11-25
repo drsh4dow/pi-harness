@@ -17,7 +17,7 @@ import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/
 import { type Gh, ghLayer } from "#src/client/github/index.ts";
 import { makeSessionFolder, type PiHost, readStagedBrief, type SessionAddress } from "#src/client/pi/index.ts";
 import { type ClaudeUsage, claudeUsageFetchLayer, PhiRouter } from "#src/client/providers/index.ts";
-import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief.ts";
+import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief/index.ts";
 import { type ChildRole, type ChildSession, childRoles, Self } from "./child.ts";
 import { freshCall, parseContinuation } from "./continuation.ts";
 import { Ledger, type LedgerFailure } from "./ledger.ts";

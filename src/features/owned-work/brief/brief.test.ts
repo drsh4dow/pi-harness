@@ -21,9 +21,9 @@ import {
 	runtime,
 	started,
 	table,
-} from "./brief.fixture.ts";
+} from "#src/features/owned-work/brief.fixture.ts";
+import type { Brief } from "#src/features/owned-work/child.ts";
 import { roleUses } from "./brief.ts";
-import type { Brief } from "./child.ts";
 
 afterAll(() => Effect.runPromise(Effect.promise(() => Bun.$`rm -rf ${fixtures}`.quiet())));
 

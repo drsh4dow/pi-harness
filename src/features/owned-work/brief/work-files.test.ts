@@ -10,10 +10,10 @@ import * as Str from "effect/String";
 import type { Static } from "typebox";
 
 import { PiCli, piCliLayer, readStagedBrief } from "#src/client/pi/index.ts";
+import { callerOf, delegate, goal, started } from "#src/features/owned-work/brief.fixture.ts";
+import { launch } from "#src/features/owned-work/child.ts";
 import { briefBlocks } from "#src/features/prompt/index.ts";
-import { callerOf, delegate, goal, started } from "./brief.fixture.ts";
 import type { DelegateParams } from "./brief.ts";
-import { launch } from "./child.ts";
 
 const root = `${Bun.env["TMPDIR"] ?? "/tmp"}/owned-work-work-files-test-${String(process.pid)}`;
 

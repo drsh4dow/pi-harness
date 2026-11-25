@@ -4,8 +4,8 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { ChildRole } from "./child.ts";
-import { type ModelName, modelNameOf } from "./models.ts";
+import { ChildRole } from "#src/features/owned-work/child.ts";
+import { type ModelName, modelNameOf } from "#src/features/owned-work/models.ts";
 
 const Frontmatter = Schema.Struct({
 	model: Schema.optionalKey(Schema.NonEmptyString),

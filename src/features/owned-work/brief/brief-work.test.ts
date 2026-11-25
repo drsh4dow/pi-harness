@@ -14,11 +14,11 @@ import * as Struct from "effect/Struct";
 import type { Static } from "typebox";
 
 import { Design, PiCli, piCliLayer, readStagedBrief } from "#src/client/pi/index.ts";
+import { callerOf, delegate, host, pinned, runtime, started, table } from "#src/features/owned-work/brief.fixture.ts";
+import { type Brief, launch } from "#src/features/owned-work/child.ts";
+import { Tools } from "#src/features/owned-work/tools.ts";
 import { entryKind } from "#src/features/state-folder/index.ts";
-import { callerOf, delegate, host, pinned, runtime, started, table } from "./brief.fixture.ts";
 import type { DelegateParams } from "./brief.ts";
-import { type Brief, launch } from "./child.ts";
-import { Tools } from "./tools.ts";
 
 const root = `${Bun.env["TMPDIR"] ?? "/tmp"}/owned-work-brief-work-test-${String(process.pid)}`;
 

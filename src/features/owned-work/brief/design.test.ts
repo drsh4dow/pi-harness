@@ -3,7 +3,7 @@ import { afterAll, beforeAll, test } from "bun:test";
 import * as Effect from "effect/Effect";
 
 import { Design } from "#src/client/pi/index.ts";
-import { type BriefRow, handed, refused, runBriefRow } from "./brief.fixture.ts";
+import { type BriefRow, handed, refused, runBriefRow } from "#src/features/owned-work/brief.fixture.ts";
 import { designChoice } from "./brief.ts";
 
 const folder = `${Bun.env["TMPDIR"] ?? "/tmp"}/owned-work-design-test-${String(process.pid)}`;

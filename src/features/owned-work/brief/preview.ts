@@ -8,11 +8,18 @@ import * as Str from "effect/String";
 
 import { BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { PiCli, piCliLayer } from "#src/client/pi/index.ts";
+import {
+	type Brief,
+	childExtensions,
+	type ChildRole,
+	inheritedEnv,
+	launch,
+	levels,
+} from "#src/features/owned-work/child.ts";
+import { type Alias, aliases, ModelName, modelTable } from "#src/features/owned-work/models.ts";
+import { workFilesOf } from "#src/features/owned-work/work.ts";
 import { roleFieldsFor } from "./brief.ts";
-import { type Brief, childExtensions, type ChildRole, inheritedEnv, launch, levels } from "./child.ts";
-import { type Alias, aliases, ModelName, modelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
-import { workFilesOf } from "./work.ts";
 
 /** One delegate as its parent would start it, minus the systemd scope and hc terminal around it. */
 export interface StagedLaunch {
@@ -23,7 +30,7 @@ export interface StagedLaunch {
 	readonly env: Readonly<Record<string, string>>;
 }
 
-const instructionsFolder = `${import.meta.dirname}/../../../agent/instructions`;
+const instructionsFolder = `${import.meta.dirname}/../../../../agent/instructions`;
 
 const keyOf = ({ provider, id }: Alias) => `${provider}/${id}`;
 

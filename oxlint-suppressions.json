@@ -14,9 +14,19 @@
       "count": 1
     }
   },
-  "src/features/owned-work/brief.ts": {
+  "src/features/owned-work/brief/brief.ts": {
     "max-params": {
       "count": 3
+    }
+  },
+  "src/features/owned-work/brief/design.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/brief/preview.ts": {
+    "max-params": {
+      "count": 2
     }
   },
   "src/features/owned-work/delegates.test.ts": {
@@ -24,19 +34,9 @@
       "count": 1
     }
   },
-  "src/features/owned-work/design.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/owned-work/levels.scenario.ts": {
     "max-params": {
       "count": 1
-    }
-  },
-  "src/features/owned-work/preview.ts": {
-    "max-params": {
-      "count": 2
     }
   },
   "src/features/owned-work/session.ts": {

@@ -6,7 +6,7 @@ import * as Option from "effect/Option";
 import type { Static } from "typebox";
 
 import { callerOf, continued, delegate, runtime, started } from "./brief.fixture.ts";
-import type { DelegateParams } from "./brief.ts";
+import type { DelegateParams } from "./brief/index.ts";
 import { Act, type Row, runRow } from "./ledger.fixture.ts";
 import { exit, killed, sessionRoot } from "./world.fixture.ts";
 

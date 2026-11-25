@@ -9,12 +9,19 @@ import { type Static, Type } from "typebox";
 
 import { BriefSources } from "#src/client/brief-sources/index.ts";
 import { Design, type StagedBrief } from "#src/client/pi/index.ts";
+import type { Brief, ChildRole } from "#src/features/owned-work/child.ts";
+import {
+	type ModelCaller,
+	modelChoices,
+	modelDescription,
+	modelNameOf,
+	modelOf,
+	type ModelTable,
+} from "#src/features/owned-work/models.ts";
+import { reviewsParam } from "#src/features/owned-work/review/index.ts";
+import { BadDelegate, workFilesOf } from "#src/features/owned-work/work.ts";
 import { lastFolder } from "#src/features/state-folder/index.ts";
-import type { Brief, ChildRole } from "./child.ts";
-import { type ModelCaller, modelChoices, modelDescription, modelNameOf, modelOf, type ModelTable } from "./models.ts";
 import { parseProfile } from "./profile.ts";
-import { reviewsParam } from "./review/index.ts";
-import { BadDelegate, workFilesOf } from "./work.ts";
 
 export const roleUses =
 	"`owner` for a slice to build, verify and commit, which may need a playbook or delegates of its own; `leaf` for one bounded task, such as a search, a review, a verification lane or a scoped edit";

@@ -16,7 +16,7 @@ import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
 import { Gh, GhError } from "#src/client/github/index.ts";
 import { type Design, piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter, PhiRouterError } from "#src/client/providers/index.ts";
-import type { DelegateParams } from "./brief.ts";
+import type { DelegateParams } from "./brief/index.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { continueMessage } from "./continuation.ts";
 import { Ledger } from "./ledger.ts";

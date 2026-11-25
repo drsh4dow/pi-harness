@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import type { Static } from "typebox";
 
-import type { DelegateParams } from "./brief.ts";
+import type { DelegateParams } from "./brief/index.ts";
 import { Draft, type LedgerState } from "./step.ts";
 import {
 	BadDelegate,
