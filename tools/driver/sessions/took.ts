@@ -1,4 +1,3 @@
-/** Confirms, before `play` runs, that the root's pi runs on everything the run asked of it. */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Equal from "effect/Equal";
@@ -106,7 +105,6 @@ export const unmetOf = ({ asked, loaded }: { readonly asked: AskedOfRoot; readon
 	];
 };
 
-/** Fails with `SetupFailed`, exit 2, naming each miss, unless the root's pi runs on everything the run asked of it. */
 export const tookSetup = Effect.fn("tookSetup")(function* (
 	sessions: Effect.Effect<Sessions, ScenarioFailed>,
 	asked: AskedOfRoot,

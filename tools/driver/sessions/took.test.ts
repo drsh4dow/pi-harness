@@ -1,9 +1,14 @@
 import { expect, test } from "bun:test";
 
+import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import * as Option from "effect/Option";
+import * as TestClock from "effect/testing/TestClock";
 
+import { SetupFailed } from "#tools/driver/failed.ts";
 import type { Loaded } from "./probe.ts";
-import { type AskedOfRoot, unmetOf } from "./took.ts";
+import type { Sessions } from "./sessions.ts";
+import { type AskedOfRoot, tookSetup, unmetOf } from "./took.ts";
 
 const socket = "/t/pi-driver/pi-driver-42-0abc12/herdr-core/pi-driver-42-0abc12.sock";
 const compaction = { enabled: true, reserveTokens: 10_000, keepRecentTokens: 5000 };
@@ -113,3 +118,44 @@ test.each(rows)("unmetOf: $name", (row) => {
 		...row.expected,
 	]);
 });
+
+const took = (loaded: Option.Option<Loaded>) => {
+	const sessions: Sessions = { root: { id: "s", file: "/s.jsonl", entries: [], loaded, requests: [] }, delegates: [] };
+
+	return tookSetup(Effect.succeed(sessions), asked);
+};
+
+const afterTenSeconds = <Success, Failure>(taking: Effect.Effect<Success, Failure>) =>
+	Effect.gen(function* () {
+		const fiber = yield* Effect.forkChild(taking);
+
+		yield* TestClock.adjust("10 seconds");
+
+		return yield* Fiber.join(fiber);
+	});
+
+test("tookSetup: a root that took everything passes setup", () =>
+	Effect.gen(function* () {
+		const passed = yield* Option.some(taken).pipe(took, afterTenSeconds);
+
+		expect(passed).toBeUndefined();
+	}).pipe(Effect.provide(TestClock.layer()), Effect.runPromise));
+
+test("tookSetup: a root that missed fails setup, naming each miss", () =>
+	Effect.gen(function* () {
+		const loaded: Loaded = { ...taken, model: "p/other", socket: Option.none() };
+		const failure = yield* Option.some(loaded).pipe(took, Effect.flip, afterTenSeconds);
+
+		expect(failure).toBeInstanceOf(SetupFailed);
+		expect(failure.message).toBe(
+			`the root did not take its setup: it runs p/other, not p/m; it starts delegates in no core, not the run's ${socket}`,
+		);
+	}).pipe(Effect.provide(TestClock.layer()), Effect.runPromise));
+
+test("tookSetup: a root whose probe recorded nothing fails setup after 10 s", () =>
+	Effect.gen(function* () {
+		const failure = yield* Option.none<Loaded>().pipe(took, Effect.flip, afterTenSeconds);
+
+		expect(failure).toBeInstanceOf(SetupFailed);
+		expect(failure.message).toBe("the root's probe recorded nothing within 10 s");
+	}).pipe(Effect.provide(TestClock.layer()), Effect.runPromise));
