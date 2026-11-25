@@ -5,10 +5,11 @@ import * as Function from "effect/Function";
 
 import { type Block, blockLines, type Card } from "./card.ts";
 
+type Paint = Pick<Theme, "fg" | "bold" | "bg">;
+
 const spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] as const;
 
-/** The card's frame: pi's background for extension output, with the title above the blocks. */
-const framed = (theme: Theme, lines: ReadonlyArray<string>) => {
+const framed = (theme: Paint, lines: ReadonlyArray<string>) => {
 	const box = new Box(1, 1, (text) => theme.bg("customMessageBg", text));
 	const text = new Text(Arr.join(lines, "\n"), 0, 0);
 
@@ -17,24 +18,22 @@ const framed = (theme: Theme, lines: ReadonlyArray<string>) => {
 	return { box, text };
 };
 
-const titled = (theme: Theme, title: string, blocks: ReadonlyArray<Block>) => [
+const titled = (theme: Paint, title: string, blocks: ReadonlyArray<Block>) => [
 	title,
 	"",
 	...blockLines({ blocks, theme }),
 ];
 
-export const cardComponent = ({ card, theme }: { readonly card: Card; readonly theme: Theme }): Component => {
+export const cardComponent = ({ card, theme }: { readonly card: Card; readonly theme: Paint }): Component => {
 	const title = `${theme.bold("Usage")}  ${theme.fg("dim", card.readAt)}`;
 
 	return framed(theme, titled(theme, title, card.blocks)).box;
 };
 
-/** A card while its accounts are still being read. It shows each account as soon as it answers. */
 export interface LiveCard {
 	readonly update: (index: number, block: Block) => void;
-	/** Moves the spinner one frame. */
 	readonly tick: () => void;
-	readonly component: (tui: TUI, theme: Theme) => Component;
+	readonly component: (tui: Pick<TUI, "requestRender">, theme: Paint) => Component;
 }
 
 export const liveCard = (initial: ReadonlyArray<Block>): LiveCard => {
@@ -42,7 +41,7 @@ export const liveCard = (initial: ReadonlyArray<Block>): LiveCard => {
 	let frame = 0;
 	let redraw: () => void = Function.constVoid;
 
-	const title = (theme: Theme) => {
+	const title = (theme: Paint) => {
 		const read = Arr.filter(blocks, ({ body }) => body.kind !== "reading").length;
 		const glyph = theme.fg("accent", spinner[frame % spinner.length] ?? "");
 
