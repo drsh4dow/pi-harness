@@ -40,17 +40,14 @@ export interface FooterInputs {
 		"getGitBranch" | "getExtensionStatuses" | "getAvailableProviderCount"
 	>;
 	readonly theme: Pick<Theme, "fg" | "bold">;
-	/** Shortened to `~` in the working directory. */
 	readonly home: Option.Option<string>;
 	readonly thinkingLevel: () => string;
-	/** Read again whenever the session gains an entry, so a `/settings` toggle shows after the next message. */
 	readonly autoCompact: () => boolean;
 }
 
 interface SessionStats {
 	readonly messageSpan: Option.Option<Duration.Duration>;
 	readonly cost: number;
-	/** None when the session never read or wrote the cache, or the latest response sent no prompt tokens. */
 	readonly cacheHitRate: Option.Option<number>;
 	readonly context: ContextUsage | undefined;
 	readonly autoCompact: boolean;
@@ -125,7 +122,6 @@ const formatCwd = (cwd: string, home: Option.Option<string>) => {
 	return Str.startsWith(`${home.value}/`)(cwd) ? `~${Str.slice(home.value.length)(cwd)}` : cwd;
 };
 
-/** Removes newlines, tabs, and runs of spaces, so a status stays on one line. */
 const oneLine = (text: string) => {
 	const spaced = Str.replaceAll(/[\r\n\t]/gu, " ")(text);
 
@@ -150,7 +146,6 @@ const contextPart = ({ ctx, theme }: FooterInputs, { context, autoCompact }: Ses
 
 const statsLeft = (inputs: FooterInputs, stats: SessionStats) => {
 	const { model, modelRegistry } = inputs.ctx;
-	// Kimi Coding bills a subscription through an API key, so pi counts it as one.
 	const subscription = model !== undefined && (model.provider === "kimi-coding" || modelRegistry.isUsingOAuth(model));
 	const cachePart = Option.map(stats.cacheHitRate, (rate) => `CH${rate.toFixed(1)}%`);
 
@@ -178,7 +173,6 @@ const modelLabel = ({ ctx: { model }, thinkingLevel }: FooterInputs) => {
 	return level === "off" ? `${model.id} • thinking off` : `${model.id} • ${level}`;
 };
 
-/** The model name with its provider in front, when several providers are available and the line has room. */
 const modelPart = (inputs: FooterInputs, room: number) => {
 	const label = modelLabel(inputs);
 	const { model } = inputs.ctx;
@@ -199,7 +193,6 @@ const statsLine = (inputs: FooterInputs, stats: SessionStats, width: number) => 
 	const right = truncateToWidth(modelPart(inputs, room), Math.max(0, room), "");
 	const padding = Str.repeat(width - visibleWidth(left) - visibleWidth(right))(" ");
 
-	// The context percent carries its own color, whose reset would end an outer dim, so each side is dimmed alone.
 	return right === "" ? theme.fg("dim", left) : theme.fg("dim", left) + theme.fg("dim", padding + right);
 };
 
@@ -223,12 +216,10 @@ const statusLines = ({ data, theme }: FooterInputs, width: number) => {
 		: [];
 };
 
-/** Renders pi's footer with a stats line of session time, cache hit rate, cost, and context use, and no token counters. */
 export const footerView = (inputs: FooterInputs) => {
 	const { ctx } = inputs;
 	let cached = Option.none<{ readonly key: string; readonly stats: SessionStats }>();
 
-	/** The footer renders on every frame, so it scans the session only when the leaf moves, as every append does. */
 	const stats = () => {
 		const session = ctx.sessionManager;
 		const key = `${session.getSessionId()}:${session.getLeafId() ?? ""}:${ctx.model?.provider ?? ""}/${ctx.model?.id ?? ""}`;

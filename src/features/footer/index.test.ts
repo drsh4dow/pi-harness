@@ -5,7 +5,7 @@ import { type ContextUsage, SessionManager } from "@earendil-works/pi-coding-age
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { type FooterInputs, footerView } from "./index.ts";
+import { type FooterContext, type FooterInputs, footerView } from "./index.ts";
 
 const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
 
@@ -56,27 +56,39 @@ const respond = (session: SessionManager, { input, cacheRead, cacheWrite, cost }
 };
 
 interface Setup {
-	readonly session: SessionManager;
+	readonly session: FooterContext["sessionManager"];
 	readonly subscription: boolean;
 	readonly context: ContextUsage | undefined;
 	readonly autoCompact: () => boolean;
 	readonly providers?: number;
+	readonly statuses?: ReadonlyMap<string, string>;
+	readonly model?: typeof opus;
+	readonly withTheme?: FooterInputs["theme"];
 }
 
-const view = ({ session, subscription, context, autoCompact, providers = 1 }: Setup) =>
+const view = ({
+	session,
+	subscription,
+	context,
+	autoCompact,
+	providers = 1,
+	statuses = new Map(),
+	model = opus,
+	withTheme = theme,
+}: Setup) =>
 	footerView({
 		ctx: {
 			sessionManager: session,
-			model: opus,
+			model,
 			modelRegistry: { isUsingOAuth: () => subscription },
 			getContextUsage: () => context,
 		},
 		data: {
 			getGitBranch: () => "main",
-			getExtensionStatuses: () => new Map(),
+			getExtensionStatuses: () => statuses,
 			getAvailableProviderCount: () => providers,
 		},
-		theme,
+		theme: withTheme,
 		home: Option.some("/home/me"),
 		thinkingLevel: () => "high",
 		autoCompact,
@@ -215,4 +227,109 @@ test("entries after the latest message leave the clock where it was", () => {
 	const render = view({ session, subscription: false, context: undefined, autoCompact: () => false });
 
 	expect(render(60)[1]).toBe(padded("30s ?/1.0M", "claude-opus-5-5 • high", 60));
+});
+
+const pwdIn = (cwd: string) =>
+	view({
+		session: SessionManager.inMemory(cwd),
+		subscription: false,
+		context: undefined,
+		autoCompact: () => false,
+	})(60)[0];
+
+test("a working directory under home reads from ~", () => {
+	expect([pwdIn("/home/me"), pwdIn("/home/me/code/app"), pwdIn("/home/meadow")]).toEqual([
+		"~ (main)",
+		"~/code/app (main)",
+		"/home/meadow (main)",
+	]);
+});
+
+test("the stats line drops the cache hit rate when the latest response sent no prompt tokens", () => {
+	const session = SessionManager.inMemory("/work");
+
+	respond(session, { input: 50, cacheRead: 950, cacheWrite: 0, cost: 0 });
+	respond(session, { input: 0, cacheRead: 0, cacheWrite: 0, cost: 0 });
+
+	const render = view({ session, subscription: false, context: undefined, autoCompact: () => false });
+
+	expect(render(60)[1]).toBe(padded("0s ?/1.0M", "claude-opus-5-5 • high", 60));
+});
+
+test("extension statuses share one line, sorted by key, each on one line of single spaces", () => {
+	const render = view({
+		session: SessionManager.inMemory("/work"),
+		subscription: false,
+		context: undefined,
+		autoCompact: () => false,
+		statuses: new Map([
+			["b", "two\nlines "],
+			["a", "\ttab\r\nand   spaces"],
+		]),
+	});
+
+	expect(render(60)[2]).toBe("tab and spaces two lines");
+});
+
+test("a Kimi Coding model counts as a subscription though it signs in with an API key", () => {
+	const render = view({
+		session: SessionManager.inMemory("/work"),
+		subscription: false,
+		context: undefined,
+		autoCompact: () => false,
+		model: { ...opus, provider: "kimi-coding" },
+	});
+
+	expect(render(60)[1]).toBe(padded("$0.000 (sub) ?/1.0M", "claude-opus-5-5 • high", 60));
+});
+
+const marked: FooterInputs["theme"] = {
+	fg: (color, text) => (color === "dim" ? `<${text}>` : theme.fg(color, text)),
+	bold: (text) => text,
+};
+
+test("the model stays dimmed after a colored context percent", () => {
+	const render = view({
+		session: SessionManager.inMemory("/work"),
+		subscription: false,
+		context: { tokens: 910_000, contextWindow: 1_000_000, percent: 91 },
+		autoCompact: () => false,
+		withTheme: marked,
+	});
+
+	const left = colored("error", "91.0%/1.0M");
+	const right = "claude-opus-5-5 • high";
+	const gap = Str.repeat(60 - Bun.stringWidth("91.0%/1.0M") - Bun.stringWidth(right))(" ");
+
+	expect(render(60)[1]).toBe(`<${left}><${gap}${right}>`);
+});
+
+test("the footer reads the session's entries again only once its leaf moves", () => {
+	const session = SessionManager.inMemory("/work");
+	let reads = 0;
+
+	const counted: FooterContext["sessionManager"] = {
+		getCwd: () => session.getCwd(),
+		getLeafId: () => session.getLeafId(),
+		getSessionId: () => session.getSessionId(),
+		getSessionName: () => session.getSessionName(),
+		getEntries: () => {
+			reads += 1;
+
+			return session.getEntries();
+		},
+	};
+
+	const render = view({ session: counted, subscription: false, context: undefined, autoCompact: () => false });
+
+	render(60);
+	render(60);
+
+	const beforeMove = reads;
+
+	respond(session, { input: 10, cacheRead: 0, cacheWrite: 0, cost: 0 });
+	render(60);
+	render(60);
+
+	expect([beforeMove, reads]).toEqual([1, 2]);
 });
