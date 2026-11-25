@@ -17,7 +17,6 @@ type ApiKeyAuth = NonNullable<Provider["auth"]["apiKey"]>;
 
 type OAuthAuth = NonNullable<Provider["auth"]["oauth"]>;
 
-/** How an account logs in: Anthropic's OAuth flow, or a token from `claude setup-token`, which has no refresh token. */
 export type Login = "oauth" | "setup-token";
 
 export const accounts = [

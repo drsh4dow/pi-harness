@@ -127,6 +127,13 @@ Terms from the cost feature, the cache feature and herdr-app's status bar. See A
 - **Cost label.** The hc label on a root agent's own terminal that holds the spend of the root and of each delegate below it.
 - **Read offset.** The byte in a session file where the cost feature's next read starts, just past the last whole line it read. A file shorter than its read offset was replaced, so the next read starts at 0.
 
+## Claude accounts
+
+Terms from the claude-accounts feature, which makes each **Claude account** a pi provider and moves a session off a **limited account**.
+
+- **Login.** How a Claude account signs in: `oauth`, through Anthropic's OAuth flow, or `setup-token`.
+- **Setup-token.** A token that `claude setup-token` prints and an account pastes once at `/login`. It has no refresh token, and it lacks the `user:profile` scope, so the account's plan comes from a **probe**, not the usage page.
+
 ## Loaded
 
 Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
