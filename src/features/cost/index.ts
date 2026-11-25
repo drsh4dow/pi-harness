@@ -1,7 +1,6 @@
 import type { ExtensionAPI, SessionManager } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
-import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Option from "effect/Option";
@@ -10,7 +9,7 @@ import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
 import { appendedLines, piHost, sessionFileById } from "#src/client/pi/index.ts";
-import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
+import { labelTerminal, ownTerminal, type TerminalAddress } from "#src/client/terminals/index.ts";
 import { emptyTally, type StartedDelegate, type Tally, tallyLines } from "./tally.ts";
 
 export const labelKey = "pi.cost";
@@ -105,8 +104,6 @@ export const treeReader = (files: SessionTreeFiles) => {
 
 	return { read };
 };
-
-const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
 const publish = (files: SessionTreeFiles, terminal: TerminalAddress) => {
 	const reader = treeReader(files);

@@ -4,6 +4,7 @@ export {
 	hcLayer,
 	HcNotice,
 	labelTerminal,
+	ownTerminal,
 	type RunSpec,
 	TerminalAddress,
 	TerminalEnd,

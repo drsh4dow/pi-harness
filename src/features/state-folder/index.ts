@@ -20,7 +20,7 @@ import * as Str from "effect/String";
 
 import { piHost } from "#src/client/pi/index.ts";
 import { type Fingerprint, StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
-import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
+import { labelTerminal, ownTerminal } from "#src/client/terminals/index.ts";
 import type { FormatProblem } from "./action-items.ts";
 import { checks, type Place } from "./checks.ts";
 
@@ -142,8 +142,6 @@ export const lastFolder = (branch: ReadonlyArray<SessionEntry>): Option.Option<s
 
 	return Option.map(Arr.last(recorded), ({ data }) => data.folder);
 };
-
-const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
 interface Tracker {
 	readonly watched: Watched;

@@ -6,14 +6,13 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
-import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { agentFileText, markdownIn, piHost } from "#src/client/pi/index.ts";
-import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
+import { labelTerminal, ownTerminal } from "#src/client/terminals/index.ts";
 import { type GuideKind, guidesOf, type Index, indexOf, inContext, Loaded } from "./context.ts";
 
 export { type GuideKind, guidesOf, type Index, indexOf, inContext, Loaded } from "./context.ts";
@@ -87,8 +86,6 @@ interface Publisher {
 	index: Option.Option<Index>;
 	published: string;
 }
-
-const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
 
 export const guideFiles = Effect.fn("guideFiles")(function* (commands: ReadonlyArray<SlashCommandInfo>) {
 	const principles = yield* guideFilesIn("principle", `${getAgentDir()}/principles`);

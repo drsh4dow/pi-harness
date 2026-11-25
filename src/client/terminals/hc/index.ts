@@ -22,6 +22,8 @@ export type TerminalAddress = string & Brand.Brand<"TerminalAddress">;
 
 export const TerminalAddress = Brand.nominal<TerminalAddress>();
 
+export const ownTerminal = Effect.map(Effect.option(Config.String("HC_TERMINAL_ID")), Option.map(TerminalAddress));
+
 export { type TerminalName, terminalNameOf } from "./name.ts";
 
 export { HcError } from "./rpc.ts";
