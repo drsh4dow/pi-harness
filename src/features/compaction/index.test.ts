@@ -61,11 +61,11 @@ test.each(anchorRows)("$name", (row) =>
 				}
 			}
 
-			const { summary } = yield* compact(
-				row.env,
-				eventFor({ session, fileOps: readA }),
-				answering(reply({ text: "Narrative." })).ctx,
-			);
+			const { summary } = yield* compact({
+				env: row.env,
+				event: eventFor({ session, fileOps: readA }),
+				ctx: answering(reply({ text: "Narrative." })).ctx,
+			});
 
 			expect(summary).toBe(`Narrative.\n\n${row.anchor}<read-files>\nsrc/a.ts\n</read-files>`);
 		}),
@@ -75,11 +75,11 @@ test.each(anchorRows)("$name", (row) =>
 test.each(["manual", "overflow"] as const)("a delegate's %s compaction gets the same summary", (reason) =>
 	run(
 		Effect.gen(function* () {
-			const { summary } = yield* compact(
-				delegateEnv,
-				eventFor({ session: sessionWithTask(), fileOps: readA, reason }),
-				answering(reply({ text: "Narrative." })).ctx,
-			);
+			const { summary } = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session: sessionWithTask(), fileOps: readA, reason }),
+				ctx: answering(reply({ text: "Narrative." })).ctx,
+			});
 
 			expect(summary).toBe(`Narrative.\n\n<task>\n${task}\n</task>\n\n<read-files>\nsrc/a.ts\n</read-files>`);
 		}),
@@ -95,27 +95,27 @@ test("three compactions keep the union of their file lists and feed each narrati
 			const narratives = Arr.map(["one", "two", "three"], (name) => Str.padEnd(11_000, ".")(`Narrative ${name}.`));
 			const { prompts, ctx } = answering(...Arr.map(narratives, (text) => reply({ text })));
 
-			const first = yield* compact(
-				delegateEnv,
-				eventFor({ session, fileOps: ops({ read: ["a.ts"], edited: ["b.ts"] }) }),
+			const first = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session, fileOps: ops({ read: ["a.ts"], edited: ["b.ts"] }) }),
 				ctx,
-			);
+			});
 
 			record({ session, entry: first });
 
-			const second = yield* compact(
-				delegateEnv,
-				eventFor({ session, fileOps: ops({ read: ["c.ts", "b.ts"], written: ["d.ts"] }) }),
+			const second = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session, fileOps: ops({ read: ["c.ts", "b.ts"], written: ["d.ts"] }) }),
 				ctx,
-			);
+			});
 
 			record({ session, entry: second });
 
-			const third = yield* compact(
-				delegateEnv,
-				eventFor({ session, fileOps: ops({ read: ["e.ts"], edited: ["a.ts"] }) }),
+			const third = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session, fileOps: ops({ read: ["e.ts"], edited: ["a.ts"] }) }),
 				ctx,
-			);
+			});
 
 			expect({
 				narratives: Arr.map([first, second, third], ({ details }) => details.narrative),

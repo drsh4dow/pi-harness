@@ -157,12 +157,17 @@ const skillCommand = (path: string): SlashCommandInfo => ({
 	sourceInfo: { path, source: "local", scope: "user", origin: "top-level" },
 });
 
-export const compact = Effect.fn("compact")(function* (
-	env: Readonly<Record<string, string>>,
-	event: SessionBeforeCompactEvent,
-	ctx: Ctx,
-	skills: ReadonlyArray<string> = [],
-) {
+export const compact = Effect.fn("compact")(function* ({
+	env,
+	event,
+	ctx,
+	skills = [],
+}: {
+	readonly env: Readonly<Record<string, string>>;
+	readonly event: SessionBeforeCompactEvent;
+	readonly ctx: Ctx;
+	readonly skills?: ReadonlyArray<string>;
+}) {
 	const handlers: Array<Handler> = [];
 
 	compaction(env)({

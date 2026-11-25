@@ -142,7 +142,13 @@ const leafCompacts = (run: Run, project: string) =>
 		);
 	});
 
-const feed = (run: Run, round: number, before: number, turn: number): Effect.Effect<number, ScenarioFailed> =>
+interface Feeding {
+	readonly round: number;
+	readonly before: number;
+	readonly turn: number;
+}
+
+const feed = (run: Run, { round, before, turn }: Feeding): Effect.Effect<number, ScenarioFailed> =>
 	Effect.gen(function* () {
 		yield* run.check(turn < 8, `the root compacts within 8 filler prompts in round ${String(round)}`);
 		yield* run.root.prompt(
@@ -151,7 +157,7 @@ const feed = (run: Run, round: number, before: number, turn: number): Effect.Eff
 
 		const entries = yield* rootEntries(run);
 
-		return compactionsIn(entries).length > before ? turn + 1 : yield* feed(run, round, before, turn + 1);
+		return compactionsIn(entries).length > before ? turn + 1 : yield* feed(run, { round, before, turn: turn + 1 });
 	});
 
 const quotes = (
@@ -190,7 +196,7 @@ const rootCompacts = (run: Run, round: number) =>
 
 		yield* fs.writeFileString(stateFile, `# Demo\nmarker: ${marker}\n`);
 
-		const fed = yield* feed(run, round, compactionsIn(entries).length, 0);
+		const fed = yield* feed(run, { round, before: compactionsIn(entries).length, turn: 0 });
 
 		return yield* quotes(run, { marker, stateFile, fed });
 	});

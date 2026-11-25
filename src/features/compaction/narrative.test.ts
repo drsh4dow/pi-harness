@@ -59,7 +59,7 @@ test.each(failedRows)("$name carries the prior narrative, the anchor and the fil
 	run(
 		Effect.gen(function* () {
 			const event = eventFor({ session: sessionWithPrior(), fileOps: ops({ read: ["src/new.ts"] }) });
-			const { summary, details } = yield* compact(delegateEnv, event, row.ctx());
+			const { summary, details } = yield* compact({ env: delegateEnv, event, ctx: row.ctx() });
 
 			expect({
 				opensWithNote: Str.startsWith(carriedNote)(summary),
@@ -78,11 +78,11 @@ test("without a narrative of ours, the summary pi wrote is the prior narrative, 
 
 			session.appendCompaction(Str.repeat(13_000)("p"), kept, 90_000, { readFiles: [], modifiedFiles: [] });
 
-			const { details } = yield* compact(
-				delegateEnv,
-				eventFor({ session, fileOps: readA }),
-				answering(reply({ text: "", stopReason: "error" })).ctx,
-			);
+			const { details } = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session, fileOps: readA }),
+				ctx: answering(reply({ text: "", stopReason: "error" })).ctx,
+			});
 
 			expect(details.narrative).toBe(Str.repeat(narrativeCap)("p"));
 		}),
@@ -100,7 +100,11 @@ test("a reply over the cap gets one retry, and the entry counts the usage of bot
 				reply({ text: short, stopReason: "stop", cost: 0.5 }),
 			);
 
-			const entry = yield* compact(delegateEnv, eventFor({ session: sessionWithTask(), fileOps: readA }), ctx);
+			const entry = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session: sessionWithTask(), fileOps: readA }),
+				ctx,
+			});
 
 			expect({
 				narrative: entry.details.narrative,
@@ -124,7 +128,12 @@ test("a reply cut off at the length limit gets one retry", () =>
 	run(
 		Effect.gen(function* () {
 			const { ctx } = answering(reply({ text: "Half a narr", stopReason: "length" }), reply({ text: "Whole." }));
-			const { details } = yield* compact(delegateEnv, eventFor({ session: sessionWithTask(), fileOps: readA }), ctx);
+
+			const { details } = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session: sessionWithTask(), fileOps: readA }),
+				ctx,
+			});
 
 			expect(details.narrative).toBe("Whole.");
 		}),
@@ -139,7 +148,11 @@ test("two replies over the cap carry the prior narrative, after exactly one retr
 				reply({ text: "Never asked." }),
 			);
 
-			const entry = yield* compact(delegateEnv, eventFor({ session: sessionWithPrior(), fileOps: readA }), ctx);
+			const entry = yield* compact({
+				env: delegateEnv,
+				event: eventFor({ session: sessionWithPrior(), fileOps: readA }),
+				ctx,
+			});
 
 			expect({
 				calls: prompts.length,
@@ -157,11 +170,11 @@ test("a split turn's prefix reaches the narrative call after the messages to sum
 			const event = eventFor({ session: sessionWithTask(), fileOps: readA });
 			const prefix = { role: "user" as const, content: "Then split the lexer.", timestamp: 0 };
 
-			yield* compact(
-				delegateEnv,
-				{ ...event, preparation: { ...event.preparation, isSplitTurn: true, turnPrefixMessages: [prefix] } },
+			yield* compact({
+				env: delegateEnv,
+				event: { ...event, preparation: { ...event.preparation, isSplitTurn: true, turnPrefixMessages: [prefix] } },
 				ctx,
-			);
+			});
 
 			expect(prompts[0]).toContain("[User]: Read src/a.ts and edit it.\n\n[User]: Then split the lexer.");
 		}),

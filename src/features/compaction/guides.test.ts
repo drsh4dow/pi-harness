@@ -73,12 +73,12 @@ const compactAfterReading = ({
 			readResult({ session, text });
 		}
 
-		const entry = yield* compact(
-			delegateEnv,
-			eventFor({ session, fileOps: readA, reason, keptReads }),
-			answering(reply({ text: "Narrative." })).ctx,
-			Arr.map(skills, ({ path }) => path),
-		);
+		const entry = yield* compact({
+			env: delegateEnv,
+			event: eventFor({ session, fileOps: readA, reason, keptReads }),
+			ctx: answering(reply({ text: "Narrative." })).ctx,
+			skills: Arr.map(skills, ({ path }) => path),
+		});
 
 		return { session, entry };
 	});
