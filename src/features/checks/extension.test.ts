@@ -1,13 +1,17 @@
 import { expect, test } from "bun:test";
 
-import { routeChecks } from "./extension.ts";
+import { checks } from "./extension.ts";
 
 const bin = `${import.meta.dirname}/../../../agent/bin/check`;
 
 const routed = (env: Readonly<Record<string, string | undefined>>, toolName: string) => {
 	const call = { toolName, input: { command: "bun test" } };
 
-	routeChecks(env)(call);
+	checks(env)({
+		on: (_event, handler) => {
+			handler(call);
+		},
+	});
 
 	return call.input.command;
 };
