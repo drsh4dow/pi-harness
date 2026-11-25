@@ -1,8 +1,3 @@
-/**
- * Side commands in the run's environment, and the run's private terminal core, where owned-work starts delegates.
- * Every spawn here is `detached: false`: Effect then never signals a child that already exited, whose pid another
- * process may hold by then.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -18,7 +13,6 @@ export type Argv = readonly [string, ...Array<string>];
 
 type Env = Readonly<Record<string, string>>;
 
-/** A command `exec` ran to its end. `output` is stdout and stderr interleaved, as the command printed them. */
 export interface Exited {
 	readonly code: number;
 	readonly output: string;
@@ -48,7 +42,6 @@ export const ran = Effect.fn("ran")(function* (command: {
 	);
 }, Effect.scoped);
 
-/** `run.exec`: `ran` in the run's environment, failing the scenario only when the command cannot start or hangs. */
 export const execIn = Effect.fn("execIn")(function* (place: { readonly env: Env; readonly cwd: string }) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
 
@@ -65,10 +58,6 @@ export const execIn = Effect.fn("execIn")(function* (place: { readonly env: Env;
 		);
 });
 
-/**
- * Starts the run's core and waits for its socket. Closing the scope asks the core to stop, which ends its terminals
- * before the tripwire reads.
- */
 export const startCore = Effect.fn("startCore")(
 	function* ({ layout, env }: { readonly layout: Layout; readonly env: Env }) {
 		const fs = yield* FileSystem.FileSystem;
