@@ -79,8 +79,7 @@ holds the run's id or its core's session. It is not a sandbox: a hostile process
 ## Write one
 
 A scenario is a file named `<fact>.scenario.ts` beside the code whose runtime behavior it proves. It calls `scenario`
-once. The lint lets only `*.scenario.ts` files import the driver, and lets nothing import a scenario, so `bun test`
-can never run one.
+once. The lint lets nothing import a scenario, so `bun test` can never run one.
 
 ```ts
 import * as Effect from "effect/Effect";
