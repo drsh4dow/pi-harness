@@ -132,7 +132,14 @@ const captureAll = Effect.fn("captureAll")(function* (harnessRoot: string, proje
 	yield* borrowUserState(agentDir);
 
 	const stockDir = yield* stockAgentDir(harnessRoot, `${workDir}/stock-agent`);
-	const staged = yield* stagedLaunches(project, `${workDir}/delegates`, message, stateFolder, process.env);
+
+	const staged = yield* stagedLaunches({
+		cwd: project,
+		dir: `${workDir}/delegates`,
+		message,
+		state: stateFolder,
+		env: process.env,
+	});
 
 	const run = (each: Run) => capture(each, project, workDir);
 

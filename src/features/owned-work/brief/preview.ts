@@ -49,7 +49,7 @@ interface Staged extends Pick<Brief, "name" | "model" | "thinking" | "readOnly" 
 	readonly design: Option.Option<string>;
 }
 
-const bare = (name: string, role: ChildRole, level: number, design: Option.Option<string>): Staged => ({
+const bare = ({ name, role, level, design }: Pick<Staged, "name" | "role" | "level" | "design">): Staged => ({
 	name,
 	role,
 	level,
@@ -61,9 +61,9 @@ const bare = (name: string, role: ChildRole, level: number, design: Option.Optio
 });
 
 const bareDelegates = [
-	bare("owner", "owner", 2, Option.some("sketch.md")),
-	bare("owner-last-level", "owner", levels, Option.some("yours")),
-	bare("leaf", "leaf", 2, Option.none()),
+	bare({ name: "owner", role: "owner", level: 2, design: Option.some("sketch.md") }),
+	bare({ name: "owner-last-level", role: "owner", level: levels, design: Option.some("yours") }),
+	bare({ name: "leaf", role: "leaf", level: 2, design: Option.none() }),
 ];
 
 const onInstructionsFile = Effect.fn("onInstructionsFile")(function* (file: string) {
@@ -91,13 +91,15 @@ const onInstructionsFile = Effect.fn("onInstructionsFile")(function* (file: stri
  * delegates above, with the same `launch` the ledger uses, so a tool can run each and see exactly what it receives. The
  * staged files live in `dir` until the caller's scope closes.
  */
-export const stagedLaunches = Effect.fn("stagedLaunches")(function* (
-	cwd: string,
-	dir: string,
-	message: string,
-	state: string,
-	env: Readonly<Record<string, string | undefined>>,
-) {
+interface Staging {
+	readonly cwd: string;
+	readonly dir: string;
+	readonly message: string;
+	readonly state: string;
+	readonly env: Readonly<Record<string, string | undefined>>;
+}
+
+export const stagedLaunches = Effect.fn("stagedLaunches")(function* ({ cwd, dir, message, state, env }: Staging) {
 	const services = yield* Layer.build(Layer.merge(piCliLayer(childExtensions), briefSourcesLayer));
 	const cli = Context.get(services, PiCli);
 	const files = yield* Context.get(services, BriefSources).list(instructionsFolder);
