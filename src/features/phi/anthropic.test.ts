@@ -5,10 +5,13 @@ import { complete } from "@earendil-works/pi-ai/compat";
 import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import * as FetchHttpClient from "effect/http/FetchHttpClient";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as Option from "effect/Option";
 import { Type } from "typebox";
 
-import { lastMessageText, type MockAnthropic, Reply, serveMock } from "./anthropic.fixture.ts";
+import { lastMessageText, type MockAnthropic, rateLimited, Reply, serveMock } from "./anthropic.fixture.ts";
 
 const lookup = { query: "weather in Lisbon", limit: 3 };
 
@@ -93,4 +96,24 @@ test("the mock records each request body, and the last message's text is the use
 
 			expect(lastTexts).toEqual(["use the tool", "sunny, 21 C"]);
 		}),
+	));
+
+const askedOnce = '{"model":"claude-opus-5-5","messages":[{"role":"user","content":"hello there"}]}';
+
+const statusAndError = (mock: MockAnthropic) =>
+	HttpClient.execute(HttpClientRequest.bodyText(HttpClientRequest.post(`${mock.url}/v1/messages`), askedOnce)).pipe(
+		Effect.flatMap((response) => Effect.map(response.json, (json) => ({ status: response.status, json }))),
+	);
+
+test("a request the replier answers rateLimited gets Anthropic's 429 with a rate_limit_error", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const answer = yield* Effect.acquireUseRelease(
+				Effect.sync(() => serveMock(() => rateLimited)),
+				statusAndError,
+				(mock) => mock.stop,
+			);
+
+			expect(answer).toMatchObject({ status: 429, json: { type: "error", error: { type: "rate_limit_error" } } });
+		}).pipe(Effect.provide(FetchHttpClient.layer)),
 	));

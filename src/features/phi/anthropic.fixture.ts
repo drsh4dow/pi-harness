@@ -18,7 +18,6 @@ export interface Asked {
 	readonly model: string;
 }
 
-/** HTTP 429 with Anthropic's `rate_limit_error`, as an account over its limit answers. */
 export const rateLimited = "rate limited";
 
 type Replier = (asked: Asked) => Reply | typeof rateLimited;
