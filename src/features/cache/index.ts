@@ -5,10 +5,8 @@ import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
 
-/** The custom entry just before each reply that missed. pi never puts a custom entry in the model's context. */
 export const entryKind = "pi.cache-miss";
 
-/** The cache lifetime of Anthropic's default retention, which pi's own cache notices also assume. */
 export const cacheTtlMs = 5 * 60 * 1000;
 
 const minMissedTokens = 50_000;
@@ -131,7 +129,6 @@ const missOf = (branch: ReadonlyArray<SessionEntry>, reply: AssistantMessage): O
 	});
 };
 
-/** The `message_end` handler. pi calls it before it saves the reply, so the branch holds what came before. */
 export const recordMisses =
 	(pi: Pick<ExtensionAPI, "appendEntry">) =>
 	({ message }: MessageEndEvent, ctx: Pick<ExtensionContext, "sessionManager">) => {
@@ -146,7 +143,6 @@ export const recordMisses =
 		}
 	};
 
-/** Records why a reply paid full price to rewrite the prompt cache. */
 export const cache = (pi: Pick<ExtensionAPI, "on" | "appendEntry">) => {
 	pi.on("message_end", recordMisses(pi));
 };

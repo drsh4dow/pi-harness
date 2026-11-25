@@ -1,6 +1,6 @@
 {
 	"src/features/cache/idle-miss.scenario.ts no-comments": 4,
-	"src/features/cache/index.ts no-comments": 6,
+	"src/features/cache/index.ts no-comments": 2,
 	"src/features/compaction/compaction.scenario.ts no-comments": 1,
 	"src/features/compaction/guides.ts no-comments": 1,
 	"src/features/compaction/index.ts no-comments": 1,

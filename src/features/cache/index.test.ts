@@ -111,6 +111,14 @@ const cases: ReadonlyArray<readonly [string, (world: World) => void, ReadonlyArr
 		missed([idle]),
 	],
 	[
+		"no idle cause at exactly Anthropic's default cache lifetime of 5 minutes",
+		({ reply }) => {
+			reply({ at: start, ...hit });
+			reply({ at: start + 5 * minute, ...full });
+		},
+		missed([]),
+	],
+	[
 		"a model change",
 		({ reply }) => {
 			reply({ at: start, ...hit });
