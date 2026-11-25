@@ -10,8 +10,8 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { backAt } from "#src/client/claude-usage/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
+import { backAt } from "#src/client/providers/index.ts";
 
 type ApiKeyAuth = NonNullable<Provider["auth"]["apiKey"]>;
 

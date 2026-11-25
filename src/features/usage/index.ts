@@ -11,9 +11,14 @@ import * as Redacted from "effect/Redacted";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
-import { type ClaudeUsage, claudeUsageFetchLayer, type Window } from "#src/client/claude-usage/index.ts";
-import { OpencodeGo, opencodeGoFetchLayer } from "#src/client/opencode-go/index.ts";
 import { piHost, spendSince } from "#src/client/pi/index.ts";
+import {
+	type ClaudeUsage,
+	claudeUsageFetchLayer,
+	OpencodeGo,
+	opencodeGoFetchLayer,
+	type Window,
+} from "#src/client/providers/index.ts";
 import { type Account, accounts, type Login, planOf } from "#src/features/claude-accounts/index.ts";
 import { type Block, blockOf, Card, type Meter, type Outcome, readAtOf } from "./card.ts";
 import { cardComponent, liveCard } from "./view.ts";

@@ -24,7 +24,7 @@ export class PhiRouter extends Context.Service<
 		/** Pins the session, and returns once the router stored the pin. */
 		readonly pin: (session: string) => Effect.Effect<void, PhiRouterError>;
 	}
->()("pi-harness/client/phi-router/PhiRouter") {}
+>()("pi-harness/client/providers/phi-router/PhiRouter") {}
 
 /** The command phi-router's pi package adds. */
 const phiCommand = "phi";

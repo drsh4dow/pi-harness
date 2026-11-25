@@ -14,10 +14,9 @@ import * as Option from "effect/Option";
 import type { Static } from "typebox";
 
 import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { type ClaudeUsage, claudeUsageFetchLayer } from "#src/client/claude-usage/index.ts";
 import { type Gh, ghLayer } from "#src/client/gh/index.ts";
-import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { makeSessionFolder, type PiHost, readStagedBrief, type SessionAddress } from "#src/client/pi/index.ts";
+import { type ClaudeUsage, claudeUsageFetchLayer, PhiRouter } from "#src/client/providers/index.ts";
 import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief.ts";
 import { type ChildRole, type ChildSession, childRoles, Self } from "./child.ts";
 import { freshCall, parseContinuation } from "./continuation.ts";

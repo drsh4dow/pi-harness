@@ -6,7 +6,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import type { Money, Spend, Window } from "#src/client/claude-usage/index.ts";
+import type { Money, Spend, Window } from "#src/client/providers/index.ts";
 
 /** One number `/usage` read for an account. */
 export type Meter =

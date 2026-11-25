@@ -7,7 +7,7 @@ import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 import * as Redacted from "effect/Redacted";
 
-import { ClaudeUsage, type PlanUsage, weeklyWindow } from "#src/client/claude-usage/index.ts";
+import { ClaudeUsage, type PlanUsage, weeklyWindow } from "#src/client/providers/index.ts";
 import { type Account, type AccountId, accounts } from "./accounts.ts";
 
 /** What reading an account's plan needs from pi's model registry. */

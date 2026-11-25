@@ -6,7 +6,7 @@ import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 import * as Str from "effect/String";
 
-import { PhiRouter } from "#src/client/phi-router/index.ts";
+import { PhiRouter } from "#src/client/providers/index.ts";
 import { accountOf, type PlanReader, roomiestAccount } from "#src/features/claude-accounts/index.ts";
 import { baaProviders, isBaa, isPhi, phiProvider, sealedId } from "#src/features/phi/index.ts";
 import { BadDelegate } from "./work.ts";

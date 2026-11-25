@@ -6,9 +6,8 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Rec from "effect/Record";
 
-import { ClaudeUsage } from "#src/client/claude-usage/index.ts";
-import { PhiRouter } from "#src/client/phi-router/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
+import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
 import { modelNameOf, modelOf, modelTable } from "./models.ts";
 
 const arena = Bun.file(new URL("../../../agent/skills/arena/SKILL.md", import.meta.url));

@@ -11,8 +11,8 @@ import * as Rec from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as TestClock from "effect/testing/TestClock";
 
-import { ClaudeUsage, ClaudeUsageError, weeklyWindow } from "#src/client/claude-usage/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
+import { ClaudeUsage, ClaudeUsageError, weeklyWindow } from "#src/client/providers/index.ts";
 import { type AccountId, accounts } from "./accounts.ts";
 import { type PlanReader, roomiestAccount } from "./quota.ts";
 

@@ -30,7 +30,7 @@ export class OpencodeGo extends Context.Service<
 	{
 		readonly usage: (key: Redacted.Redacted) => Effect.Effect<ReadonlyArray<Window>, OpencodeGoError>;
 	}
->()("pi-harness/client/opencode-go/OpencodeGo") {}
+>()("pi-harness/client/providers/opencode-go/OpencodeGo") {}
 
 const WindowWire = Schema.Struct({ percent: Schema.Finite, resetsAt: Schema.String });
 

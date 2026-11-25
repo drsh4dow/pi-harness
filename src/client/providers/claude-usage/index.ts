@@ -63,7 +63,7 @@ export class ClaudeUsage extends Context.Service<
 		 */
 		readonly probe: (request: ProbeRequest) => Effect.Effect<ReadonlyArray<Window>, ClaudeUsageError>;
 	}
->()("pi-harness/client/claude-usage/ClaudeUsage") {}
+>()("pi-harness/client/providers/claude-usage/ClaudeUsage") {}
 
 const MoneyWire = Schema.Struct({ amount_minor: Schema.Finite, exponent: Schema.Int, currency: Schema.String });
 

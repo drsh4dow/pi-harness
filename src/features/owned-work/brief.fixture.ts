@@ -13,10 +13,9 @@ import * as Struct from "effect/Struct";
 import type { Static } from "typebox";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { ClaudeUsage } from "#src/client/claude-usage/index.ts";
 import { Gh, GhError } from "#src/client/gh/index.ts";
-import { PhiRouter, PhiRouterError } from "#src/client/phi-router/index.ts";
 import { type Design, piHost } from "#src/client/pi/index.ts";
+import { ClaudeUsage, PhiRouter, PhiRouterError } from "#src/client/providers/index.ts";
 import type { DelegateParams } from "./brief.ts";
 import type { Brief, ChildRole } from "./child.ts";
 import { continueMessage } from "./continuation.ts";

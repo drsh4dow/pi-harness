@@ -21,7 +21,6 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { phiRouterLayer, routerExtensionOf } from "#src/client/phi-router/index.ts";
 import {
 	type PiCli,
 	piCliLayer,
@@ -31,6 +30,7 @@ import {
 	piSessionsLayer,
 	unwrapMessage,
 } from "#src/client/pi/index.ts";
+import { phiRouterLayer, routerExtensionOf } from "#src/client/providers/index.ts";
 import { sourceStampLayer } from "#src/client/source-stamp/index.ts";
 import {
 	type Hc,
