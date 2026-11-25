@@ -26,7 +26,6 @@ export interface Root {
 	readonly stderr: Effect.Effect<string>;
 }
 
-/** The root as the driver holds it: the scenario's `Root` plus what only the driver reads. */
 export interface RootProcess extends Root {
 	/** From `get_state` at start. pi creates the file at the first message, so it can be missing early on. */
 	readonly session: { readonly id: string; readonly file: string };
@@ -194,7 +193,6 @@ const request = Effect.fn("request")(function* (
 	return response.data;
 });
 
-/** `request`, its data decoded with `schema`. */
 const asked = <Value>(wire: Wire, command: Command, schema: Schema.Decoder<Value>) =>
 	PubSub.subscribe(wire.stdoutRecords).pipe(
 		Effect.flatMap((subscription) => request(wire, subscription, command)),
