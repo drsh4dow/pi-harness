@@ -1,8 +1,3 @@
-/**
- * The phi-router of a scenario: its pi package from the checkout `PHI_ROUTER_CHECKOUT` names, the accounts
- * `src/features/phi/phi-router.config.json` lists, each with a fake login and an endpoint on a loopback mock, and a judge on the
- * OpenAI mock. Run a scenario of this folder with `offline.sh`, so no request leaves loopback.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -35,7 +30,6 @@ const lists: {
 /** A Claude account's mock, by account name. */
 type ClaudeMocks = Readonly<Record<string, Pick<MockAnthropic, "url">>>;
 
-/** A port on loopback where nothing listens, for an account no mock stands for. */
 const refused = "http://127.0.0.1:9";
 
 /** A Codex access token whose claims expire in 2100, unsigned. */
@@ -43,13 +37,11 @@ const codexToken = "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDI0NDQ4MDB9.fake";
 
 const far = 4_102_444_800_000;
 
-/** A login folder's one file, fake: a Claude login's `.credentials.json`, or a Codex login's `auth.json`. */
 const loginFile = (account: Account): readonly [string, Schema.JsonObject] =>
 	account.vendor === "anthropic"
 		? [".credentials.json", { claudeAiOauth: { accessToken: `fake-${account.name}-access`, expiresAt: far } }]
 		: ["auth.json", { tokens: { access_token: codexToken, account_id: `fake-${account.name}` } }];
 
-/** The account with a fake credential of the same kind, and an endpoint at its mock. */
 const faked = (claude: ClaudeMocks, logins: string) => (account: Account) => {
 	const mock = Rec.get(claude, account.name);
 
@@ -75,11 +67,6 @@ const checkoutOf = (env: Readonly<Record<string, string | undefined>>) => {
 	return checkout;
 };
 
-/**
- * The phi-router of a run: its `checkout`, the package to put in the run's `packages`, and `files`, phi-router's
- * `config.json` with the documented accounts, each with a fake login and each Claude account at its mock, the judge at
- * the OpenAI mock, and `baaRepos` when the scenario names one.
- */
 export const routerSetup = ({
 	env,
 	claude,
@@ -143,7 +130,6 @@ const Line = Schema.Struct({
 
 const decodeLine = Schema.decodeUnknownOption(Schema.fromJsonString(Line));
 
-/** Each line of phi-router's lane log in the run's HOME, oldest first. */
 export const laneLog = (run: Pick<Run, "home">) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -159,7 +145,6 @@ const Status = Schema.fromJsonString(Schema.Struct({ pinned: Schema.Boolean }));
 
 const decodeStatus = Schema.decodeUnknownOption(Status);
 
-/** Whether `phi-router status` says a session is pinned, or none when it says nothing readable. */
 export const pinnedOf = ({
 	run,
 	checkout,

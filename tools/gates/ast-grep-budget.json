@@ -33,7 +33,7 @@
 	"src/features/phi/failover.scenario.ts no-comments": 1,
 	"src/features/phi/index.ts no-comments": 1,
 	"src/features/phi/protection.ts no-comments": 2,
-	"src/features/phi/router.fixture.ts no-comments": 11,
+	"src/features/phi/router.fixture.ts no-comments": 4,
 	"src/features/phi/send-compaction.scenario.ts no-comments": 1,
 	"src/features/phi/switch-away.scenario.ts no-comments": 1,
 	"src/features/phi/wire.fixture.ts no-comments": 2,
