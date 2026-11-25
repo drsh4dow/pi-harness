@@ -17,85 +17,94 @@ const openCarriers: ReadonlyArray<Carrier> = ["ultra-a", "ultra-b", "opencode-go
 
 const onEnt = "ent/claude-opus-5-5";
 
-/**
- * What the design promises for one child: the alias it names, the model its pi starts on, and the `account/id` its
- * turns land on. `mark` tells its turns apart.
- */
-interface Child {
+interface ExpectedChild {
 	readonly mark: string;
 	readonly alias: "judgment" | "worker" | "fable" | "investigator" | "divergent";
-	readonly key: string;
-	readonly clean: ReadonlyArray<string>;
-	readonly sealed: string;
-	/** Whether phi-router holds the child's session pinned, or nothing for a child outside phi-router. */
-	readonly pinned?: boolean;
+	readonly startsOn: string;
+	readonly cleanLandsOn: ReadonlyArray<string>;
+	readonly sealedLandsOn: string;
+	readonly phiRouterReports: "pinned" | "not pinned" | "outside phi-router";
 }
 
 const onOpen = (id: string) => [`ultra-a/${id}`, `ultra-b/${id}`];
 
-const children: ReadonlyArray<Child> = [
+const children: ReadonlyArray<ExpectedChild> = [
 	{
 		mark: "judgment",
 		alias: "judgment",
-		key: "phi/claude-opus-5-5",
-		clean: onOpen("claude-opus-5-5"),
-		sealed: onEnt,
-		pinned: false,
+		startsOn: "phi/claude-opus-5-5",
+		cleanLandsOn: onOpen("claude-opus-5-5"),
+		sealedLandsOn: onEnt,
+		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "worker",
 		alias: "worker",
-		key: "phi/claude-opus-5-5",
-		clean: onOpen("claude-opus-5-5"),
-		sealed: onEnt,
-		pinned: false,
+		startsOn: "phi/claude-opus-5-5",
+		cleanLandsOn: onOpen("claude-opus-5-5"),
+		sealedLandsOn: onEnt,
+		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "fable",
 		alias: "fable",
-		key: "phi/claude-fable-5-2",
-		clean: onOpen("claude-fable-5-2"),
-		sealed: onEnt,
-		pinned: false,
+		startsOn: "phi/claude-fable-5-2",
+		cleanLandsOn: onOpen("claude-fable-5-2"),
+		sealedLandsOn: onEnt,
+		phiRouterReports: "not pinned",
 	},
 	{
 		mark: "investigator",
 		alias: "investigator",
-		key: "openai/gpt-6.1-sol",
-		clean: ["openai/gpt-6.1-sol"],
-		sealed: "openai/gpt-6.1-sol",
+		startsOn: "openai/gpt-6.1-sol",
+		cleanLandsOn: ["openai/gpt-6.1-sol"],
+		sealedLandsOn: "openai/gpt-6.1-sol",
+		phiRouterReports: "outside phi-router",
 	},
-	{ mark: "divergent", alias: "divergent", key: "phi/sealed", clean: [onEnt], sealed: onEnt, pinned: false },
-	{ mark: "held", alias: "worker", key: "phi/claude-opus-5-5", clean: [onEnt], sealed: onEnt, pinned: true },
+	{
+		mark: "divergent",
+		alias: "divergent",
+		startsOn: "phi/sealed",
+		cleanLandsOn: [onEnt],
+		sealedLandsOn: onEnt,
+		phiRouterReports: "not pinned",
+	},
+	{
+		mark: "held",
+		alias: "worker",
+		startsOn: "phi/claude-opus-5-5",
+		cleanLandsOn: [onEnt],
+		sealedLandsOn: onEnt,
+		phiRouterReports: "pinned",
+	},
 ];
 
 const pinnedFrom = children.length - 1;
 
-/** The words that tell the mocks which turn they answer: the root's prompt, the child's brief and its two tool results. */
-const marksOf = ({ mark }: Pick<Child, "mark">) => ({
-	step: `STEP-${mark}`,
-	task: `TASK-${mark}`,
-	record: `RECORD-${mark}`,
-	after: `AFTER-${mark}`,
+const marksOf = ({ mark }: Pick<ExpectedChild, "mark">) => ({
+	rootPrompt: `STEP-${mark}`,
+	brief: `TASK-${mark}`,
+	recordResult: `RECORD-${mark}`,
+	afterResult: `AFTER-${mark}`,
 });
 
-const stepsOf = (child: Child): ReadonlyArray<readonly [string, Reply]> => {
+const stepsOf = (child: ExpectedChild): ReadonlyArray<readonly [string, Reply]> => {
 	const mark = marksOf(child);
 
 	return [
 		[
-			mark.step,
+			mark.rootPrompt,
 			toolUse("delegate")({
 				name: `${child.mark} child`,
 				role: "leaf",
 				model: child.alias,
 				goal: "Answer a wire test",
-				message: `${mark.task}. Read ${child.mark}.record.txt, then ${child.mark}.after.txt, then reply done.`,
+				message: `${mark.brief}. Read ${child.mark}.record.txt, then ${child.mark}.after.txt, then reply done.`,
 			}),
 		],
-		[mark.task, toolUse("read")({ path: `${child.mark}.record.txt` })],
-		[mark.record, toolUse("read")({ path: `${child.mark}.after.txt` })],
-		[mark.after, Reply.Text({ text: "done" })],
+		[mark.brief, toolUse("read")({ path: `${child.mark}.record.txt` })],
+		[mark.recordResult, toolUse("read")({ path: `${child.mark}.after.txt` })],
+		[mark.afterResult, Reply.Text({ text: "done" })],
 	];
 };
 
@@ -161,8 +170,8 @@ const plant = (run: Run) =>
 			const mark = marksOf(child);
 
 			return Effect.andThen(
-				fs.writeFileString(`${project}/${child.mark}.record.txt`, `${mark.record}\n${text}\n`),
-				fs.writeFileString(`${project}/${child.mark}.after.txt`, `${mark.after}. The build uses bun.\n`),
+				fs.writeFileString(`${project}/${child.mark}.record.txt`, `${mark.recordResult}\n${text}\n`),
+				fs.writeFileString(`${project}/${child.mark}.after.txt`, `${mark.afterResult}. The build uses bun.\n`),
 			);
 		});
 
@@ -181,24 +190,24 @@ const recordAsDue = (planted: ReadonlyArray<string>) => (turn: Served) => {
 	return Arr.contains(openCarriers, turn.carrier) ? !raw && holdsStub(turn.body) : raw;
 };
 
-const landed = (run: Run, child: Child, planted: ReadonlyArray<string>) =>
+const landed = (run: Run, child: ExpectedChild, planted: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const mark = marksOf(child);
-		const [task, record, after] = [turnsOf(mark.task), turnsOf(mark.record), turnsOf(mark.after)];
-		const onClean = (turn: Served) => Arr.contains(child.clean, pairOf(turn));
-		const onSealed = (turn: Served) => pairOf(turn) === child.sealed;
+		const [task, record, after] = [turnsOf(mark.brief), turnsOf(mark.recordResult), turnsOf(mark.afterResult)];
+		const onClean = (turn: Served) => Arr.contains(child.cleanLandsOn, pairOf(turn));
+		const onSealed = (turn: Served) => pairOf(turn) === child.sealedLandsOn;
 
 		yield* run.check(
 			Arr.isArrayNonEmpty(task) && Arr.every(task, onClean),
-			`the ${child.mark} child's clean brief went to ${Arr.join(child.clean, " or ")} (it went to ${pairsOf(task)})`,
+			`the ${child.mark} child's clean brief went to ${Arr.join(child.cleanLandsOn, " or ")} (it went to ${pairsOf(task)})`,
 		);
 		yield* run.check(
 			Arr.isArrayNonEmpty(record) && Arr.every(record, onSealed),
-			`the ${child.mark} child's sealed turn went to ${child.sealed} (it went to ${pairsOf(record)})`,
+			`the ${child.mark} child's sealed turn went to ${child.sealedLandsOn} (it went to ${pairsOf(record)})`,
 		);
 		yield* run.check(
 			Arr.isArrayNonEmpty(after) && Arr.every(after, onClean),
-			`the ${child.mark} child's clean turn after the seal went to ${Arr.join(child.clean, " or ")} (it went to ${pairsOf(after)})`,
+			`the ${child.mark} child's clean turn after the seal went to ${Arr.join(child.cleanLandsOn, " or ")} (it went to ${pairsOf(after)})`,
 		);
 		yield* run.check(
 			Arr.every([...record, ...after], recordAsDue(planted)),
@@ -206,10 +215,10 @@ const landed = (run: Run, child: Child, planted: ReadonlyArray<string>) =>
 		);
 	});
 
-const startedOn = (run: Run, child: Child, sessions: ReadonlyArray<Session>) =>
+const startedOn = (run: Run, child: ExpectedChild, sessions: ReadonlyArray<Session>) =>
 	Effect.gen(function* () {
-		const { task } = marksOf(child);
-		const session = Arr.findFirst(sessions, ({ requests }) => Arr.some(requests, Str.includes(task)));
+		const { brief } = marksOf(child);
+		const session = Arr.findFirst(sessions, ({ requests }) => Arr.some(requests, Str.includes(brief)));
 		const loaded = Option.flatMap(session, (found) => found.loaded);
 
 		const model = Option.getOrElse(
@@ -223,10 +232,14 @@ const startedOn = (run: Run, child: Child, sessions: ReadonlyArray<Session>) =>
 		});
 
 		yield* run.say({ child: child.mark, startedOn: model, pinned: Option.getOrNull(pinned) });
-		yield* run.check(model === child.key, `the ${child.mark} child's pi runs on ${child.key} (it runs on ${model})`);
 		yield* run.check(
-			child.pinned === undefined || Option.contains(pinned, child.pinned),
-			`phi-router reports the ${child.mark} child ${child.pinned === true ? "pinned" : "not pinned"}`,
+			model === child.startsOn,
+			`the ${child.mark} child's pi runs on ${child.startsOn} (it runs on ${model})`,
+		);
+		yield* run.check(
+			child.phiRouterReports === "outside phi-router" ||
+				Option.contains(pinned, child.phiRouterReports === "pinned"),
+			`phi-router reports the ${child.mark} child ${child.phiRouterReports}`,
 		);
 	});
 
@@ -249,9 +262,9 @@ const noLeak = (run: Run, planted: ReadonlyArray<string>) =>
 		);
 	});
 
-const startChild = (run: Run) => (child: Child, index: number) =>
+const startChild = (run: Run) => (child: ExpectedChild, index: number) =>
 	Effect.andThen(
-		run.root.prompt(`${marksOf(child).step}. Start the ${child.mark} child.`),
+		run.root.prompt(`${marksOf(child).rootPrompt}. Start the ${child.mark} child.`),
 		wakeAnswered(run)(index + 1),
 	);
 
