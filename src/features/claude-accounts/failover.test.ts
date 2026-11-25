@@ -29,14 +29,18 @@ const at = (time: string) => DateTime.makeUnsafe(`2026-11-18T${time}Z`);
 
 const on = (provider: string) => ({ ...opus, provider });
 
-const personalLimited = new Map([
+const personalLimited: Limits = new Map([
 	["ultra-a", at("12:00:00")],
 	["ultra-b", at("14:00:00")],
 ]);
 
-const allLimited = new Map([...personalLimited, ["ent", at("13:00:00")]]);
+const allLimited: Limits = new Map([...personalLimited, ["ent", at("13:00:00")]]);
 
-const failovers = [
+const failovers: ReadonlyArray<{
+	readonly name: string;
+	readonly request: Omit<Parameters<typeof failoverOf>[0], "now">;
+	readonly goes: string;
+}> = [
 	{
 		name: "a session on ultra-a moves to ultra-b while ultra-b is open",
 		request: { current: on("ultra-a"), runnableModel, limits: new Map([["ultra-a", at("12:00:00")]]) },
@@ -219,7 +223,7 @@ test("Escape ends the wait, and the session stays where it is", () => {
 const minutesIn = (minutes: number) => DateTime.makeUnsafe(minutes * 60_000);
 
 test("the wait ends at the first reset, and the session moves to that account", () => {
-	const limits = new Map([
+	const limits: Limits = new Map([
 		["ultra-a", minutesIn(120)],
 		["ultra-b", minutesIn(1)],
 		["ent", minutesIn(180)],

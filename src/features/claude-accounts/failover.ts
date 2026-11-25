@@ -6,10 +6,9 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 
-import { accountOf, fallbackChain } from "./accounts.ts";
+import { type AccountId, accountOf, fallbackChain } from "./accounts.ts";
 
-/** When each account that answered 429 takes requests again, by account id. */
-export type Limits = ReadonlyMap<string, DateTime.Utc>;
+export type Limits = ReadonlyMap<AccountId, DateTime.Utc>;
 
 export type Failover =
 	| { readonly kind: "move"; readonly model: Model<Api> }
@@ -33,7 +32,12 @@ const failoverFrom = ({
 	readonly limits: Limits;
 	readonly now: DateTime.Utc;
 }): Failover => {
-	const backAt = (on: Model<Api>) => limits.get(on.provider) ?? now;
+	const backAt = (on: Model<Api>) =>
+		Option.getOrElse(
+			Option.flatMapNullishOr(accountOf(on.provider), ({ id }) => limits.get(id)),
+			() => now,
+		);
+
 	const open = Arr.findFirst(chain, (on) => !DateTime.isGreaterThan(backAt(on), now));
 
 	if (Option.isSome(open)) {
