@@ -3,7 +3,7 @@ import { expect, test } from "bun:test";
 import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import * as Effect from "effect/Effect";
 
-import { guardCodemode } from "./codemode.ts";
+import { guardCodemode } from "./index.ts";
 
 const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
 

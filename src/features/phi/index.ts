@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-import { guardCodemode } from "./codemode.ts";
+import { guardCodemode } from "./codemode/index.ts";
 
 export { baaProviders, isBaa, isPhi, isProtected, phiProvider, sealedId } from "./protection.ts";
 

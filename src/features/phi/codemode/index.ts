@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { isProtected } from "./protection.ts";
+import { isProtected } from "#src/features/phi/protection.ts";
 
 const unicodeEscape = /(?<escape>\\u\{[\dA-Fa-f]+\}|\\u[\dA-Fa-f]{4})/u;
 
