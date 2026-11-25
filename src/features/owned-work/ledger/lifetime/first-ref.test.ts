@@ -34,7 +34,7 @@ test("a ledger's first work takes the first ref it is given, so refs go on past 
 	Effect.runPromise(
 		Effect.gen(function* () {
 			const self = Self.Root({ role: "root", level: 1 });
-			const ledger = ledgerLayer({ self, cwd: "/", passEnv: {}, firstRef: 8, carried: Option.none() });
+			const ledger = ledgerLayer({ self, cwd: "/", passEnv: {}, firstRef: 8, handover: Option.none() });
 			const context = yield* Layer.build(Layer.provide(ledger, outside));
 			const serve = StartRequest.Serve({ name: "dev server", command: "true", ready: Option.none() });
 			const handle = yield* Context.get(context, Ledger).start(serve);

@@ -76,8 +76,7 @@ export interface LedgerOptions {
 	readonly cwd: string;
 	readonly passEnv: Readonly<Record<string, string>>;
 	readonly firstRef: number;
-	/** The state a reload handed over, whose work keeps running. */
-	readonly carried: Option.Option<LedgerState>;
+	readonly handover: Option.Option<LedgerState>;
 }
 
 interface Kit {
@@ -260,14 +259,14 @@ export const ledgerLayer = (
 				cli: yield* PiCli,
 				verdictServices: yield* Effect.context<VerdictServices>(),
 				state: yield* SubscriptionRef.make(
-					Option.getOrElse(options.carried, () => Transitions.initial(options.self.role, options.firstRef, now)),
+					Option.getOrElse(options.handover, () => Transitions.initial(options.self.role, options.firstRef, now)),
 				),
 				lock: yield* Semaphore.make(1),
 				fibers: yield* FiberSet.make(),
 				deadlines: yield* FiberMap.make<WorkRef>(),
 			};
 
-			yield* Effect.forEach(Option.toArray(options.carried), (state) =>
+			yield* Effect.forEach(Option.toArray(options.handover), (state) =>
 				Effect.all([kit.hc.follow, kit.cli.adopt(liveDelegates(state)), apply(kit, Transitions.carried)]),
 			);
 			yield* Effect.forkScoped(follow(kit));

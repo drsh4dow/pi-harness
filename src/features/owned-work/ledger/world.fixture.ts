@@ -194,7 +194,7 @@ const selfOf = (role: Role) =>
 
 const reloaded = (
 	current: Load,
-	load: (carried: Option.Option<LedgerState>) => Effect.Effect<Load>,
+	load: (handover: Option.Option<LedgerState>) => Effect.Effect<Load>,
 	listening: Latch.Latch,
 ) =>
 	Effect.gen(function* () {
@@ -215,11 +215,11 @@ interface Load {
 
 const loadOf =
 	(self: Self, kept: Context.Context<Hc | Host | Slices | NodeServices.NodeServices>, scope: Scope.Scope) =>
-	(carried: Option.Option<LedgerState>): Effect.Effect<Load> =>
+	(handover: Option.Option<LedgerState>): Effect.Effect<Load> =>
 		Effect.gen(function* () {
 			const own = yield* Scope.fork(scope);
 			const clients = Layer.mergeAll(piSessionsLayer, piCliLayer(["/entrypoint.ts"]));
-			const ledger = ledgerLayer({ self, cwd: sessionRoot, passEnv: { HOME: sessionRoot }, firstRef: 1, carried });
+			const ledger = ledgerLayer({ self, cwd: sessionRoot, passEnv: { HOME: sessionRoot }, firstRef: 1, handover });
 			const layer = Layer.provide(Layer.provideMerge(ledger, clients), Layer.succeedContext(kept));
 			const context = yield* Layer.buildWithScope(layer, own);
 

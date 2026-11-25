@@ -88,7 +88,7 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 	const relay: Relay = { waiter: Option.none() };
 	const firstRef = firstRefAfter(ctx.sessionManager.getEntries());
 	const passEnv = inheritedEnv(env);
-	const ledger = ledgerLayer({ self, cwd: ctx.cwd, passEnv, firstRef, carried: Handover.stateOf(inheritance) });
+	const ledger = ledgerLayer({ self, cwd: ctx.cwd, passEnv, firstRef, handover: Handover.stateOf(inheritance) });
 
 	const slices = Self.$is("Root")(self)
 		? slicesLayer({ slice: sliceOf(agentKey), rootPid: Option.some(process.pid) })
