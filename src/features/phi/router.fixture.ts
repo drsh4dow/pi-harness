@@ -27,22 +27,23 @@ const lists: {
 	readonly targetModel: Readonly<Record<string, string>>;
 } = documented;
 
-/** A Claude account's mock, by account name. */
-type ClaudeMocks = Readonly<Record<string, Pick<MockAnthropic, "url">>>;
+type ClaudeMockByAccount = Readonly<Record<string, Pick<MockAnthropic, "url">>>;
 
 const refused = "http://127.0.0.1:9";
 
-/** A Codex access token whose claims expire in 2100, unsigned. */
-const codexToken = "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDI0NDQ4MDB9.fake";
+const unsignedCodexTokenUntil2100 = "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDI0NDQ4MDB9.fake";
 
-const far = 4_102_444_800_000;
+const year2100InMillis = 4_102_444_800_000;
 
 const loginFile = (account: Account): readonly [string, Schema.JsonObject] =>
 	account.vendor === "anthropic"
-		? [".credentials.json", { claudeAiOauth: { accessToken: `fake-${account.name}-access`, expiresAt: far } }]
-		: ["auth.json", { tokens: { access_token: codexToken, account_id: `fake-${account.name}` } }];
+		? [
+				".credentials.json",
+				{ claudeAiOauth: { accessToken: `fake-${account.name}-access`, expiresAt: year2100InMillis } },
+			]
+		: ["auth.json", { tokens: { access_token: unsignedCodexTokenUntil2100, account_id: `fake-${account.name}` } }];
 
-const faked = (claude: ClaudeMocks, logins: string) => (account: Account) => {
+const faked = (claude: ClaudeMockByAccount, logins: string) => (account: Account) => {
 	const mock = Rec.get(claude, account.name);
 
 	const endpoint = Option.getOrElse(
@@ -74,7 +75,7 @@ export const routerSetup = ({
 	baaRepos = () => [],
 }: {
 	readonly env: Readonly<Record<string, string | undefined>>;
-	readonly claude: ClaudeMocks;
+	readonly claude: ClaudeMockByAccount;
 	readonly openai: Pick<MockOpenAi, "url">;
 	readonly baaRepos?: (project: string) => ReadonlyArray<string>;
 }) => ({
