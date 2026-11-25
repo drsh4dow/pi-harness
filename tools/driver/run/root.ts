@@ -22,7 +22,6 @@ import { type Message, type Sent, sentOf, textOf } from "./message.ts";
 export interface Root {
 	readonly prompt: (message: Message, within?: Duration.Input) => Effect.Effect<Option.Option<string>, ScenarioFailed>;
 	readonly steer: (message: Message) => Effect.Effect<void, ScenarioFailed>;
-	/** Runs pi's manual compaction, as `/compact` does, and returns once pi answers. */
 	readonly compact: Effect.Effect<void, ScenarioFailed>;
 	readonly stderr: Effect.Effect<string>;
 }
