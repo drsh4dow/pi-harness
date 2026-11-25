@@ -12,7 +12,6 @@ const skills = Bun.fileURLToPath(new URL("../../../agent/skills/", import.meta.u
 /** Skills published on skills.sh, which run in any agent with only their own folder. */
 const selfContained = ["making-videos"];
 
-/** A path into this harness or this machine, a pi tool field, a pi command, or a citation of another skill by name. */
 const harnessOnly = /~\/\.pi\b|\.pi\/agent|~\/Projects\/|instructionsFile|\/reload\b|\*\*[a-z0-9-]+\*\* skill/u;
 
 const hitsIn = (file: string, text: string) =>
@@ -45,17 +44,19 @@ const hitsInSkill = Effect.fn("hitsInSkill")(function* (skill: string) {
 	return Arr.flatten(hits);
 });
 
-test("a harness path, a pi tool field or a cited skill is a hit, and a public install line is not", () => {
+test("a harness path, a pi tool field, a pi command or a cited skill is a hit, and a public install line is not", () => {
 	const lines = [
 		"Run `~/.pi/agent/skills/making-videos/scripts/check.sh --setup`.",
 		"Start delegates with `instructionsFile: cold-reader.md`.",
 		"Upload it with the **dumpfile** skill.",
 		"npx skills add drsh4dow/pi-harness --skill making-videos -g",
+		"Then run /reload.",
+		"Clone it into ~/Projects/demo.",
 	];
 
 	const hits = hitsIn("f.md", Arr.join(lines, "\n"));
 
-	expect(Arr.map(hits, Str.slice(0, 7))).toEqual(["f.md:1:", "f.md:2:", "f.md:3:"]);
+	expect(Arr.map(hits, Str.slice(0, 7))).toEqual(["f.md:1:", "f.md:2:", "f.md:3:", "f.md:5:", "f.md:6:"]);
 });
 
 test("no file in a self-contained skill reaches outside its folder into the harness", () =>

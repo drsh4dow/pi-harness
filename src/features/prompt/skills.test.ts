@@ -125,9 +125,15 @@ const docsOf = (filePath: string) =>
 		);
 	});
 
-/** The skills `text` points the agent at, written as `name` or **name**, out of `names`. */
 const pointsAt = (text: string, names: ReadonlyArray<string>) =>
 	Arr.filter(names, (name) => Str.includes(`\`${name}\``)(text) || Str.includes(`**${name}**`)(text));
+
+test("a skill points at another written as `name` or **name**, and a bare name points at none", () => {
+	expect(pointsAt("Run `grilling`, then **tdd**, then handoff.", ["grilling", "tdd", "handoff"])).toEqual([
+		"grilling",
+		"tdd",
+	]);
+});
 
 const childRoles: ReadonlyArray<Role> = ["owner", "leaf"];
 
@@ -169,29 +175,32 @@ test("no skill an owner or a leaf loads points it at a skill hidden from its rol
 		}),
 	));
 
-/** Skill text that contradicts a rule the always-on prompt owns. `delegates` limits a phrase to the skills a delegate loads. */
 const contradictions = [
-	{ phrase: /reset --hard/u, rule: "<git> preserves unrelated changes", delegates: false },
-	{ phrase: /ask before delet/iu, rule: "Subtract first deletes once it knows why the code exists", delegates: false },
+	{ phrase: /reset --hard/u, rule: "<git> preserves unrelated changes", delegateSkillsOnly: false },
+	{
+		phrase: /ask before delet/iu,
+		rule: "Subtract first deletes once it knows why the code exists",
+		delegateSkillsOnly: false,
+	},
 	{
 		phrase: /when you run as a delegate/iu,
 		rule: "the owner and leaf role files own what a delegate does",
-		delegates: false,
+		delegateSkillsOnly: false,
 	},
 	{
 		phrase: /multiple agents or sessions/iu,
 		rule: "the delegate rules say when parts run in parallel",
-		delegates: false,
+		delegateSkillsOnly: false,
 	},
 	{
 		phrase: /tasks one at a time/iu,
 		rule: "the agent leading a build hands each slice to an owner",
-		delegates: false,
+		delegateSkillsOnly: false,
 	},
 	{
 		phrase: /STOP YOUR TURN/u,
 		rule: "a delegate has no later turn, and the roles decide when to stop",
-		delegates: true,
+		delegateSkillsOnly: true,
 	},
 ];
 
@@ -202,9 +211,19 @@ const contradictedRules = ({
 	readonly text: string;
 	readonly seenByDelegate: boolean;
 }): ReadonlyArray<string> =>
-	Arr.flatMap(contradictions, ({ phrase, rule, delegates }) =>
-		phrase.test(text) && (!delegates || seenByDelegate) ? [rule] : [],
+	Arr.flatMap(contradictions, ({ phrase, rule, delegateSkillsOnly }) =>
+		phrase.test(text) && (!delegateSkillsOnly || seenByDelegate) ? [rule] : [],
 	);
+
+test("STOP YOUR TURN contradicts the roles only in a skill a delegate loads, and reset --hard in any skill", () => {
+	const stopRule = "a delegate has no later turn, and the roles decide when to stop";
+
+	expect([
+		contradictedRules({ text: "Then STOP YOUR TURN.", seenByDelegate: true }),
+		contradictedRules({ text: "Then STOP YOUR TURN.", seenByDelegate: false }),
+		contradictedRules({ text: "Run git reset --hard.", seenByDelegate: false }),
+	]).toEqual([[stopRule], [], ["<git> preserves unrelated changes"]]);
+});
 
 test("no skill contradicts a rule the always-on prompt owns", () =>
 	run(
