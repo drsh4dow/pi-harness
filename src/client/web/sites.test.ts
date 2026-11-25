@@ -5,15 +5,29 @@ import * as Str from "effect/String";
 import { docsPage, dropsMidBody, html, markdown, missing, plain, prose, redirect } from "./transport.fixture.ts";
 import { type ReadRow, readRow } from "./web.fixture.ts";
 
-const redditEntry = (author: string, date: string, title: string, content: string) =>
+interface RedditPost {
+	readonly author: string;
+	readonly date: string;
+	readonly title: string;
+	readonly content: string;
+}
+
+const redditEntry = ({ author, date, title, content }: RedditPost) =>
 	`<entry><author><name>/u/${author}</name></author><content type="html">${Str.replaceAll("<", "&lt;")(content)}</content><updated>${date}T00:00:00+00:00</updated><title>${title}</title></entry>`;
 
 const redditFeed = `<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>bun hangs</title>${redditEntry(
-	"alice",
-	"2026-02-01",
-	"bun hangs",
-	'<div class="md"><p>It hangs on <a href="https://bun.sh/docs/cli/install">install</a>.</p></div>',
-)}${redditEntry("bob", "2026-02-02", "/u/bob on bun hangs", '<div class="md"><p>Same here, see <a href="/r/bun/wiki">the wiki</a>.</p></div>')}</feed>`;
+	{
+		author: "alice",
+		date: "2026-02-01",
+		title: "bun hangs",
+		content: '<div class="md"><p>It hangs on <a href="https://bun.sh/docs/cli/install">install</a>.</p></div>',
+	},
+)}${redditEntry({
+	author: "bob",
+	date: "2026-02-02",
+	title: "/u/bob on bun hangs",
+	content: '<div class="md"><p>Same here, see <a href="/r/bun/wiki">the wiki</a>.</p></div>',
+})}</feed>`;
 
 const exaCopy = (url: string, text: string) => () => Response.json({ results: [{ url, title: "Exa", text }] });
 

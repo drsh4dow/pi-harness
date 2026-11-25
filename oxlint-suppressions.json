@@ -9,16 +9,6 @@
       "count": 1
     }
   },
-  "src/client/web/github.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/client/web/sites.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/checks/slots.scenario.ts": {
     "max-params": {
       "count": 1

@@ -124,14 +124,21 @@ const ghPrinting = (gh: string) =>
 		string: () => Effect.succeed(gh),
 	});
 
-const tokenRows: ReadonlyArray<readonly [string, Readonly<Record<string, string>>, string, string]> = [
-	["GH_TOKEN comes first", { GH_TOKEN: "a", GITHUB_TOKEN: "b" }, "c\n", "auth=Bearer a"],
-	["GITHUB_TOKEN comes next", { GITHUB_TOKEN: "b" }, "c\n", "auth=Bearer b"],
-	["gh auth token comes last", {}, "c\n", "auth=Bearer c"],
-	["with no token anywhere the API is read without one", {}, "", "auth=none"],
+interface TokenRow {
+	readonly name: string;
+	readonly env: Readonly<Record<string, string>>;
+	readonly gh: string;
+	readonly expected: string;
+}
+
+const tokenRows: ReadonlyArray<TokenRow> = [
+	{ name: "GH_TOKEN comes first", env: { GH_TOKEN: "a", GITHUB_TOKEN: "b" }, gh: "c\n", expected: "auth=Bearer a" },
+	{ name: "GITHUB_TOKEN comes next", env: { GITHUB_TOKEN: "b" }, gh: "c\n", expected: "auth=Bearer b" },
+	{ name: "gh auth token comes last", env: {}, gh: "c\n", expected: "auth=Bearer c" },
+	{ name: "with no token anywhere the API is read without one", env: {}, gh: "", expected: "auth=none" },
 ];
 
-test.each(tokenRows)("GitHub's token: %s", (_name, env, gh, expected) => {
+test.each(tokenRows)("GitHub's token: $name", ({ env, gh, expected }) => {
 	const config = ConfigProvider.layer(ConfigProvider.fromUnknown(env));
 	const tokens = Layer.provide(githubTokenLayer, Layer.merge(config, ghPrinting(gh)));
 	const web = Layer.provide(webFor({ routes: readmeRoutes }), tokens);
