@@ -18,7 +18,7 @@ import * as Str from "effect/String";
 
 import { inheritedEnv, levels, type StagedLaunch, stagedLaunches } from "#src/features/owned-work/index.ts";
 import { harnessEntries, withoutPackageBins } from "#tools/harness.ts";
-import { type Capture, Payload, render } from "./render.ts";
+import { type Capture, SystemPromptPayload, render } from "./render.ts";
 
 const captureExtension = `${import.meta.dirname}/capture.ts`;
 
@@ -31,7 +31,7 @@ type Env = Readonly<Record<string, string>>;
 interface Run {
 	readonly key: string;
 	readonly title: string;
-	readonly about: string;
+	readonly whichPi: string;
 	readonly argv: ReadonlyArray<string>;
 	readonly env: Env;
 }
@@ -43,7 +43,7 @@ class CaptureFailed extends Schema.TaggedError<CaptureFailed, { readonly brand: 
 	message: Schema.String,
 }) {}
 
-const decodePayload = Schema.decodeEffect(Schema.fromJsonString(Payload));
+const decodePayload = Schema.decodeEffect(Schema.fromJsonString(SystemPromptPayload));
 
 const spawn = Effect.fn("spawn")(function* (argv: ReadonlyArray<string>, cwd: string, env: Env) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
@@ -80,7 +80,7 @@ const capture = Effect.fn("capture")(function* (run: Run, cwd: string, workDir: 
 
 	const payload = yield* Effect.flatMap(fs.readFileString(file), decodePayload);
 
-	return { title: run.title, about: run.about, payload } satisfies Capture;
+	return { title: run.title, whichPi: run.whichPi, payload } satisfies Capture;
 });
 
 /** The user's own agent folder, which holds what the harness does not ship: credentials, settings, sessions. */
@@ -100,7 +100,7 @@ const stockAgentDir = Effect.fn("stockAgentDir")(function* (harnessRoot: string,
 	return into;
 });
 
-const aboutOf = ({ role, level }: StagedLaunch) => {
+const whichPiOf = ({ role, level }: StagedLaunch) => {
 	if (role === "leaf") {
 		return "A child pi the `delegate` tool started as a leaf, on one bounded task. It has no `delegate` tool and no playbooks.";
 	}
@@ -129,7 +129,7 @@ const borrowUserState = Effect.fn("borrowUserState")(function* (agentDir: string
 const delegateRun = (launch: StagedLaunch, harnessEnv: Env): Run => ({
 	key: `delegate-${launch.name}`,
 	title: `Delegate \`${launch.name}\` (${launch.role}, level ${String(launch.level)})`,
-	about: aboutOf(launch),
+	whichPi: whichPiOf(launch),
 	argv: launch.argv,
 	env: { ...withoutPackageBins(launch.env), ...harnessEnv },
 });
@@ -153,7 +153,7 @@ const captureAll = Effect.fn("captureAll")(function* (harnessRoot: string, proje
 				piRun({
 					key: "stock",
 					title: "Stock pi",
-					about: "pi without this harness: no `SYSTEM.md` and no harness extensions.",
+					whichPi: "pi without this harness: no `SYSTEM.md` and no harness extensions.",
 					env: { ...userEnv, PI_CODING_AGENT_DIR: stockDir },
 				}),
 			),
@@ -161,7 +161,7 @@ const captureAll = Effect.fn("captureAll")(function* (harnessRoot: string, proje
 				piRun({
 					key: "root",
 					title: "Root agent",
-					about: "The pi you start and talk to.",
+					whichPi: "The pi you start and talk to.",
 					env: { ...userEnv, ...harnessEnv },
 				}),
 			),

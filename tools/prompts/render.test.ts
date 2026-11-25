@@ -3,12 +3,12 @@ import { expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 
-import { Payload, render } from "./render.ts";
+import { SystemPromptPayload, render } from "./render.ts";
 
-const reportOf = (payload: Payload) => ({
+const reportOf = (payload: SystemPromptPayload) => ({
 	piVersion: "1.0.0",
 	project: "/p",
-	captures: [{ title: "Root agent", about: "The pi you start.", payload }],
+	captures: [{ title: "Root agent", whichPi: "The pi you start.", payload }],
 });
 
 const fenced = "````text\nYou are pi.\n\nFollow the rules.\n````";
@@ -42,7 +42,7 @@ const payloadRows = [
 
 test.each(payloadRows)("$name", (row) =>
 	Effect.runPromise(
-		Effect.map(Schema.decodeEffect(Payload)(row.payload), (payload) => {
+		Effect.map(Schema.decodeEffect(SystemPromptPayload)(row.payload), (payload) => {
 			expect(render(reportOf(payload))).toContain(`## Root agent\n\nThe pi you start.\n\n${fenced}`);
 		}),
 	),

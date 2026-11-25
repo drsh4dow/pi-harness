@@ -14,23 +14,21 @@ const InputItem = Schema.Union([Instruction, Schema.Struct({})]);
 
 const ResponsesPayload = Schema.Struct({ input: Schema.Array(InputItem) });
 
-/** The part of a request payload the report reads: its system prompt. */
-export const Payload = Schema.Union([AnthropicPayload, ResponsesPayload]);
+export const SystemPromptPayload = Schema.Union([AnthropicPayload, ResponsesPayload]);
 
-export type Payload = typeof Payload.Type;
+export type SystemPromptPayload = typeof SystemPromptPayload.Type;
 
 const isInstruction = Schema.is(Instruction);
 
-const systemBlocks = (payload: Payload) =>
+const systemBlocks = (payload: SystemPromptPayload) =>
 	"system" in payload
 		? Arr.map(payload.system, (block) => block.text)
 		: Arr.map(Arr.filter(payload.input, isInstruction), (item) => item.content);
 
 export interface Capture {
 	readonly title: string;
-	/** One line on which pi this is. */
-	readonly about: string;
-	readonly payload: Payload;
+	readonly whichPi: string;
+	readonly payload: SystemPromptPayload;
 }
 
 export interface Report {
@@ -44,7 +42,7 @@ const fence = (body: string) => `\`\`\`\`text\n${body}\n\`\`\`\``;
 const section = (capture: Capture) => {
 	const blocks = systemBlocks(capture.payload);
 
-	return [`## ${capture.title}`, "", capture.about, "", fence(Arr.join(blocks, "\n\n")), ""];
+	return [`## ${capture.title}`, "", capture.whichPi, "", fence(Arr.join(blocks, "\n\n")), ""];
 };
 
 export const render = (report: Report) => {
