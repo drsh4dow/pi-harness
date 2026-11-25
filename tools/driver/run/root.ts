@@ -19,7 +19,6 @@ import type { World } from "#tools/driver/world/index.ts";
 import { lfLines } from "./lines.ts";
 import { type Message, type Sent, sentOf, textOf } from "./message.ts";
 
-/** The root pi a scenario talks to. Every call fails at once if the root has exited. */
 export interface Root {
 	readonly prompt: (message: Message, within?: Duration.Input) => Effect.Effect<Option.Option<string>, ScenarioFailed>;
 	/** Queues `message` as steering while pi runs: pi delivers it after the current tool calls, before its next model call. */
@@ -33,7 +32,6 @@ export interface Root {
 export interface RootProcess extends Root {
 	/** From `get_state` at start. pi creates the file at the first message, so it can be missing early on. */
 	readonly session: { readonly id: string; readonly file: string };
-	/** Fails with `the root pi exited <code>` once the root exits, for any reason. Race any wait against it. */
 	readonly exited: Effect.Effect<never, ScenarioFailed>;
 }
 

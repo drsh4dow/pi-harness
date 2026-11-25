@@ -1,13 +1,14 @@
 import { expect, test } from "bun:test";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
 
-import { layoutOf } from "#tools/driver/world/index.ts";
+import { type Layout, layoutOf, type World } from "#tools/driver/world/index.ts";
 import { lfLines } from "./lines.ts";
-import { type Root, startRoot } from "./root.ts";
+import { type RootProcess, startRoot } from "./root.ts";
 
 const rows = [
 	{
@@ -52,16 +53,12 @@ test.each(rows)("lfLines: $name", ({ carried, chunk, expected }) => {
 	expect(lfLines({ carried, chunk })).toEqual(expected);
 });
 
-/**
- * A pi that answers every RPC command except `FAKE_IGNORES`. It settles 200 ms after each prompt, aborted when
- * `FAKE_ABORTED` is set, and only then has `FAKE_TEXT` as its last assistant text; with none set it leaves `text` out,
- * as pi does.
- */
 const fakePi = `#!/usr/bin/env bun
 let text;
 for await (const line of console) {
 	const command = JSON.parse(line);
 	if (command.type === process.env.FAKE_IGNORES) continue;
+	if (command.type === process.env.FAKE_EXITS_ON) process.exit(3);
 	const data = {
 		get_state: { sessionId: "s", sessionFile: "/s.jsonl" },
 		prompt: { disposition: "queued" },
@@ -75,7 +72,7 @@ for await (const line of console) {
 }
 `;
 
-const fakeRoot = (env: Readonly<Record<string, string>>) =>
+const fakeWorld = (env: Readonly<Record<string, string>>) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const tmp = yield* fs.makeTempDirectoryScoped();
@@ -86,23 +83,30 @@ const fakeRoot = (env: Readonly<Record<string, string>>) =>
 		);
 		yield* fs.writeFileString(`${layout.bin}/pi`, fakePi, { mode: 0o755 });
 
-		return yield* startRoot({
-			world: {
-				layout,
-				agentDir: tmp,
-				env: { PATH: Bun.env["PATH"] ?? "", ...env },
-				pi: { version: "0.0.0", path: `${layout.bin}/pi` },
-				exec: () => Effect.die("unused"),
-			},
-			model: "a/b",
-			progress: () => Effect.void,
-		});
+		return {
+			layout,
+			agentDir: tmp,
+			env: { PATH: Bun.env["PATH"] ?? "", ...env },
+			pi: { version: "0.0.0", path: `${layout.bin}/pi` },
+			exec: () => Effect.die("unused"),
+		} satisfies World;
 	});
+
+const started = (world: World) => startRoot({ world, model: "a/b", progress: () => Effect.void });
 
 const withRoot = <Value, Failure>(
 	env: Readonly<Record<string, string>>,
-	use: (root: Root) => Effect.Effect<Value, Failure>,
-) => Effect.runPromise(Effect.flatMap(fakeRoot(env), use).pipe(Effect.scoped, Effect.provide(NodeServices.layer)));
+	use: (root: RootProcess, layout: Layout) => Effect.Effect<Value, Failure, FileSystem.FileSystem>,
+) =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const world = yield* fakeWorld(env);
+
+			const root = yield* started(world);
+
+			return yield* use(root, world.layout);
+		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+	);
 
 test("prompt returns the text pi has once it settles, not before", () =>
 	withRoot({ FAKE_TEXT: "ok" }, (root) =>
@@ -142,3 +146,17 @@ test.each(["prompt", "get_last_assistant_text"])(
 			}),
 		),
 );
+
+test("once the root pi exits, every call to it fails at once with its exit code", () =>
+	withRoot({ FAKE_EXITS_ON: "prompt" }, (root, layout) =>
+		Effect.gen(function* () {
+			const failures = yield* Effect.forEach(
+				[root.prompt("hi"), root.steer("hi"), root.compact, root.exited],
+				Effect.flip,
+			);
+
+			expect(Arr.map(failures, (failure) => failure.message)).toEqual(
+				Arr.replicate(`the root pi exited 3, see ${layout.rootStderr}`, 4),
+			);
+		}),
+	));
