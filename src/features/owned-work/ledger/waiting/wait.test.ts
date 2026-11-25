@@ -8,7 +8,7 @@ import { exit, sessionRoot } from "#src/features/owned-work/ledger/world.fixture
 import { messageOf } from "#src/features/owned-work/session/index.ts";
 import { Outcome, WorkRef } from "#src/features/owned-work/work.ts";
 import { Waiting } from "./index.ts";
-import { together, waitReturns, waitStarts, waitStops, waitsBlocking } from "./wait.fixture.ts";
+import { together, waitEnds, waitReturns, waitStarts, waitStops, waitsBlocking } from "./wait.fixture.ts";
 
 const { Hook, Start, Answer, End, TurnEnds } = Act;
 
@@ -99,7 +99,7 @@ const rows: ReadonlyArray<Row> = [
 			Start({ kind: "watch" }),
 			waitStarts(),
 			together(waitStops, End({ terminal: "t1", end: exit(0) })),
-			waitReturns(),
+			waitEnds,
 			Hook({ event: "goes idle" }),
 		],
 	},

@@ -45,21 +45,25 @@ export const waitsBlocking = (expected: number) =>
 			}),
 	});
 
-/** Takes the first wait's reply, and checks it unless the row cannot know which delivery got the result. */
-export const waitReturns = (expected?: string) =>
+const firstReply = (world: World) =>
+	Effect.gen(function* () {
+		const { reply } = yield* firstWait(world);
+		const got = yield* Fiber.join(reply);
+
+		world.waits.shift();
+
+		return got;
+	});
+
+export const waitReturns = (expected: string) =>
 	Act.Drive({
 		run: (world) =>
-			Effect.gen(function* () {
-				const { reply } = yield* firstWait(world);
-				const got = yield* Fiber.join(reply);
-
-				world.waits.shift();
-
-				if (expected !== undefined) {
-					expect(got).toBe(expected);
-				}
+			Effect.map(firstReply(world), (got) => {
+				expect(got).toBe(expected);
 			}),
 	});
+
+export const waitEnds = Act.Drive({ run: (world) => Effect.asVoid(firstReply(world)) });
 
 export const together = (...acts: ReadonlyArray<Act>) =>
 	Act.Drive({ run: (_world, perform) => Effect.asVoid(Effect.forEach(acts, perform, { concurrency: "unbounded" })) });
