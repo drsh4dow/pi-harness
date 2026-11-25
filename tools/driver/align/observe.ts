@@ -14,10 +14,6 @@ import type { Run, Session, Sessions } from "#tools/driver/index.ts";
 
 export const rootModel = "ultra-a/claude-opus-5-5";
 
-/**
- * The run borrows the human's gh login. This default host, unreachable, keeps an agent that tries `gh repo create` or
- * `gh api` off GitHub: set it as `GH_HOST` in the scenario's `env`.
- */
 export const offGitHub = "github.invalid";
 
 export interface Commit {
