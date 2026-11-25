@@ -15,7 +15,6 @@ export const Reply = Data.taggedEnum<Reply>();
 export interface Asked {
 	readonly lastText: string;
 	readonly body: string;
-	/** The model id the request names. */
 	readonly model: string;
 }
 

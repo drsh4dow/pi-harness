@@ -215,7 +215,6 @@ const landed = (run: Run, child: Child, planted: ReadonlyArray<string>) =>
 		);
 	});
 
-/** The child is the delegate whose payloads carry its brief's mark. */
 const startedOn = (run: Run, child: Child, sessions: ReadonlyArray<Session>) =>
 	Effect.gen(function* () {
 		const { task } = marksOf(child);

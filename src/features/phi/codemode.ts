@@ -20,10 +20,6 @@ const unescaped = (code: string) => Arr.join(Arr.map(Str.split(code, unicodeEsca
 
 const modelReach = /\b(?<name>models|globalThis|self|Reflect|eval|Function)\b|\b(?<dynamic>import)\s*\(/u;
 
-/**
- * The name that makes a codemode script unsafe in a protected session, if any. It guards against a model that reaches
- * `models` by accident, not against an adversary.
- */
 const unsafeReach = (code: string) =>
 	Option.fromNullishOr(modelReach.exec(unescaped(code))?.groups).pipe(
 		Option.map(({ name, dynamic }) => name ?? `${dynamic ?? "import"}(`),

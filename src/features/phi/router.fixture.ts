@@ -89,7 +89,6 @@ export const routerSetup = ({
 	readonly env: Readonly<Record<string, string | undefined>>;
 	readonly claude: ClaudeMocks;
 	readonly openai: Pick<MockOpenAi, "url">;
-	/** The BAA repos, given the run's project folder. */
 	readonly baaRepos?: (project: string) => ReadonlyArray<string>;
 }) => ({
 	checkout: checkoutOf(env),
@@ -125,17 +124,12 @@ const decodeMessages = Schema.decodeUnknownOption(MessagesOf);
 
 const encodeJson = Schema.encodeOption(Schema.fromJsonString(Schema.Json));
 
-/**
- * Whether a Messages body holds a sealed part's stub in its conversation. phi-router's system prompt names the stub
- * too, so a search of the whole body finds it in every routed request.
- */
 export const holdsStub = (body: string) => {
 	const messages = Option.flatMap(decodeMessages(body), (decoded) => encodeJson(decoded.messages));
 
 	return Option.exists(messages, Str.includes(withheld));
 };
 
-/** The `phi-router` command of a checkout. */
 export const routerCommand = (checkout: string) => `${checkout}/plugins/claude/bin/phi-router`;
 
 const Line = Schema.Struct({

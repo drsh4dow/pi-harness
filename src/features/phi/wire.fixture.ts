@@ -38,7 +38,6 @@ export type Case = typeof Case.Type;
 
 const decodeCases = Schema.decodeUnknownEffect(Schema.NonEmptyArray(Schema.fromJsonString(Case)));
 
-/** The synthetic records of `wire.manifest.jsonl`, each with the canaries it plants. */
 export const manifestCases = Effect.gen(function* () {
 	const fs = yield* FileSystem.FileSystem;
 	const manifest = yield* fs.readFileString(`${import.meta.dir}/wire.manifest.jsonl`);
@@ -46,7 +45,6 @@ export const manifestCases = Effect.gen(function* () {
 	return yield* decodeCases(Arr.filter(Str.split(manifest, "\n"), Str.isNonEmpty));
 });
 
-/** A record's text, one message a line. */
 export const recordText = ({ messages }: Case) =>
 	Arr.join(
 		Arr.map(messages, ({ text }) => text),
@@ -55,7 +53,6 @@ export const recordText = ({ messages }: Case) =>
 
 const isWake = (entry: SessionEntry) => entry.type === "custom_message" && entry.customType === entryKind;
 
-/** Waits until the root answered its `count`th wake, and returns the providers of the answer. */
 export const wakeAnswered = (run: Run) => (count: number) =>
 	run.waitFor(`the root's answer to wake ${String(count)}`, "5 minutes", ({ root }) => {
 		const wakes = Arr.flatMap(root.entries, (entry, index) => (isWake(entry) ? [index] : []));
