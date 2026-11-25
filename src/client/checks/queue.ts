@@ -10,7 +10,6 @@ import * as Str from "effect/String";
 
 export const queuesFolder = (home: string) => `${home}/.local/state/pi-agent/queues`;
 
-/** One process in a queue, waiting or holding a place. */
 export const Holder = Schema.Struct({ pid: Schema.Finite, command: Schema.String, cwd: Schema.String });
 
 export type Holder = typeof Holder.Type;

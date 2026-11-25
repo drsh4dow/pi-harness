@@ -7,10 +7,6 @@ import * as Str from "effect/String";
 
 import { git } from "#src/client/git/index.ts";
 
-/**
- * Where a check ran: the repository's shared git folder, the worktree's root, the folder inside it, and the tree it
- * would commit with every file added.
- */
 export interface Worktree {
 	readonly repo: string;
 	readonly root: string;

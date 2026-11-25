@@ -18,7 +18,6 @@ export interface SavedFile {
 }
 
 export interface Saved {
-	/** None only for a file with no text, such as an image. */
 	readonly markdown: Option.Option<{ readonly path: string; readonly text: string }>;
 	readonly file: Option.Option<SavedFile>;
 }

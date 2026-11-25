@@ -13,8 +13,7 @@ export interface SpendRequest {
 	readonly since: DateTime.Utc;
 }
 
-/** What pi priced one provider's replies at, from the models' list prices, not from the provider's bill. */
-export interface Spend {
+export interface Estimate {
 	readonly usd: number;
 	readonly replies: number;
 }
@@ -72,13 +71,13 @@ const costOf =
 		return Option.map(counted, ({ message }) => message.usage.cost.total);
 	};
 
-const spendIn = (text: string, request: SpendRequest): Spend => {
+const spendIn = (text: string, request: SpendRequest): Estimate => {
 	const costs = Arr.getSomes(Arr.map(Str.split("\n")(text), costOf(request)));
 
 	return { usd: Arr.reduce(costs, 0, (sum, cost) => sum + cost), replies: costs.length };
 };
 
-const total = (spends: ReadonlyArray<Spend>): Spend => ({
+const total = (spends: ReadonlyArray<Estimate>): Estimate => ({
 	usd: Arr.reduce(spends, 0, (sum, { usd }) => sum + usd),
 	replies: Arr.reduce(spends, 0, (sum, { replies }) => sum + replies),
 });

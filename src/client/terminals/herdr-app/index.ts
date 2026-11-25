@@ -12,7 +12,6 @@ export class HerdrAppError extends Schema.TaggedError<HerdrAppError, { readonly 
 	{ command: Schema.String, message: Schema.String },
 ) {}
 
-/** The herdr-app window: it shows the terminals hc runs, in spaces and tabs. */
 export class HerdrApp extends Context.Service<
 	HerdrApp,
 	{

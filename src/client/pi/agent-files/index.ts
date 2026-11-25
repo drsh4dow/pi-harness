@@ -3,7 +3,6 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Str from "effect/String";
 
-/** One `<name>.md` directly in a folder. */
 export interface MarkdownFile {
 	readonly name: string;
 	readonly path: string;

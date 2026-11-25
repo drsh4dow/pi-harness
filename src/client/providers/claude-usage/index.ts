@@ -13,25 +13,21 @@ import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-/** How much of one rate-limit window an account has used. */
 export interface Window {
 	readonly name: string;
 	readonly percent: number;
 	readonly resetsAt: Option.Option<DateTime.Utc>;
 }
 
-/** An amount in a currency's minor unit, such as 884857 with exponent 2 for $8,848.57. */
 export interface Money {
 	readonly minor: number;
 	readonly exponent: number;
 	readonly currency: string;
 }
 
-/** Extra usage: what the account spends past its plan limits this month, against its cap. */
 export interface Spend {
 	readonly used: Money;
 	readonly cap: Option.Option<Money>;
-	/** Why extra usage is off, such as `out_of_credits`. None while it is on. */
 	readonly off: Option.Option<string>;
 }
 
@@ -132,8 +128,7 @@ const planOf = ({ limits, spend }: PlanWire): PlanUsage => ({
 /** The name of the window that resets each week, on the usage page and in a probe's headers. */
 export const weeklyWindow = "weekly";
 
-/** The claims Anthropic names in its headers, such as `5h` and `7d`, in the words the usage page uses. */
-const claimNames = new Map([
+const pageNameOfClaim = new Map([
 	["5h", "5-hour"],
 	["7d", weeklyWindow],
 	["overage", "extra usage"],
@@ -155,7 +150,7 @@ const resetOf = (headers: HeadersWire, claim: string) => {
 
 const windowOfHeader = (headers: HeadersWire, [name, value]: readonly [string, string]): Option.Option<Window> =>
 	Option.map(Option.fromUndefinedOr(utilization.exec(name)?.groups?.["claim"]), (claim) => ({
-		name: claimNames.get(claim) ?? claim,
+		name: pageNameOfClaim.get(claim) ?? claim,
 		percent: Number(value) * 100,
 		resetsAt: resetOf(headers, claim),
 	}));

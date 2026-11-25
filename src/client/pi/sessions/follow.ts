@@ -12,7 +12,6 @@ import * as Str from "effect/String";
 export interface Appended {
 	readonly replaced: boolean;
 	readonly text: string;
-	/** Where the next read starts. */
 	readonly offset: number;
 }
 

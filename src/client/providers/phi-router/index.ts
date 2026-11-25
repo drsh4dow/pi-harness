@@ -19,15 +19,13 @@ export class PhiRouterError extends Schema.TaggedError<PhiRouterError, { readonl
 export class PhiRouter extends Context.Service<
 	PhiRouter,
 	{
-		/** Whether the router keeps the session pinned, so every request of it goes to a BAA account. */
 		readonly pinned: (session: string) => Effect.Effect<boolean, PhiRouterError>;
 		/** Pins the session, and returns once the router stored the pin. */
 		readonly pin: (session: string) => Effect.Effect<void, PhiRouterError>;
 	}
 >()("pi-harness/client/providers/phi-router/PhiRouter") {}
 
-/** The command phi-router's pi package adds. */
-const phiCommand = "phi";
+const routerPackageCommand = "phi";
 
 /**
  * The file of the extension that added `/phi`, which is phi-router's pi package: `plugins/pi/extension.mjs` of a
@@ -35,7 +33,7 @@ const phiCommand = "phi";
  */
 export const routerExtensionOf = (commands: ReadonlyArray<SlashCommandInfo>) =>
 	Option.map(
-		Arr.findFirst(commands, ({ name, source }) => name === phiCommand && source === "extension"),
+		Arr.findFirst(commands, ({ name, source }) => name === routerPackageCommand && source === "extension"),
 		({ sourceInfo }) => sourceInfo.path,
 	);
 

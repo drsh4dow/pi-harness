@@ -7,17 +7,25 @@ import * as Path from "effect/Path";
 import type * as PlatformError from "effect/PlatformError";
 import * as Schema from "effect/Schema";
 
-/** `why` is the platform's reason, such as `NotFound`, or `not a folder`. */
 class SourceRefused extends Schema.TaggedError<SourceRefused, { readonly brand: unique symbol }>()("SourceRefused", {
 	path: Schema.String,
-	why: Schema.String,
+	why: Schema.Literals([
+		"AlreadyExists",
+		"BadArgument",
+		"BadResource",
+		"Busy",
+		"InvalidData",
+		"NotFound",
+		"PermissionDenied",
+		"TimedOut",
+		"UnexpectedEof",
+		"Unknown",
+		"WouldBlock",
+		"WriteZero",
+		"not a folder",
+	]),
 }) {}
 
-/**
- * The files and folders a delegate's brief is built from: instructions files, state-folder notes, design sketches, a
- * repo's shared documents, and the folders a delegate starts or keeps its state in. Owned-work reads them and never
- * writes them.
- */
 export class BriefSources extends Context.Service<
 	BriefSources,
 	{

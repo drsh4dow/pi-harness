@@ -41,7 +41,6 @@ export interface TerminalSnapshot {
 
 export type HcNotice = Data.TaggedEnum<{
 	Ended: { readonly terminal: TerminalAddress; readonly end: TerminalEnd };
-	/** `subscribedAt` is `Clock.monotonicTimeNanos` when the subscription that saw `terminals` began. */
 	Resynced: { readonly terminals: ReadonlyArray<TerminalSnapshot>; readonly subscribedAt: bigint };
 }>;
 

@@ -6,7 +6,6 @@ import * as FileSystem from "effect/FileSystem";
 import * as Hash from "effect/Hash";
 import * as Layer from "effect/Layer";
 
-/** Stamps the source files that lay out a value, so a reload can tell whether the code that wrote it changed. */
 export class SourceStamp extends Context.Service<
 	SourceStamp,
 	{

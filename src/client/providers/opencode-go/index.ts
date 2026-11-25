@@ -11,8 +11,7 @@ import * as Redacted from "effect/Redacted";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 
-/** How much of one OpenCode Go window the subscription has used. */
-export interface Window {
+export interface WindowUsage {
 	readonly name: string;
 	readonly percent: number;
 	readonly resetsAt: Option.Option<DateTime.Utc>;
@@ -28,7 +27,7 @@ export class OpencodeGoError extends Schema.TaggedError<OpencodeGoError, { reado
 export class OpencodeGo extends Context.Service<
 	OpencodeGo,
 	{
-		readonly usage: (key: Redacted.Redacted) => Effect.Effect<ReadonlyArray<Window>, OpencodeGoError>;
+		readonly usage: (key: Redacted.Redacted) => Effect.Effect<ReadonlyArray<WindowUsage>, OpencodeGoError>;
 	}
 >()("pi-harness/client/providers/opencode-go/OpencodeGo") {}
 
@@ -54,7 +53,7 @@ const windowOf = (name: string, wire: WindowWire | undefined) =>
 		resetsAt: DateTime.make(resetsAt),
 	}));
 
-const windowsOf = ({ usage }: UsageWire): ReadonlyArray<Window> =>
+const windowsOf = ({ usage }: UsageWire): ReadonlyArray<WindowUsage> =>
 	Arr.getSomes([
 		windowOf("5-hour", usage.rolling),
 		windowOf("weekly", usage.weekly),

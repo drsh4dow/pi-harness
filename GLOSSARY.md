@@ -35,10 +35,12 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Owned work.** Every delegate, serve, watch and group a pi process started. It survives a reload, and stops when the process quits or leaves its session.
 - **Handover.** What a reload passes from one load of the owned-work extension to the next in the same process, so the work keeps running.
 - **Agent key.** Eight characters that name one pi's terminals and its slice for one session.
+- **Herdr-App.** The window that shows the terminals hc runs, in spaces and tabs, and moves the person's typing to the terminal it focuses. It runs no terminal itself; hc does.
 - **Fork tab.** The herdr-app tab where `/fork` and `/clone` put the copy of a session: a new pi in a new tab of the same space, while the source tab keeps its session and its work.
 - **Delegate.** A child pi its parent starts on one task message, as an **owner** or a **leaf**, that ends each run in one **answer** and cannot ask its parent anything. It is known by its child session and its name, the few words its parent gives to set it apart from its other live delegates.
   _Avoid_: subagent
 - **Brief.** What a delegate starts from, set by its parent's call and kept for its life: its task message, the **goal**, the state folder, the **project facts**, the shared documents of its repo and its **instructions**, plus an owner's **design** and **owner rules**.
+- **Brief source.** A file or folder a **brief** is built from: an instructions file, a state-folder note, a design sketch, a repo's shared documents, or the folder a delegate starts or keeps its state in. Owned work reads them and never writes them.
 - **Goal.** What the human's work is for, in one statement that every delegate's prompt carries.
 - **Continuation.** Another run of a delegate in its own child session, which its parent starts with a new message. Not a new delegate, since it keeps its name and child session.
 - **Answer.** The last assistant text of a delegate's run, its reply to its parent.
@@ -71,6 +73,8 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Slice.** The systemd user slice a delegate, serve or watch runs in, nested below its parent's.
 - **Child session.** A delegate's own pi session, kept apart from the sessions the human resumes.
 - **Staged files.** A delegate's task message and its **brief**, written beside its child session for it to read.
+- **Source stamp.** A hash of the source files that lay out a stored value, such as the owned-work ledger, so a reload can tell whether the code that wrote the value changed. An unreadable file gives a stamp no other read shares, so it never matches.
+- **Subscribed at.** The monotonic clock reading, in nanoseconds, taken when the hc subscription that reported a list of terminals began. A live spawn missing from that list counts as lost only if the ledger learned of it before this reading.
 
 ## Skill menu
 
@@ -86,7 +90,7 @@ Terms from the web client and feature.
 - **Source.** One way to read a URL, such as GitHub's API, npm, a direct fetch, or Exa's copy.
 - **Via.** The name of the source that read a page, shown to the model beside the page.
 - **Site source.** A source that reads a site's own API or files, whose answer is the whole page, so it is never judged thin or a bot check.
-- **Saved page.** The whole of a fetched page, written to the web cache.
+- **Saved page.** The whole of a fetched page, written to the web cache. A markdown page saves as one Markdown file. A file saves as itself plus a Markdown file of its text, which a file with no text, such as an image, lacks.
 - **Untrusted content.** Page text and search highlights. They are data, never instructions.
 - **Web cache.** The folder, readable only by the user, where fetched pages are saved.
 
@@ -99,6 +103,9 @@ Terms from the usage feature, which shows `/usage`.
 - **Meter.** One number read for an account, which becomes a row of its block, such as a rate-limit window's percent used.
 - **Probe.** A one-token message to a Claude account that cannot read the usage page, whose reply carries the rate-limit windows.
 - **Estimate.** What pi priced its own replies at, from the models' list prices. It leaves out every other client that uses the same key.
+- **Window.** A rate-limit window of an account's plan, such as `5-hour` or `weekly`, with the percent of it the account has used and when it resets.
+- **Money.** An amount given as a whole number of a currency's minor unit and the exponent that places its decimal point, such as 884857 at exponent 2 for $8,848.57.
+- **Extra usage.** What a Claude account spends past its plan's limits this month, against its monthly cap when it has one. It is on, or off with Anthropic's reason, such as `out_of_credits`.
 
 ## Cost
 
@@ -107,12 +114,14 @@ Terms from the cost feature, the cache feature and herdr-app's status bar. See A
 - **Spend.** What a session tree, delegates included, priced its model calls at, at the list price pi stored on each. Unlike an **Estimate**, it covers one session tree.
 - **Cache miss.** A reply that rewrote at full price at least 50,000 tokens of the prompt the session's last model call had sent, once some call in the session has read or written the cache.
 - **Cost label.** The hc label on a root agent's own terminal that holds the spend of the root and of each delegate below it.
+- **Read offset.** The byte in a session file where the cost feature's next read starts, just past the last whole line it read. A file shorter than its read offset was replaced, so the next read starts at 0.
 
 ## Loaded
 
 Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
 
 - **Guide.** A skill, a principle or a playbook: a file of instructions an agent reads into its context when its trigger matches.
+- **Guide name.** A principle's or a playbook's file name without `.md`. Only a file directly in its folder has one. The files in its subfolders are **reference files**.
 - **In context.** A guide is in context when the lines of its body that no other guide shares appear in text the model sees now. It is **partial** when only some of them do.
 - **Context label.** The hc label on an agent's own terminal that lists the guides in its context.
 
@@ -124,6 +133,7 @@ Terms for the harness's side of PHI routing. phi-router routes each request of a
 - **BAA provider.** A pi provider whose models may read PHI, so it runs outside phi-router: `ent`, then `openai`.
 - **Protected session.** A session on a `phi` model or a BAA provider. Its delegates stay inside the BAA boundary, and its codemode scripts may not call models.
 - **Held parent.** A protected session whose delegates start pinned: one on a BAA provider or `phi/sealed`, or one phi-router reports pinned.
+- **Pinned session.** A session phi-router keeps on the sealed lane, so every request of it runs on a BAA account. The harness pins one with `phi-router pin` and asks about it with `phi-router status`.
 - **Canary.** A synthetic identifier planted in a scenario's files, so the scenario can search request bodies for it. Never real PHI.
 
 ## Compaction
@@ -136,6 +146,14 @@ Terms for what an agent keeps when pi compacts its session. See ADR 0010.
 - **Guide budget.** How much guide text one compaction summary restores.
 - **Restored guide.** A guide that was **in context** before a compaction and fits in the guide budget, whose body the compaction summary carries. Not a reload, which restarts pi's extensions.
 - **Listed guide.** A guide that was in context before a compaction but falls past the guide budget, which the summary names for the agent to read again.
+
+## Checks
+
+Terms for the check and queue commands.
+
+- **Receipt.** A check that passed on one tree: its command, where it ran, when it passed, how long it took, and what it printed to each stream. The same command on the same tree prints it instead of running again.
+- **Worktree.** Where a check ran: the repository's shared git folder, the worktree's root, the folder inside it, and the tree it would commit with every tracked, edited and untracked file added. Worktrees of one repository share receipts, and separate clones do not.
+- **Caller in line.** A process in a queue, waiting for one of its places or holding one, known by its pid, its command and its folder. The code calls it `Holder`, which is not the owned-work **Holder**.
 
 ## Merge
 
@@ -161,7 +179,7 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011, 
 - **Shared branch.** In the human's words, "a branch that is used by multiple people, for example staging or prod", or main. The agent's work reaches one only through PRs.
 - **Trunk.** The shared branch a PR targets. Not to be confused with main: a PR against staging has staging as its trunk.
 - **Work branch.** A branch that is not shared. It is the agent's own to create, rebase, stack, and merge PRs between.
-- **State folder.** The folder where work that outlives a turn keeps its state, its todo list, its decision trail, and its action items.
+- **State folder.** The folder where work that outlives a turn keeps its state, its todo list, its decision trail, and its action items: `~/.local/state/pi-agent/<project>/<work>`. Agents write it through their tools.
 - **Todo list.** The root's checklist for one piece of work: one line per step of each playbook it runs, plus its own items. The first open line is the current step.
 - **State label.** The hc label on a root agent's own terminal that names the state folder its session last wrote to.
 - **Trace and Actions panels.** herdr-app panels that draw the todo list and decision trail, or the action items, of the focused agent's root.

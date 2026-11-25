@@ -8,7 +8,6 @@ import type * as PlatformError from "effect/PlatformError";
 /** Each entry of a folder by name, stamped with its size and mtime, so two fingerprints differ where an entry changed. */
 export type Fingerprint = ReadonlyMap<string, string>;
 
-/** The state folders agents write through their tools, `~/.local/state/pi-agent/<project>/<work>`, and the files they cite. */
 export class StateFolder extends Context.Service<
 	StateFolder,
 	{
