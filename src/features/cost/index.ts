@@ -43,7 +43,6 @@ const unread: Followed = { offset: 0, tally: emptyTally };
 
 const usd = (amount: number) => Math.round(amount * 10_000) / 10_000;
 
-/** Finds a delegate's session file by the id in its name, and remembers it, since a delegate never moves its file. */
 const locate = Effect.fn("locate")(function* (located: Map<string, string>, dir: string, { id }: Started) {
 	const known = located.get(id);
 
@@ -60,10 +59,6 @@ const locate = Effect.fn("locate")(function* (located: Map<string, string>, dir:
 	return path;
 });
 
-/**
- * Reads a root's session tree. A root's session file runs to tens of megabytes, so each read takes only the bytes
- * appended since the last one.
- */
 export const treeReader = (files: TreeFiles) => {
 	const followed = new Map<string, Followed>();
 	const located = new Map<string, string>();
