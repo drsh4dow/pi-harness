@@ -17,7 +17,6 @@ const home = `${Bun.env["TMPDIR"] ?? "/tmp"}/state-folder-test-${String(process.
 const folder = (work: string) => `${home}/.local/state/pi-agent/pi/${work}`;
 const logScript = `${import.meta.dir}/../../../agent/skills/show-me-your-work/scripts/log.sh`;
 
-/** A tool call: its arguments as the JSON text the extension scans, and what running it did to the disk. */
 interface Call {
 	readonly input: string;
 	readonly run: Effect.Effect<void, PlatformError.PlatformError, FileSystem.FileSystem>;
@@ -49,7 +48,6 @@ const finish = Effect.fn("finish")(function* (watched: Watched, toolCallId: stri
 	return yield* finishCall(watched, { home, result });
 });
 
-/** The state folder a session resolves to after these calls, as the extension watches them one by one. */
 const resolve = Effect.fn("resolve")(function* (calls: ReadonlyArray<Call>) {
 	const watched: Watched = new Map();
 	let last = Option.none<string>();

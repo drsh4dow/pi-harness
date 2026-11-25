@@ -22,7 +22,6 @@ import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
 import type { FormatProblem } from "./action-items.ts";
 import { checks, type Place } from "./checks.ts";
 
-/** The hc label on an agent's own terminal that names the state folder it last wrote to, which herdr-app's Trace and Actions panels read. */
 export const labelKey = "pi.state";
 
 /** The `customType` of the session entry that records each new state folder, so a resumed or reloaded session labels it again. */
@@ -52,7 +51,6 @@ const foldersIn = ({ home, input }: { readonly home: string; readonly input: str
 /** Each running tool call's named state folders, with each folder's fingerprint from before the call ran. */
 export type Watched = Map<string, ReadonlyArray<readonly [folder: string, before: Fingerprint]>>;
 
-/** Fingerprints the state folders a tool call names in its input, the call's arguments as JSON text, before it runs. */
 export const watchCall = Effect.fn("watchCall")(function* (
 	watched: Watched,
 	{ home, toolCallId, input }: { readonly home: string; readonly toolCallId: string; readonly input: string },
@@ -127,7 +125,6 @@ export const finishCall = Effect.fn("finishCall")(function* (
 
 	const checked = Arr.match(Arr.getSomes(Arr.flatten(reports)), {
 		onEmpty: () => Option.none<ToolResultEventResult>(),
-		// With no structuredContent here pi drops the tool's own, so a codemode script that made the call gets the error.
 		onNonEmpty: (found) =>
 			Option.some<ToolResultEventResult>({
 				content: [...result.content, { type: "text", text: Arr.join(found, "\n\n") }],
@@ -138,7 +135,6 @@ export const finishCall = Effect.fn("finishCall")(function* (
 	return { wrote: Option.map(Arr.last(changed), ({ folder }) => folder), checked };
 });
 
-/** The state folder this branch of the session last wrote to, from the entries `stateFolder` appends. */
 export const lastFolder = (branch: ReadonlyArray<SessionEntry>): Option.Option<string> => {
 	const recorded = Arr.getSomes(Arr.map(branch, (entry) => decodeEntry(entry)));
 
