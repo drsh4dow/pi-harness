@@ -33,13 +33,12 @@ export interface TreeFiles {
 	readonly delegates: string;
 }
 
-/** How far a session file has been read, and what the whole lines up to there add up to. */
 interface Followed {
-	readonly offset: number;
+	readonly readOffset: number;
 	readonly tally: Tally;
 }
 
-const unread: Followed = { offset: 0, tally: emptyTally };
+const unread: Followed = { readOffset: 0, tally: emptyTally };
 
 const usd = (amount: number) => Math.round(amount * 10_000) / 10_000;
 
@@ -70,7 +69,7 @@ export const treeReader = (files: TreeFiles) => {
 	// A session file appears at its first reply, so one that is not there yet has spent nothing.
 	const advance = Effect.fn("advance")(function* (path: string) {
 		const before = followed.get(path) ?? unread;
-		const appended = yield* appendedLines({ path, offset: before.offset });
+		const appended = yield* appendedLines({ path, offset: before.readOffset });
 
 		if (Option.isNone(appended)) {
 			return emptyTally;
@@ -79,7 +78,7 @@ export const treeReader = (files: TreeFiles) => {
 		const { replaced, text: wholeLines, offset } = appended.value;
 		const tally = tallyLines({ tally: replaced ? emptyTally : before.tally, wholeLines });
 
-		followed.set(path, { offset, tally });
+		followed.set(path, { readOffset: offset, tally });
 
 		return tally;
 	});
