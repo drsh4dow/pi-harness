@@ -69,17 +69,9 @@ interface Parts {
 	readonly slices: ReturnType<typeof slicesLayer>;
 }
 
-export const delegateExtensionsOf = ({
-	childExtensions,
-	router,
-}: {
-	readonly childExtensions: ReadonlyArray<string>;
-	readonly router: Option.Option<string>;
-}) => [...childExtensions, ...Option.toArray(router)];
-
 const servicesOf = (pi: ExtensionAPI, parts: Pick<Start, "childExtensions" | "env"> & Parts) => {
 	const router = routerExtensionOf(pi.getCommands());
-	const cli = piCliLayer(delegateExtensionsOf({ childExtensions: parts.childExtensions, router }));
+	const cli = piCliLayer([...parts.childExtensions, ...Option.toArray(router)]);
 	const tools = Layer.merge(Tools.layer, phiRouterLayer({ extension: router, env: parts.env }));
 	const hc = hcLayer({ agentKey: parts.agentKey, parent: parts.parent });
 	const host = hostLayer({ pi, relay: parts.relay });

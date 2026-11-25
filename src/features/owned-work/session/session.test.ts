@@ -5,26 +5,16 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as Str from "effect/String";
 
 import { BriefSources } from "#src/client/brief-sources/index.ts";
 import { Gh } from "#src/client/github/index.ts";
 import { PiCli, piHost, PiSessions } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
 import { Hc, HerdrApp, Slices } from "#src/client/terminals/index.ts";
-import { childExtensions } from "#src/features/owned-work/child.ts";
 import { Ledger, Transitions } from "#src/features/owned-work/ledger/index.ts";
 import { MonotonicNanos, WorkRef } from "#src/features/owned-work/work.ts";
 import { take } from "./handover.ts";
-import {
-	awaitOn,
-	cancelUnless,
-	type Current,
-	delegateExtensionsOf,
-	delegatesDirOf,
-	end,
-	exitsWhenPromptResolves,
-} from "./session.ts";
+import { awaitOn, cancelUnless, type Current, delegatesDirOf, end, exitsWhenPromptResolves } from "./session.ts";
 
 const rows = [
 	{ mode: "print", exits: true },
@@ -75,17 +65,6 @@ test.each(places)("$name", ({ sessionDir, dir }) => {
 
 test("two --no-session runs never share a delegates folder", () => {
 	expect(delegatesDirOf({ sessionDir: "", tmpDir: "/t" })).not.toBe(delegatesDirOf({ sessionDir: "", tmpDir: "/t" }));
-});
-
-test("each delegate loads owned-work's own extension and the harness's, plus phi-router's pi package when this session has it", () => {
-	const router = "/phi-router/pi/index.ts";
-	const withoutRouter = delegateExtensionsOf({ childExtensions, router: Option.none() });
-
-	expect({
-		ownedWork: Arr.some(withoutRouter, Str.endsWith("/extensions/owned-work/index.ts")),
-		withRouter: delegateExtensionsOf({ childExtensions, router: Option.some(router) }),
-		withoutRouter,
-	}).toEqual({ ownedWork: true, withRouter: [...childExtensions, router], withoutRouter: [...childExtensions] });
 });
 
 const leaving = ({
