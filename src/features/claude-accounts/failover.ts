@@ -139,10 +139,6 @@ const runnableIn = (ctx: Session) => (provider: string, id: string) =>
 		ctx.modelRegistry.hasConfiguredAuth(model),
 	);
 
-/**
- * Moves a rate-limited session to an open account, or waits for the account back first, so pi's own retry of the failed
- * request goes there.
- */
 export const failOver = Effect.fn("failOver")(function* ({
 	pi,
 	ctx,

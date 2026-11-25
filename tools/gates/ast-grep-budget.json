@@ -5,7 +5,6 @@
 	"src/features/checks/commands.ts no-comments": 4,
 	"src/features/checks/extension.ts no-comments": 1,
 	"src/features/checks/run.ts no-comments": 10,
-	"src/features/claude-accounts/failover.ts no-comments": 1,
 	"src/features/compaction/compaction.scenario.ts no-comments": 1,
 	"src/features/compaction/guides.ts no-comments": 1,
 	"src/features/compaction/index.ts no-comments": 1,
