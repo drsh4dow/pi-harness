@@ -48,13 +48,10 @@ export const HcNotice = Data.taggedEnum<HcNotice>();
 
 export interface RunSpec {
 	readonly ref: string;
-	/** Shown in Herdr's agents list and taken by `hc attach`. A live terminal holding it already gets `-2`, `-3`, and so on. */
 	readonly name: TerminalName;
-	/** Set beside the ones hc itself uses to find the terminal again. */
 	readonly labels: Readonly<Record<string, string>>;
 	readonly argv: readonly [string, ...Array<string>];
 	readonly cwd: string;
-	/** Layered on the hc core's env, not this process's, so it names everything the program needs. */
 	readonly env: Readonly<Record<string, string>>;
 }
 
@@ -62,20 +59,16 @@ export class Hc extends Context.Service<
 	Hc,
 	{
 		readonly run: (spec: RunSpec) => Effect.Effect<TerminalAddress, HcError>;
-		/** Starts a program in a terminal of its own, with no parent and none of the `ow.` labels that `run` adds. */
 		readonly open: (spec: Omit<RunSpec, "ref">) => Effect.Effect<TerminalAddress, HcError>;
 		readonly labelsOf: (terminal: TerminalAddress) => Effect.Effect<Readonly<Record<string, string>>, HcError>;
-		/** Subscribes now, where it would wait for the first `run`, for terminals a reload handed over. */
 		readonly follow: Effect.Effect<void>;
 		readonly kill: (terminal: TerminalAddress) => Effect.Effect<void>;
 		readonly label: (terminal: TerminalAddress, labels: Readonly<Record<string, string>>) => Effect.Effect<void>;
-		/** True once the program prints `pattern` after the wait starts, false when it ends or `timeout` passes first. */
 		readonly waitForOutput: (
 			terminal: TerminalAddress,
 			pattern: string,
 			timeout: Duration.Duration,
 		) => Effect.Effect<boolean, HcError>;
-		/** The screen and `history` lines above it, one line per printed line however wide. */
 		readonly read: (terminal: TerminalAddress, history: number) => Effect.Effect<string, HcError>;
 		readonly notices: Stream.Stream<HcNotice>;
 	}
@@ -83,7 +76,6 @@ export class Hc extends Context.Service<
 
 export interface HcOptions {
 	readonly agentKey: string;
-	/** The terminal pi runs in, so its work shows under it. */
 	readonly parent: Option.Option<TerminalAddress>;
 }
 
@@ -139,7 +131,6 @@ const runNamed = (socket: string, params: RunParams, attempt: number): Effect.Ef
 		),
 	);
 
-/** `own` finds a terminal an earlier try already started, so a retry never starts a second one. */
 const start = (socket: string, own: typeof Labels.Type, params: RunParams) =>
 	call(socket)("terminal.list", { all: true, labels: own }, Terminals).pipe(
 		Effect.flatMap(({ terminals: [found] }) =>
@@ -149,7 +140,6 @@ const start = (socket: string, own: typeof Labels.Type, params: RunParams) =>
 		Effect.map(addressOf),
 	);
 
-/** A change to a terminal that may already be gone, which is then nothing left to do. */
 const change = (socket: string, method: string, params: Schema.JsonObject & { readonly terminal: TerminalAddress }) =>
 	call(socket)(method, params, Address).pipe(
 		Effect.retry(safely),
@@ -207,7 +197,6 @@ const socketConfig = Config.all({
 	session: Config.withDefault(Config.String("HC_SESSION"), "default"),
 });
 
-/** Every variable is optional and any string parses, so reading the socket path cannot fail. */
 const socketPath = Effect.map(Effect.orDie(socketConfig), ({ socket, runtimeDir, session }) =>
 	Option.getOrElse(socket, () => `${runtimeDir}/herdr-core/${session}.sock`),
 );
@@ -226,10 +215,6 @@ const notSubscribed = HcError.make({
 	message: "no subscription after 10 s",
 });
 
-/**
- * One subscription by the `ow.agent` label sees every end. The agent's own terminal parents each one, so Herdr shows
- * them under it, and hc ends them when a delegate's pi exits. A root's slice ends them when the root dies.
- */
 export const hcLayer = (options: HcOptions): Layer.Layer<Hc> =>
 	Layer.effect(
 		Hc,

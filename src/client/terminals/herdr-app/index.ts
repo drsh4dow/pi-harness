@@ -15,7 +15,6 @@ export class HerdrAppError extends Schema.TaggedError<HerdrAppError, { readonly 
 export class HerdrApp extends Context.Service<
 	HerdrApp,
 	{
-		/** Shows `terminal` and puts the person's typing there. Fails when no window is open. */
 		readonly focus: (terminal: string) => Effect.Effect<void, HerdrAppError>;
 	}
 >()("pi-harness/client/terminals/herdr-app/HerdrApp") {}

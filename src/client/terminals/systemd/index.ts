@@ -15,9 +15,7 @@ export class Slices extends Context.Service<
 	Slices,
 	{
 		readonly wrap: (spec: RunSpec) => RunSpec;
-		/** Stops the job's slice, which ends every process in it, even one that left its process group. */
 		readonly stop: (ref: string) => Effect.Effect<void>;
-		/** Stops every job the root started. A reload skips it, so the work outlives the extension and the next load takes it over. */
 		readonly stopAll: Effect.Effect<void>;
 	}
 >()("pi-harness/client/terminals/systemd/Slices") {}
@@ -38,7 +36,6 @@ export interface SliceOptions {
 
 const notLoaded = 5;
 
-/** How long a stopped job has after SIGTERM before systemd sends SIGKILL to what is left of it, as `pi.exec` waits. */
 const stopGrace = "5s";
 
 const unitOf = (slice: string, ref: string) => `${slice}-${Str.replaceAll("-", "")(ref)}`;
@@ -75,11 +72,9 @@ const stopUnit = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], u
 		{ log: "Warn" },
 	);
 
-/** Stops the root's watcher, whose ExecStopPost stops the root's slice and every job in it. */
 export const stopRoot = (slice: string) =>
 	Effect.flatMap(ChildProcessSpawner.ChildProcessSpawner, (spawner) => stopUnit(spawner, `${slice}.service`));
 
-/** This process's `/proc/self/cgroup`, which names the units it runs in. Off Linux there is none, and it is empty. */
 export const ownCgroup = Effect.flatMap(FileSystem.FileSystem, (fs) =>
 	Effect.orElseSucceed(fs.readFileString("/proc/self/cgroup"), () => ""),
 );
@@ -87,10 +82,6 @@ export const ownCgroup = Effect.flatMap(FileSystem.FileSystem, (fs) =>
 const isActive = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], unit: string) =>
 	Effect.isSuccess(systemd(spawner, { program: "systemctl", args: ["is-active", "--quiet", unit], succeedsOn: [0] }));
 
-/**
- * The root's slice outlives a `kill -9` of the root, so a user service outside hc waits on the root's pid and stops
- * the slice once it exits. After a reload the watcher from the first load is still running, and it stays.
- */
 const watchRoot = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], slice: string, pid: number) => {
 	const service = [
 		"--quiet",

@@ -25,7 +25,6 @@ export const closed = (method: string) => HcError.make({ method, kind: "closed",
 export const retrying = Schedule.min([Schedule.exponential("100 millis"), Schedule.spaced("5 seconds")]);
 export const safely = { while: transient, times: 10, schedule: retrying };
 
-/** The write side stays open, because hc ends a subscription when the client half-closes. */
 const exchange = (socket: string, request: string) =>
 	Effect.map(NodeSocket.makeNet({ path: socket }), (conn) =>
 		Stream.pipeThroughChannel(
