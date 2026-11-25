@@ -14,13 +14,11 @@ const usd = (minor: number) => ({ minor, exponent: 2, currency: "USD" });
 
 const inADay = Option.some(DateTime.makeUnsafe("2026-11-11T23:00:00Z"));
 
-/** Shows each color as a tag, so a test can read which color a piece of text got. */
 const tagging = {
 	fg: (color: string, text: string) => (text === "" ? "" : `<${color}>${text}</>`),
 	bold: (text: string) => text,
 };
 
-/** Shows no color, so a test can read the layout. */
 const plain = { fg: (_color: string, text: string) => text, bold: (text: string) => text };
 
 const ultraA: Block = {

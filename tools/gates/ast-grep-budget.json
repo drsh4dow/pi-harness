@@ -26,8 +26,7 @@
 	"src/features/skill-menu/index.ts no-comments": 3,
 	"src/features/state-folder/index.test.ts no-comments": 2,
 	"src/features/state-folder/index.ts no-comments": 9,
-	"src/features/usage/card.test.ts no-comments": 2,
-	"src/features/usage/card.ts no-comments": 11,
-	"src/features/usage/index.ts no-comments": 6,
-	"src/features/usage/view.ts no-comments": 4
+	"src/features/usage/card.ts no-comments": 3,
+	"src/features/usage/index.ts no-comments": 4,
+	"src/features/usage/view.ts no-comments": 3
 }

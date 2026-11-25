@@ -8,10 +8,8 @@ import * as Str from "effect/String";
 
 import type { Money, Spend, Window } from "#src/client/providers/index.ts";
 
-/** One number `/usage` read for an account. */
 export type Meter =
 	| { readonly kind: "window"; readonly window: Window }
-	/** Claude's extra usage: spend past the plan's limits this month. */
 	| { readonly kind: "extra"; readonly spend: Spend }
 	/** What pi priced its own replies at over the last `days` days. Other clients on the same key are not in it. */
 	| { readonly kind: "estimate"; readonly usd: number; readonly replies: number; readonly days: number };
@@ -31,7 +29,6 @@ const Gauge = Schema.Struct({
 	detail: Schema.String,
 });
 
-/** A quiet note tells of something switched off, so it reads dimmed. */
 const Note = Schema.Struct({
 	kind: Schema.Literal("note"),
 	name: Schema.String,
@@ -41,7 +38,6 @@ const Note = Schema.Struct({
 
 const Row = Schema.Union([Gauge, Note]);
 
-/** Still waiting on the account, read, or failed with the reason the user reads. */
 const Reading = Schema.Struct({ kind: Schema.Literal("reading") });
 
 const Read = Schema.Struct({ kind: Schema.Literal("read"), rows: Schema.Array(Row) });
@@ -52,7 +48,6 @@ const Body = Schema.Union([Reading, Read, Unreadable]);
 
 const Block = Schema.Struct({ account: Schema.String, via: Schema.String, body: Body });
 
-/** What one `/usage` shows: a block per account, and when it was read. */
 export const Card = Schema.Struct({ readAt: Schema.String, blocks: Schema.Array(Block) });
 
 export type Row = typeof Row.Type;
@@ -143,7 +138,6 @@ const rowOf = (meter: Meter, now: DateTime.Utc): Row => {
 	}
 };
 
-/** An account's block once its reading is in. */
 export const blockOf = ({ outcome, now }: { readonly outcome: Outcome; readonly now: DateTime.Utc }) => {
 	switch (outcome.kind) {
 		case "read": {
@@ -169,7 +163,6 @@ type Paint = Pick<Theme, "fg" | "bold">;
 
 const barCells = 10;
 
-/** Green while there is room, yellow from 75%, red from 90%. */
 const severityOf = (percent: number) => {
 	if (percent >= 90) {
 		return "error" as const;
@@ -240,7 +233,6 @@ const nameWidth = (blocks: ReadonlyArray<Block>) => {
 	return Arr.reduce(rows, 0, (widest, { name }) => Math.max(widest, name.length));
 };
 
-/** The blocks as lines: each account's name and source, then its rows, with the row names in one column. */
 export const blockLines = ({ blocks, theme }: { readonly blocks: ReadonlyArray<Block>; readonly theme: Paint }) => {
 	const width = nameWidth(blocks);
 

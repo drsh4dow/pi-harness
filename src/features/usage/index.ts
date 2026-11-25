@@ -77,7 +77,6 @@ const opencodeGo: Source = {
 		}),
 };
 
-/** OpenAI reports spend only to an admin key, so this prices pi's own replies instead. */
 const openai: Source = {
 	account: "openai",
 	via: "estimate from pi's sessions at list prices",
@@ -167,7 +166,6 @@ const showUsage = (pi: Host, ctx: ExtensionCommandContext) =>
 		),
 	);
 
-/** Registers `/usage`, which shows what every account has used in a card. */
 export const usage = (pi: Host) => {
 	const clients = Layer.mergeAll(claudeUsageFetchLayer, opencodeGoFetchLayer);
 	const host = piHost(Layer.merge(clients, NodeServices.layer));

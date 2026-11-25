@@ -23,7 +23,6 @@ const titled = (theme: Theme, title: string, blocks: ReadonlyArray<Block>) => [
 	...blockLines({ blocks, theme }),
 ];
 
-/** A finished card, as the transcript shows it now and after a reload. */
 export const cardComponent = ({ card, theme }: { readonly card: Card; readonly theme: Theme }): Component => {
 	const title = `${theme.bold("Usage")}  ${theme.fg("dim", card.readAt)}`;
 
