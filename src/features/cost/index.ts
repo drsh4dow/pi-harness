@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, SessionManager } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
@@ -132,6 +132,20 @@ const publish = (files: SessionTreeFiles, terminal: TerminalAddress) => {
 	);
 };
 
+export const labelSpend = (session: Pick<SessionManager, "getSessionFile" | "getSessionDir">) =>
+	Option.match(Option.fromUndefinedOr(session.getSessionFile()), {
+		onNone: () => Effect.void,
+		onSome: (root) =>
+			Effect.flatMap(
+				ownTerminal,
+				Option.match({
+					onNone: () => Effect.void,
+					// Where owned-work puts a root's delegates, at every level (`delegatesDirOf`).
+					onSome: (terminal) => publish({ root, delegates: `${session.getSessionDir()}/delegates` }, terminal),
+				}),
+			),
+	});
+
 /**
  * Keeps the `pi.cost` label on a root agent's hc terminal equal to what its session tree has spent at list prices, and
  * removes it when the session ends. Delegates never load it: their spend reaches the root's label through their files.
@@ -142,23 +156,7 @@ export const cost = (pi: Pick<ExtensionAPI, "on">) => {
 	let running: Option.Option<Fiber.Fiber<unknown>> = Option.none();
 
 	pi.on("session_start", (_event, ctx) => {
-		const root = ctx.sessionManager.getSessionFile();
-
-		if (root === undefined) {
-			return;
-		}
-
-		// Where owned-work puts a root's delegates, at every level (`delegatesDirOf`).
-		const files = { root, delegates: `${ctx.sessionManager.getSessionDir()}/delegates` };
-
-		const start = Effect.flatMap(
-			ownTerminal,
-			Option.match({ onNone: () => Effect.void, onSome: (terminal) => publish(files, terminal) }),
-		);
-
-		const fiber = host.fork(start);
-
-		running = Option.some(fiber);
+		running = Option.some(host.fork(labelSpend(ctx.sessionManager)));
 	});
 
 	pi.on("session_shutdown", () => {
