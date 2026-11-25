@@ -19,9 +19,35 @@ import {
 	type ModelTable,
 } from "#src/features/owned-work/models.ts";
 import { reviewsParam } from "#src/features/owned-work/review/index.ts";
-import { BadDelegate, workFilesOf } from "#src/features/owned-work/work.ts";
+import { BadDelegate } from "#src/features/owned-work/work.ts";
 import { lastFolder } from "#src/features/state-folder/index.ts";
 import { parseProfile } from "./profile.ts";
+
+const sharedDocumentAliases = [["GLOSSARY.md", "GLOSSARY-MAP.md"], ["CODING_STANDARDS.md"], ["docs/adr/"]];
+
+export const workFilesOf = Effect.fn("workFilesOf")(
+	function* (folder: string, state: Option.Option<string>) {
+		const sources = yield* BriefSources;
+		const firstFound = (paths: ReadonlyArray<string>) => Effect.findFirst(paths, (path) => sources.exists(path));
+		const root = yield* sources.repoRoot(folder);
+
+		const documents = Option.match(root, {
+			onNone: () => [],
+			onSome: (top) => Arr.map(sharedDocumentAliases, (names) => Arr.map(names, (name) => `${top}/${name}`)),
+		});
+
+		const stateFile = state.pipe(
+			Option.map((own) => `${own}/STATE.md`),
+			Option.toArray,
+		);
+
+		const destinationFile = yield* firstFound(stateFile);
+		const found = yield* Effect.forEach(documents, firstFound);
+
+		return { destinationFile, sharedDocuments: Arr.getSomes(found) };
+	},
+	Effect.mapError(({ path, why }) => BadDelegate.make({ why: `cannot read ${path}: ${why}` })),
+);
 
 export const roleUses =
 	"`owner` for a slice to build, verify and commit, which may need a playbook or delegates of its own; `leaf` for one bounded task, such as a search, a review, a verification lane or a scoped edit";

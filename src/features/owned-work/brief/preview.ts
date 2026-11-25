@@ -17,8 +17,7 @@ import {
 	levels,
 } from "#src/features/owned-work/child.ts";
 import { type Alias, aliases, ModelName, modelTable } from "#src/features/owned-work/models.ts";
-import { workFilesOf } from "#src/features/owned-work/work.ts";
-import { roleFieldsFor } from "./brief.ts";
+import { roleFieldsFor, workFilesOf } from "./brief.ts";
 import { parseProfile } from "./profile.ts";
 
 export interface StagedLaunch {

@@ -1,4 +1,3 @@
-import * as Arr from "effect/Array";
 import * as Brand from "effect/Brand";
 import * as Clock from "effect/Clock";
 import * as Data from "effect/Data";
@@ -8,7 +7,6 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
-import { BriefSources } from "#src/client/brief-sources/index.ts";
 import type { TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
 import type { VerdictRecord } from "#src/features/pr/index.ts";
 import type { Brief, ChildSession } from "./child.ts";
@@ -217,29 +215,3 @@ export type WorkEntry = Data.TaggedEnum<{
 }>;
 
 export const WorkEntry = Data.taggedEnum<WorkEntry>();
-
-const sharedDocumentAliases = [["GLOSSARY.md", "GLOSSARY-MAP.md"], ["CODING_STANDARDS.md"], ["docs/adr/"]];
-
-export const workFilesOf = Effect.fn("workFilesOf")(
-	function* (folder: string, state: Option.Option<string>) {
-		const sources = yield* BriefSources;
-		const firstFound = (paths: ReadonlyArray<string>) => Effect.findFirst(paths, (path) => sources.exists(path));
-		const root = yield* sources.repoRoot(folder);
-
-		const documents = Option.match(root, {
-			onNone: () => [],
-			onSome: (top) => Arr.map(sharedDocumentAliases, (names) => Arr.map(names, (name) => `${top}/${name}`)),
-		});
-
-		const stateFile = state.pipe(
-			Option.map((own) => `${own}/STATE.md`),
-			Option.toArray,
-		);
-
-		const destinationFile = yield* firstFound(stateFile);
-		const found = yield* Effect.forEach(documents, firstFound);
-
-		return { destinationFile, sharedDocuments: Arr.getSomes(found) };
-	},
-	Effect.mapError(({ path, why }) => BadDelegate.make({ why: `cannot read ${path}: ${why}` })),
-);
