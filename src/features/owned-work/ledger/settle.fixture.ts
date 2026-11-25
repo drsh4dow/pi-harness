@@ -32,7 +32,6 @@ const sleepsOnPause =
 
 		const readings = { count: 0n };
 
-		// Each reading is 1 ns past the last, so later acts happen later, yet only a Pause moves time enough to pass a deadline.
 		const monotonic = () => {
 			readings.count += 1n;
 
@@ -102,7 +101,6 @@ const counted =
 			);
 		}).pipe(Effect.uninterruptible);
 
-// Node filesystem I/O can outlive fiber interruption, so keep the count until the operation completes.
 export const countingFiles =
 	(inFlight: InFlight) =>
 	(fs: FileSystem.FileSystem): FileSystem.FileSystem => {

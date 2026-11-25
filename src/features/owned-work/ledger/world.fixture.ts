@@ -33,7 +33,6 @@ export interface World extends Pacing {
 	ledger: (typeof Ledger)["Service"];
 	readonly reload: Effect.Effect<void>;
 	readonly notices: Queue.Queue<HcNotice>;
-	/** Like hc's subscription, which each load opens on its first run: closed until then, so notices wait. */
 	readonly listening: Latch.Latch;
 	readonly spawns: Array<HeldSpawn>;
 	readonly gate: Semaphore.Semaphore;

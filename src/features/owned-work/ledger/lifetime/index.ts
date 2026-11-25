@@ -31,10 +31,6 @@ const rearmed =
 		);
 	};
 
-/**
- * A reload hands this ledger the state of the one before it, whose timers stopped with it. Each live watch's deadline
- * starts again for the time it has left, and any result that had not reached the agent wakes it.
- */
 const delegatesLive = (state: LedgerState) =>
 	Arr.filter(Arr.filter([...state.work.values()], Work.$is("Delegate")), Draft.isLive);
 
