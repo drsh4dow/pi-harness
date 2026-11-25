@@ -14,7 +14,6 @@ export interface Tally {
 	readonly started: ReadonlyArray<Started>;
 }
 
-/** Counts nothing until the header says when the session began. */
 export const emptyTally: Tally = { sessionStart: Number.POSITIVE_INFINITY, usd: 0, started: [] };
 
 const Priced = Schema.Struct({ cost: Schema.Struct({ total: Schema.Finite }) });

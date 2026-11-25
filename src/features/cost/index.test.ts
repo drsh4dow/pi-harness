@@ -235,3 +235,17 @@ test("a line still being written counts once it ends", () =>
 			expect([halfway.own, ended.own]).toEqual([1, 1.5]);
 		}),
 	));
+
+test("lines before a session header count nothing", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir, delegates } = yield* sessionsDir;
+			const root = `${dir}/headless.jsonl`;
+
+			yield* Effect.flatMap(FileSystem.FileSystem, (fs) => fs.writeFileString(root, `${compactionLine}\n`));
+
+			const label = yield* treeReader({ root, delegates }).read;
+
+			expect(label.own).toBe(0);
+		}),
+	));
