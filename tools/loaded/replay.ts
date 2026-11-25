@@ -50,7 +50,6 @@ const callTexts = (message: AgentMessage) =>
 
 const skillLocation = /<skill name="[^"]+" location="(?<location>[^"]+)">/gu;
 
-/** What a successful tool result's call and the calls it nested name, or the files a `/skill:` expansion holds. */
 const namedBy = (message: AgentMessage, calls: ReadonlyMap<string, ReadonlyArray<string>>) => {
 	if (message.role === "toolResult" && !message.isError) {
 		const nested = Option.match(decodeNested(message), {
@@ -70,7 +69,6 @@ const namedBy = (message: AgentMessage, calls: ReadonlyMap<string, ReadonlyArray
 	return [];
 };
 
-/** The guide files whose absolute or `~` path a projected call names. */
 const byPath = (entries: ReadonlyArray<ProjectedSessionEntry>, files: ReadonlyArray<GuideFile>, home: string) => {
 	const messages = Arr.flatMap(entries, (entry) => entry.messages);
 	const calls = new Map(Arr.flatMap(messages, callTexts));
@@ -114,7 +112,6 @@ const readingOf = (inText: boolean, inPath: boolean) => {
 	return inText ? "text only" : "path only";
 };
 
-/** Each guide either reading found in one session, and which readings found it. */
 const compare =
 	({ index, files, home }: Replay) =>
 	(file: string) => {
