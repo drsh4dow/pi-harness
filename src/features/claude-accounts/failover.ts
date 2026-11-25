@@ -61,7 +61,6 @@ export const failoverOf = ({ current, runnableModel, limits, now }: FailoverRequ
 	});
 };
 
-/** Anthropic's SDK starts a failed request's error message with its HTTP status, and pi records no status of its own. */
 const rateLimitStatus = /^429\b/u;
 
 export const isRateLimited = (message: AssistantMessage) =>

@@ -11,6 +11,7 @@ import * as Predicate from "effect/Predicate";
 import * as Rec from "effect/Record";
 
 import { type Account, type AccountId, accountProvider, accounts, anthropicOf } from "./accounts.ts";
+import { isRateLimited } from "./failover.ts";
 
 type Store = NonNullable<NonNullable<Parameters<typeof createModels>[0]>["credentials"]>;
 
@@ -212,7 +213,7 @@ afterEach(() => {
 	globalThis.fetch = realFetch;
 });
 
-const sentRequests = Effect.fn("sentRequests")(function* ({
+const sent = Effect.fn("sent")(function* ({
 	credentials,
 	provider,
 	reply = () => Response.json({ error: { message: "stop here" } }, { status: 400 }),
@@ -243,15 +244,17 @@ const sentRequests = Effect.fn("sentRequests")(function* ({
 
 	const context = { messages: [{ role: "user" as const, content: "hi", timestamp: 0 }] };
 
-	yield* Effect.promise(() => models.completeSimple(model, context));
+	const message = yield* Effect.promise(() => models.completeSimple(model, context));
 
-	return requests;
+	return { requests, message };
 });
 
 test("a request on an account goes to Anthropic with that account's token as a subscription login", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const [request] = yield* sentRequests({ credentials: ultraB, provider: "ultra-b" });
+			const {
+				requests: [request],
+			} = yield* sent({ credentials: ultraB, provider: "ultra-b" });
 
 			expect(request?.url).toStartWith("https://api.anthropic.com/");
 			expect(request?.headers.get("authorization")).toBe("Bearer sk-ant-oat01-ultra-b");
@@ -281,7 +284,7 @@ test("a 429 on an account tells when that account is back, from the reply's head
 		Effect.gen(function* () {
 			const backs: Array<readonly [AccountId, DateTime.Utc]> = [];
 
-			yield* sentRequests({
+			yield* sent({
 				credentials: ultraB,
 				provider: "ultra-b",
 				reply: weeklyLimitHit,
@@ -291,5 +294,14 @@ test("a 429 on an account tells when that account is back, from the reply's head
 			});
 
 			expect(backs).toEqual([["ultra-b", DateTime.makeUnsafe(1_794_438_000_000)]]);
+		}),
+	));
+
+test("pi ends a reply that an account answered with 429 as rate-limited", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const { message } = yield* sent({ credentials: ultraB, provider: "ultra-b", reply: weeklyLimitHit });
+
+			expect(isRateLimited(message)).toBe(true);
 		}),
 	));

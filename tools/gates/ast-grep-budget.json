@@ -6,7 +6,7 @@
 	"src/features/checks/extension.ts no-comments": 1,
 	"src/features/checks/run.ts no-comments": 10,
 	"src/features/claude-accounts/accounts.ts no-comments": 1,
-	"src/features/claude-accounts/failover.ts no-comments": 2,
+	"src/features/claude-accounts/failover.ts no-comments": 1,
 	"src/features/claude-accounts/index.ts no-comments": 2,
 	"src/features/claude-accounts/quota.ts no-comments": 2,
 	"src/features/compaction/compaction.scenario.ts no-comments": 1,
