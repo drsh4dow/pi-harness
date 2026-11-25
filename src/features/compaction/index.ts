@@ -18,6 +18,7 @@ import { piHost } from "#src/client/pi/index.ts";
 import { StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
 import { guideFiles, readGuides } from "#src/features/loaded/index.ts";
 import { selfFromEnv } from "#src/features/owned-work/index.ts";
+import { phiSessionHeaders } from "#src/features/phi/index.ts";
 import { lastFolder } from "#src/features/state-folder/index.ts";
 import { guidesToRestore, noGuides } from "./guides.ts";
 import {
@@ -49,6 +50,7 @@ type Compacted = Required<Pick<SessionBeforeCompactResult, "compaction">>;
 
 interface Caller {
 	readonly model: Model<Api> | undefined;
+	readonly sessionManager: Pick<ExtensionContext["sessionManager"], "getSessionId">;
 	readonly modelRegistry: {
 		readonly streamSimple: (...args: Parameters<StreamSimple>) => Pick<ReturnType<StreamSimple>, "result">;
 	};
@@ -125,7 +127,12 @@ const attempt = Effect.fn("attempt")(function* ({
 						systemPrompt,
 						messages: [{ role: "user", content: [{ type: "text", text }], timestamp }],
 					},
-					{ signal, cacheRetention: "none", sessionId: uuidv7() },
+					{
+						signal,
+						cacheRetention: "none",
+						sessionId: uuidv7(),
+						headers: phiSessionHeaders({ model, session: ctx.sessionManager.getSessionId() }),
+					},
 				)
 				.result(),
 		catch: (cause) => (cause instanceof Error ? cause.message : String(cause)),

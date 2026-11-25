@@ -22,7 +22,11 @@ import { Details } from "./summary.ts";
 
 type Handler = Parameters<Parameters<ReturnType<typeof compaction>>[0]["on"]>[1];
 
-export type Ctx = Parameters<Handler>[1];
+type Caller = Parameters<Handler>[1];
+
+export type Ctx = Omit<Caller, "sessionManager">;
+
+const testSession: Caller["sessionManager"] = { getSessionId: () => "compaction-test-session" };
 
 export const rootEnv = {};
 
@@ -177,7 +181,8 @@ export const compact = Effect.fn("compact")(function* ({
 		getCommands: () => Arr.map(skills, skillCommand),
 	});
 
-	const results = yield* Effect.forEach(handlers, (handler) => Effect.promise(() => handler(event, ctx)));
+	const caller: Caller = Object.assign(ctx, { sessionManager: testSession });
+	const results = yield* Effect.forEach(handlers, (handler) => Effect.promise(() => handler(event, caller)));
 	const entry = Arr.last(results).pipe(Option.flatMap(({ compaction: found }) => Option.fromNullishOr(found)));
 	const details = yield* Schema.decodeUnknownEffect(Details)(Option.getOrUndefined(entry)?.details);
 
