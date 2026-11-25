@@ -122,7 +122,6 @@ export interface Prior {
 	readonly files: Files;
 }
 
-/** Without a compaction this handler wrote, `fileOps` already holds the file lists of the one pi wrote. */
 export const priorOf = ({
 	branch,
 	previousSummary,
