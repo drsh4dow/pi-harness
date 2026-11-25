@@ -179,6 +179,12 @@ Terms for the check and queue commands.
 - **Worktree.** Where a check ran: the repository's shared git folder, the worktree's root, the folder inside it, and the tree it would commit with every tracked, edited and untracked file added. Worktrees of one repository share receipts, and separate clones do not.
 - **Caller in line.** A process in a queue, waiting for one of its places or holding one, known by its pid, its command and its folder. The code calls it `Holder`, which is not the owned-work **Holder**.
 
+## Footer
+
+Terms for the footer, which replaces pi's own.
+
+- **Stats line.** The footer's second line: the time from the first message to the latest, the latest response's cache hit rate, the session's cost and the context use, with the model on the right. It shows no token counters. The footer's other lines match pi's. Unlike pi's, it never shows where a virtual model routed the latest response, since pi gives extensions no way to tell a virtual model apart.
+
 ## Merge
 
 Terms for what lets an agent merge a pull request. See ADR 0009.

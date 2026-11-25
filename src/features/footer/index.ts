@@ -245,11 +245,6 @@ export const footerView = (inputs: FooterInputs) => {
 	return (width: number) => [pwdLine(inputs, width), statsLine(inputs, stats(), width), ...statusLines(inputs, width)];
 };
 
-/**
- * Replaces pi's footer with `footerView`. It matches pi's built-in footer except for the stats line, and except that it
- * never shows where a virtual model routed the latest response, because pi gives extensions no way to tell a virtual
- * model apart.
- */
 export const footer = (pi: Pick<ExtensionAPI, "on" | "getThinkingLevel">) => {
 	const host = piHost(Layer.empty);
 
