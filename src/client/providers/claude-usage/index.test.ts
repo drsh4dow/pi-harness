@@ -86,6 +86,8 @@ const ProbeSent = Schema.Struct({ model: Schema.String, max_tokens: Schema.Finit
 
 const decodeSent = Schema.decodeEffect(Schema.fromJsonString(ProbeSent));
 
+const decodeSystem = Schema.decodeEffect(Schema.fromJsonString(Schema.Struct({ system: Schema.String })));
+
 const usd = (minor: number) => ({ minor, exponent: 2, currency: "USD" });
 
 const ultraExtra = { used: usd(0), cap: Option.some(usd(4000)), off: Option.some("out_of_credits") };
@@ -101,6 +103,20 @@ const scopeless = answering(() => new Response(scopeRefusal, { status: 403 })).l
 const rejected = answering(badKey).layer;
 
 const limited = answering(weeklyLimitHit);
+
+const probed = answering(weeklyLimitHit);
+
+const everyClaim = answering(
+	() =>
+		new Response("{}", {
+			headers: {
+				"anthropic-ratelimit-unified-5h-utilization": "0.25",
+				"anthropic-ratelimit-unified-5h-reset": "1794400000",
+				"anthropic-ratelimit-unified-7d-utilization": "0.5",
+				"anthropic-ratelimit-unified-overage-utilization": "0",
+			},
+		}),
+).layer;
 
 test("the usage page gives each plan window, scoped to a model when it is one, and the extra usage", () =>
 	Effect.runPromise(
@@ -162,6 +178,33 @@ test("a probe the weekly limit rejects still reads the limit from the headers, a
 
 			expect(bodies).toEqual([{ model: "claude-opus-5-5", max_tokens: 1 }]);
 		}).pipe(Effect.provide(limited.layer)),
+	));
+
+test("a probe calls itself Claude Code, the only caller Anthropic serves a subscription token", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const claude = yield* ClaudeUsage;
+
+			yield* claude.probe({ token, model: "claude-opus-5-5" });
+
+			const bodies = yield* Effect.forEach(probed.sent, ({ body }) => decodeSystem(body));
+
+			expect(bodies).toEqual([{ system: "You are Claude Code, Anthropic's official CLI for Claude." }]);
+		}).pipe(Effect.provide(probed.layer)),
+	));
+
+test("a probe reply gives one window per rate-limit claim in its headers, in the usage page's words", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const claude = yield* ClaudeUsage;
+			const got = yield* claude.probe({ token, model: "claude-opus-5-5" });
+
+			expect(got).toEqual([
+				{ name: "5-hour", percent: 25, resetsAt: Option.some(DateTime.makeUnsafe(1_794_400_000_000)) },
+				{ name: "weekly", percent: 50, resetsAt: Option.none() },
+				{ name: "extra usage", percent: 0, resetsAt: Option.none() },
+			]);
+		}).pipe(Effect.provide(everyClaim)),
 	));
 
 test("a probe reply with no rate-limit headers fails with the status and reason", () =>

@@ -51,12 +51,7 @@ export class ClaudeUsageError extends Schema.TaggedError<ClaudeUsageError, { rea
 export class ClaudeUsage extends Context.Service<
 	ClaudeUsage,
 	{
-		/** The account's usage page, which needs an OAuth token with the `user:profile` scope. */
 		readonly plan: (token: Redacted.Redacted) => Effect.Effect<PlanUsage, ClaudeUsageError>;
-		/**
-		 * Sends a one-token message and reads the rate-limit headers on the reply, for a token without `user:profile`, such
-		 * as one from `claude setup-token`. A rejected reply carries the headers too and costs nothing.
-		 */
 		readonly probe: (request: ProbeRequest) => Effect.Effect<ReadonlyArray<Window>, ClaudeUsageError>;
 	}
 >()("pi-harness/client/providers/claude-usage/ClaudeUsage") {}
@@ -79,7 +74,6 @@ const SpendWire = Schema.Struct({
 	disabled_reason: Schema.NullOr(Schema.String),
 });
 
-/** Only the fields `/usage` reads. The page carries many more, under code names that change without notice. */
 const PlanWire = Schema.Struct({ limits: Schema.Array(LimitWire), spend: Schema.NullOr(SpendWire) });
 
 const ErrorWire = Schema.Struct({ error: Schema.Struct({ message: Schema.String }) });
@@ -125,7 +119,6 @@ const planOf = ({ limits, spend }: PlanWire): PlanUsage => ({
 	spend: Option.map(Option.fromNullOr(spend), spendOf),
 });
 
-/** The name of the window that resets each week, on the usage page and in a probe's headers. */
 export const weeklyWindow = "weekly";
 
 const pageNameOfClaim = new Map([
@@ -155,7 +148,6 @@ const windowOfHeader = (headers: HeadersWire, [name, value]: readonly [string, s
 		resetsAt: resetOf(headers, claim),
 	}));
 
-/** Every unified rate-limit claim on a reply, from headers such as `anthropic-ratelimit-unified-7d-utilization: 1.0`. */
 const windowsOf = (headers: HeadersWire): ReadonlyArray<Window> =>
 	Arr.getSomes(Arr.map(Rec.toEntries(headers), (entry) => windowOfHeader(headers, entry)));
 
@@ -171,10 +163,6 @@ const resetOf429 = (headers: Headers, status: string) => {
 
 const unnamedResetWait = { minutes: 1 };
 
-/**
- * When an account that answered 429 takes requests again: the latest of each reset its headers name for a `rejected`
- * claim and of `retry-after`, else a minute from `now`.
- */
 export const backAt = ({ headers, now }: { readonly headers: Headers; readonly now: DateTime.Utc }): DateTime.Utc => {
 	const rejected = Arr.filter([...headers], ([name, value]) => rejectedStatus.test(name) && value === "rejected");
 	const resets = Arr.getSomes(Arr.map(rejected, ([name]) => resetOf429(headers, name)));
@@ -186,12 +174,10 @@ export const backAt = ({ headers, now }: { readonly headers: Headers; readonly n
 
 const oauthBeta = "oauth-2025-04-20";
 
-/** Anthropic serves a subscription token only to a request that calls itself Claude Code. */
 const claudeCodeSystem = "You are Claude Code, Anthropic's official CLI for Claude.";
 
 const failure = (what: string) => (cause: unknown) => ClaudeUsageError.make({ message: `${what}: ${String(cause)}` });
 
-/** The API's own error message for a non-2xx reply, such as a missing OAuth scope. */
 const refusalOf = (what: string, response: HttpClientResponse.HttpClientResponse) =>
 	Effect.flatMap(
 		Effect.orElseSucceed(response.text, () => ""),

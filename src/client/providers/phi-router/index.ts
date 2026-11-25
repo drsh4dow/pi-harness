@@ -15,29 +15,22 @@ export class PhiRouterError extends Schema.TaggedError<PhiRouterError, { readonl
 	{ args: Schema.Array(Schema.String), why: Schema.String },
 ) {}
 
-/** The sessions phi-router holds, asked through its `phi-router` command. */
 export class PhiRouter extends Context.Service<
 	PhiRouter,
 	{
 		readonly pinned: (session: string) => Effect.Effect<boolean, PhiRouterError>;
-		/** Pins the session, and returns once the router stored the pin. */
 		readonly pin: (session: string) => Effect.Effect<void, PhiRouterError>;
 	}
 >()("pi-harness/client/providers/phi-router/PhiRouter") {}
 
 const routerPackageCommand = "phi";
 
-/**
- * The file of the extension that added `/phi`, which is phi-router's pi package: `plugins/pi/extension.mjs` of a
- * phi-router checkout. A delegate loads the same file.
- */
 export const routerExtensionOf = (commands: ReadonlyArray<SlashCommandInfo>) =>
 	Option.map(
 		Arr.findFirst(commands, ({ name, source }) => name === routerPackageCommand && source === "extension"),
 		({ sourceInfo }) => sourceInfo.path,
 	);
 
-/** The package's launcher, `plugins/claude/bin/phi-router`, beside the extension's `plugins/pi/`. */
 const launcherOf = (extension: string) => `${Str.replace(/\/[^/]*$/u, "")(extension)}/../claude/bin/phi-router`;
 
 const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
@@ -51,10 +44,6 @@ interface Located {
 	readonly env: Readonly<Record<string, string | undefined>>;
 }
 
-/**
- * The router of the package at `extension`, on the port its pi package uses: `PHI_ROUTER_PORT` when set, else the
- * router's own default. With no package loaded, every question fails.
- */
 export const phiRouterLayer = ({ extension, env }: Located) =>
 	Layer.effect(
 		PhiRouter,

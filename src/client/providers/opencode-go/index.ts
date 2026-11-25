@@ -33,7 +33,6 @@ export class OpencodeGo extends Context.Service<
 
 const WindowWire = Schema.Struct({ percent: Schema.Finite, resetsAt: Schema.String });
 
-/** A plan without a window, such as one with no monthly limit, leaves it out. */
 const UsageWire = Schema.Struct({
 	usage: Schema.Struct({
 		rolling: Schema.optionalKey(WindowWire),
@@ -64,7 +63,6 @@ const decodeUsage = Schema.decodeEffect(Schema.fromJsonString(UsageWire));
 
 const failed = (cause: unknown) => OpencodeGoError.make({ message: `OpenCode Go usage: ${String(cause)}` });
 
-/** The route has answered `503 Go usage is unavailable` for a moment and then served again. */
 const resilient = (http: HttpClient.HttpClient) =>
 	http.pipe(
 		HttpClient.filterStatusOk,

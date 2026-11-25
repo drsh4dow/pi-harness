@@ -79,7 +79,6 @@ const saveWith = (fs: FileSystem.FileSystem, root: string) => {
 			};
 
 			yield* fs.makeDirectory(folder, { recursive: true, mode: ownerOnly.folder });
-			// A folder made earlier, or by git, keeps its old mode through makeDirectory.
 			yield* Effect.forEach([root, folder], (made) => fs.chmod(made, ownerOnly.folder));
 
 			return yield* Match.valueTags(page.body, {
