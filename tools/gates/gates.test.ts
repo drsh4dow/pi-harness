@@ -111,3 +111,13 @@ test("the ast-grep checks reject a dynamic import and a relative import without 
 		[`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "src"],
 		["Import at the top of the file", "End a relative import in .ts"],
 	));
+
+test("the width gate rejects a folder of 21 entries and names the folder rule", () =>
+	failsWith(
+		"width",
+		"width",
+		["sh", `${repo}/tools/width.sh`, "size-limits.txt", "src"],
+		[
+			"src/features/wide holds 21 entries, over 20. Folder rule: move each concept into a folder named for it, with its edge file inside.",
+		],
+	));

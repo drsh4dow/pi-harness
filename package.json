@@ -17,7 +17,8 @@
 		"check": "oxfmt --check && bun run --parallel lint typecheck boundaries sg knip test",
 		"boundaries": "depcruise src tools agent/extensions agent/bin --output-type err",
 		"sg": "bun tools/gates/budget.ts",
-		"knip": "knip --no-progress"
+		"knip": "knip --no-progress",
+		"width": "sh tools/width.sh size-limits.txt src tools agent/extensions agent/bin"
 	},
 	"dependencies": {
 		"@effect/platform-node": "4.1.2",
