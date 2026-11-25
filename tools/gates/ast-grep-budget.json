@@ -107,7 +107,7 @@
 	"tools/driver/run/root.test.ts no-comments": 1,
 	"tools/driver/run/root.ts no-comments": 17,
 	"tools/driver/run/spawn.ts no-comments": 5,
-	"tools/driver/service/service.ts no-comments": 5,
+	"tools/driver/service/service.ts no-comments": 4,
 	"tools/driver/service/tripwire.ts no-comments": 5,
 	"tools/driver/sessions/probe.ts no-comments": 11,
 	"tools/driver/sessions/sessions.ts no-comments": 10,
