@@ -16,8 +16,6 @@
 	"ignoreDependencies": [
 		// the tsconfig plugin name that @effect/tsgo answers to; no package by that name exists
 		"@effect/language-service",
-		// tools/gates/budget.ts runs ast-grep by path, which knip does not follow
-		"@ast-grep/cli",
 		// dependency-cruiser loads it for "parser": "swc" in .dependency-cruiser.json
 		"@swc/core",
 	],

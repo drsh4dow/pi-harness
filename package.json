@@ -14,8 +14,8 @@
 		"prompts": "bun tools/prompts/index.ts",
 		"usage": "bun tools/usage/index.ts",
 		"check": "oxfmt --check && bun run --parallel lint boundaries sg width knip test",
-		"boundaries": "depcruise src tools agent/extensions agent/bin --output-type err",
-		"sg": "bun tools/gates/budget.ts",
+		"boundaries": "depcruise src tools agent/extensions agent/bin --output-type err-long",
+		"sg": "ast-grep scan src tools agent/extensions agent/bin",
 		"knip": "knip --no-progress",
 		"width": "sh tools/width.sh size-limits.txt src tools agent/extensions agent/bin"
 	},

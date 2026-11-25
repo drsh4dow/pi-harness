@@ -28,7 +28,6 @@
 		"agent/skills/writing-good-prs/scripts/**",
 		"agent/skills/dumpfile/cli/**",
 		"agent/skills/statechart/scripts/**",
-		"agent/playbooks/constraint-driven-development/scripts/**",
-		"oxlint-suppressions.json"
+		"agent/playbooks/constraint-driven-development/scripts/**"
 	]
 }
