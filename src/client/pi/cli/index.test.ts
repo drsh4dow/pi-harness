@@ -12,7 +12,7 @@ import * as Scope from "effect/Scope";
 import * as Str from "effect/String";
 
 import type { SessionAddress } from "#src/client/pi/sessions/index.ts";
-import { Design, PiCli, piCliLayer, readStagedBrief, type StagedBrief } from "./index.ts";
+import { Design, PiCli, piCliLayer, readStagedBrief, type StagedBrief, unwrapMessage } from "./index.ts";
 
 const cli = Layer.provideMerge(piCliLayer(["/entrypoint.ts"]), NodeServices.layer);
 
@@ -149,6 +149,60 @@ test("closing the client leaves alone the paths of a child it already unstaged",
 			expect(kept).toBe(true);
 		}),
 	);
+});
+
+const stagedAfterClose = <Failure>(
+	session: SessionAddress,
+	use: (pi: (typeof PiCli)["Service"]) => Effect.Effect<unknown, Failure>,
+) =>
+	Effect.gen(function* () {
+		const scope = yield* Scope.make();
+		const context = yield* Layer.buildWithScope(cli, scope);
+		const fs = Context.get(context, FileSystem.FileSystem);
+
+		yield* use(Context.get(context, PiCli));
+		yield* Scope.close(scope, Exit.void);
+
+		return {
+			message: yield* fs.exists(`${session.dir}/${session.id}.message`),
+			brief: yield* fs.exists(`${session.dir}/${session.id}.brief.json`),
+		};
+	});
+
+test("closing a released client leaves the staged files of the children it launched", () => {
+	const session = { id: "released", cwd: "/", dir: staging };
+
+	return Effect.runPromise(
+		Effect.gen(function* () {
+			const kept = yield* stagedAfterClose(session, (pi) => Effect.andThen(pi.launch(childOf(session)), pi.release));
+
+			expect(kept).toEqual({ message: true, brief: true });
+		}),
+	);
+});
+
+test("closing a client removes the staged files of the children it adopted", () => {
+	const session = { id: "adopted", cwd: "/", dir: staging };
+
+	return Effect.runPromise(
+		Effect.gen(function* () {
+			yield* stagedAfterClose(session, (pi) => Effect.andThen(pi.launch(childOf(session)), pi.release));
+
+			const kept = yield* stagedAfterClose(session, (pi) => pi.adopt([session]));
+
+			expect(kept).toEqual({ message: false, brief: false });
+		}),
+	);
+});
+
+test("unwrapMessage takes the message back out of the text pi builds for its @file argument", () => {
+	const unwrap = unwrapMessage({ dir: "/delegates", id: "child" });
+
+	expect({
+		message: unwrap('<file name="/delegates/child.message">\nFind the bug.\n</file>\n'),
+		other: unwrap('<file name="/delegates/other.message">\nFind the bug.\n</file>\n'),
+		typed: unwrap("Find the bug."),
+	}).toEqual({ message: Option.some("Find the bug."), other: Option.none(), typed: Option.none() });
 });
 
 afterAll(() => Effect.runPromise(Effect.promise(() => Bun.$`rm -rf ${staging}`.quiet())));

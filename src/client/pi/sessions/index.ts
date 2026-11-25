@@ -21,7 +21,6 @@ export interface SessionAddress {
 	readonly dir: string;
 }
 
-/** A child's last non-empty assistant text, kept whole in `file`, or the provider error its last call ended on. */
 export type ChildReply = Data.TaggedEnum<{
 	Answered: { readonly text: string; readonly file: string };
 	Errored: { readonly why: string };
@@ -30,24 +29,16 @@ export type ChildReply = Data.TaggedEnum<{
 export const ChildReply = Data.taggedEnum<ChildReply>();
 
 export interface BranchRequest {
-	/** The session file to copy from. It stays unchanged. */
 	readonly source: string;
 	readonly dir: string;
-	/** The last entry the copy keeps. The path to it must hold a message, so pi writes the copy at once. */
 	readonly leaf: string;
-	/** Appended after `leaf`, where the model reads it on its next turn. */
 	readonly note: Option.Option<{ readonly customType: string; readonly content: string }>;
 }
 
 export class PiSessions extends Context.Service<
 	PiSessions,
 	{
-		/**
-		 * None when the child has no text, its last call was aborted, or its session is missing or unreadable. An answer is
-		 * written whole to `<dir>/<id>.answer.md` beside the session before it is returned.
-		 */
 		readonly readAnswer: (session: SessionAddress) => Effect.Effect<Option.Option<ChildReply>>;
-		/** Writes a new session file holding the path to `leaf`, like pi's `/fork`, and returns its path. */
 		readonly branch: (request: BranchRequest) => Effect.Effect<string, SessionUnwritable>;
 	}
 >()("pi-harness/client/pi/sessions/PiSessions") {}

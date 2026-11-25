@@ -7,7 +7,6 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 export interface SpendRequest {
-	/** The folder that holds every session, such as `~/.pi/agent/sessions`. Delegates' sessions sit inside it. */
 	readonly root: string;
 	readonly provider: string;
 	readonly since: DateTime.Utc;
@@ -45,7 +44,6 @@ const unreadable = (path: string) => (cause: unknown) => SessionsUnreadable.make
 const isOnOrAfter = (since: DateTime.Utc) => (mtime: Option.Option<Date>) =>
 	Option.exists(mtime, (modified) => modified.getTime() >= DateTime.toEpochMillis(since));
 
-/** The session files written to since `since`, since a file untouched before then holds no reply after it. */
 const sessionFiles = ({ root, since }: SpendRequest) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -82,7 +80,6 @@ const total = (spends: ReadonlyArray<Estimate>): Estimate => ({
 	replies: Arr.reduce(spends, 0, (sum, { replies }) => sum + replies),
 });
 
-/** What pi priced one provider's replies at since a time, across every session under `root`. */
 export const spendSince = (request: SpendRequest) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;

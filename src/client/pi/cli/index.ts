@@ -63,9 +63,7 @@ export class PiCli extends Context.Service<
 			child: ChildPi,
 		) => Effect.Effect<readonly [string, ...Array<string>], PlatformError.PlatformError>;
 		readonly unstage: (session: SessionAddress) => Effect.Effect<void>;
-		/** Leaves every staged file on disk when this layer closes, because a running child reads its brief each turn. */
 		readonly release: Effect.Effect<void>;
-		/** Takes over the staged files of children that a released layer started, so closing this one removes them. */
 		readonly adopt: (sessions: ReadonlyArray<SessionAddress>) => Effect.Effect<void>;
 	}
 >()("pi-harness/client/pi/cli/PiCli") {}
@@ -171,7 +169,6 @@ export const readStagedBrief = Effect.fn("readStagedBrief")(function* (session: 
 	);
 });
 
-/** An `@file` argument reaches the prompt as `<file name="path">` text (pi's `cli/file-processor.js`), so this takes the message back out. */
 export const unwrapMessage =
 	(session: Pick<SessionAddress, "dir" | "id">) =>
 	(input: string): Option.Option<string> => {

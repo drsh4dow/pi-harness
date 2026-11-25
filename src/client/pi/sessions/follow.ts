@@ -5,10 +5,6 @@ import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
 import * as Str from "effect/String";
 
-/**
- * The whole lines appended since an offset. The last line may still be half written, so reading stops at the last
- * newline. A file shorter than what was read was replaced, so it is read again from the start.
- */
 export interface Appended {
 	readonly replaced: boolean;
 	readonly text: string;
