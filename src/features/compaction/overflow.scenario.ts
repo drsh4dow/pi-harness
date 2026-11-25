@@ -1,4 +1,4 @@
-import type { SessionEntry } from "@earendil-works/pi-coding-agent";
+import { DEFAULT_MAX_BYTES, type SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -25,7 +25,6 @@ const refusedIn = (entries: ReadonlyArray<SessionEntry>) =>
 			/too long|context/iu.test(entry.message.errorMessage ?? ""),
 	);
 
-/** About 45 KB, under the read tool's 50 KB cut, of text dense in tokens. */
 const filler = (seed: number) =>
 	Arr.join(
 		Arr.makeBy(4500, (index) => Str.padStart(9, "q")((index * 7919 + seed * 104_729).toString(36))),
@@ -110,10 +109,14 @@ const quotes = (
 scenario({
 	env: process.env,
 	model: "ultra-a/claude-haiku-4-5",
-	// With no reserve pi never compacts at its threshold, only when the provider refuses a request as too long.
 	settings: { compaction: { enabled: true, reserveTokens: 0, keepRecentTokens: 20_000 } },
 	play: (run) =>
 		Effect.gen(function* () {
+			yield* run.check(
+				filler(0).length < DEFAULT_MAX_BYTES,
+				`a filler file fits under the read tool's ${String(DEFAULT_MAX_BYTES)}-byte cut`,
+			);
+
 			const project = yield* run.exec(["pwd"]);
 			const { marker, stateFile } = yield* withStateFile(run);
 			const fed = yield* feed(run, Str.trim(project.output), 0);
