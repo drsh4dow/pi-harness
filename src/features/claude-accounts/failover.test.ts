@@ -15,7 +15,6 @@ import { endedOnRateLimit, failOver, failoverOf, type Limits } from "./failover.
 
 const opus = getBuiltinModel("anthropic", "claude-opus-5-5");
 
-/** A registry where every account offers Opus and nothing else. */
 const find = (provider: string, id: string) =>
 	Arr.some(accounts, (account) => account.id === provider) && id === opus.id ? { ...opus, provider } : undefined;
 

@@ -103,13 +103,11 @@ const setupTokenAuth: ApiKeyAuth = {
 };
 
 export interface Anthropic {
-	/** Pi's Anthropic catalog. */
 	readonly models: ReadonlyArray<Model<"anthropic-messages">>;
 	/** Pi's Anthropic OAuth flow, which every OAuth account reuses. */
 	readonly oauth: OAuthAuth;
 }
 
-/** Pi's own Anthropic provider, whose catalog and OAuth flow every account reuses. */
 export const anthropicOf = (): Anthropic => {
 	const anthropic = Arr.findFirst(builtinProviders(), ({ id }) => id === "anthropic");
 
@@ -202,7 +200,6 @@ export const accountProvider = ({
 			(model) => ({
 				...model,
 				provider: account.id,
-				// Pi turns message threads on by itself only for the provider named `anthropic`. Every account talks to the same endpoint.
 				// The BAA org answers a thread with HTTP 400.
 				compat: { ...model.compat, supportsMessageThreads: !account.baa },
 			}),

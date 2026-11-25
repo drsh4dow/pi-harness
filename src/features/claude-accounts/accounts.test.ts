@@ -43,7 +43,6 @@ const memoryStore = (initial: Readonly<Record<string, Credential>>): Store => {
 	};
 };
 
-/** Every variable pi's own Anthropic provider would fall back to. */
 const anthropicEnv = new Map([
 	["ANTHROPIC_API_KEY", "sk-ant-api03-from-env"],
 	["ANTHROPIC_OAUTH_TOKEN", "sk-ant-oat01-from-env"],

@@ -10,7 +10,6 @@ import * as Redacted from "effect/Redacted";
 import { ClaudeUsage, type PlanUsage, weeklyWindow } from "#src/client/providers/index.ts";
 import { type Account, type AccountId, accounts } from "./accounts.ts";
 
-/** What reading an account's plan needs from pi's model registry. */
 export type PlanReader = Pick<ModelRegistry, "getAll" | "getApiKeyForProvider">;
 
 const keyOf = (registry: PlanReader, provider: string) =>
