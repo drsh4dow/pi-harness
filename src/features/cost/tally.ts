@@ -8,19 +8,14 @@ export interface Started {
 	readonly name: string;
 }
 
-/**
- * What a session's lines add up to: the list price of every model call it made, and the delegates it started. `since`
- * is when the session began, from its header. A fork copies its source's entries with their timestamps, so an entry
- * older than the header was spent in the source.
- */
 export interface Tally {
-	readonly since: number;
+	readonly sessionStart: number;
 	readonly usd: number;
 	readonly started: ReadonlyArray<Started>;
 }
 
 /** Counts nothing until the header says when the session began. */
-export const emptyTally: Tally = { since: Number.POSITIVE_INFINITY, usd: 0, started: [] };
+export const emptyTally: Tally = { sessionStart: Number.POSITIVE_INFINITY, usd: 0, started: [] };
 
 const Priced = Schema.Struct({ cost: Schema.Struct({ total: Schema.Finite }) });
 
@@ -63,10 +58,10 @@ const mayCount = (text: string) =>
 
 const add = (tally: Tally, line: Line): Tally => {
 	if (line.type === "session") {
-		return { ...tally, since: Date.parse(line.timestamp) };
+		return { ...tally, sessionStart: Date.parse(line.timestamp) };
 	}
 
-	if (Date.parse(line.timestamp) < tally.since) {
+	if (Date.parse(line.timestamp) < tally.sessionStart) {
 		return tally;
 	}
 
