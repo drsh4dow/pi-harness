@@ -55,14 +55,19 @@ const decodeMiss = Schema.decodeUnknownOption(Miss);
 interface Request {
 	readonly prompt: string;
 	readonly tools: ReadonlyArray<string>;
+	readonly projectsCreated?: ReadonlyArray<string>;
 }
 
 const usual: Request = { prompt: "You are a coding assistant.", tools: ["read", "bash"] };
 
 const forced: Request = { ...usual, prompt: "You are a reviewer." };
 
-const payloadOf = ({ tools }: Request) => ({
+const payloadOf = ({ tools, projectsCreated = [] }: Request) => ({
 	tools: Arr.map(tools, (name) => ({ name, description: `Run ${name}.`, input_schema: { type: "object" } })),
+	messages: Arr.map(projectsCreated, (name) => ({
+		role: "assistant",
+		content: [{ type: "tool_use", name: "create_project", input: { name, description: `The ${name} project.` } }],
+	})),
 });
 
 const world = () => {
@@ -213,6 +218,16 @@ const cases: ReadonlyArray<readonly [string, (world: World) => void, ReadonlyArr
 			reply({ at: start + minute, ...full });
 		},
 		missed([cause.ToolsChanged.make({})]),
+	],
+	[
+		"no tools change when a tool call's arguments hold a name and a description",
+		({ send, reply }) => {
+			send(usual);
+			reply({ at: start, ...hit });
+			send({ ...usual, projectsCreated: ["harbor"] });
+			reply({ at: start + minute, ...full });
+		},
+		missed([]),
 	],
 	[
 		"no prompt or tools change when a hook sends the same prompt and tools on each call",

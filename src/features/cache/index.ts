@@ -112,6 +112,13 @@ const toolDeclarations = (json: Schema.Json): ReadonlyArray<Schema.Json> => {
 	return isToolDeclaration(json) ? [json] : Arr.flatMap(Rec.values(json), toolDeclarations);
 };
 
+const declaredTools = (body: Schema.Json): ReadonlyArray<Schema.Json> =>
+	isJsonObject(body)
+		? Arr.flatMap([body["tools"], body["toolConfig"]], (field) =>
+				field === undefined ? [] : toolDeclarations(field),
+			)
+		: [];
+
 interface RequestHead {
 	readonly prompt: string;
 	readonly tools: ReadonlyArray<Schema.Json>;
@@ -184,7 +191,7 @@ export const recordMisses = (pi: Pick<ExtensionAPI, "appendEntry">) => {
 
 		sending = Option.some({
 			prompt: ctx.getSystemPrompt(),
-			tools: Option.getOrElse(Option.map(body, toolDeclarations), () => []),
+			tools: Option.getOrElse(Option.map(body, declaredTools), () => []),
 		});
 	};
 
