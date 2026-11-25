@@ -1,7 +1,6 @@
 ---
 name: reframe
 description: "Teach the expert words for what the operator is building, borrow words from neighboring fields that solved the same problem, then rewrite their description with them."
-disable-model-invocation: true
 ---
 
 Teach the operator the expert words for what they are building. Start from their own files, code and description, not a summary.
