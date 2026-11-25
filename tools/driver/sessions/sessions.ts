@@ -16,34 +16,21 @@ export interface Session {
 	/** The id in the file's header, the one owned-work records as `child_session_id`. */
 	readonly id: string;
 	readonly file: string;
-	/** The file's entries in order, header left out. A line pi was still writing is left out until the next read. */
 	readonly entries: ReadonlyArray<SessionEntry>;
-	/**
-	 * What the pi running this session loaded, as of its latest session start or agent start. Extensions that register
-	 * tools in their own `session_start` handler show from the first agent start on. None until it started.
-	 */
 	readonly loaded: Option.Option<Loaded>;
-	/**
-	 * Every string of each provider payload this session built, one line each, oldest first. Recorded before any other
-	 * extension's `before_provider_request` handler, so not always the text the provider received.
-	 */
 	readonly requests: ReadonlyArray<string>;
 }
 
 export interface Sessions {
-	/** No entries until pi writes the file at the root's first message. */
 	readonly root: Session;
-	/** Every delegate's session at any depth (`delegates/` under the session folder, and theirs), oldest first. */
 	readonly delegates: ReadonlyArray<Session>;
 }
 
-/** The text up to its last LF: a line after it is still being written. */
 const completeLines = (text: string) =>
 	Option.match(Str.lastIndexOf("\n")(text), { onNone: () => "", onSome: (last) => Str.slice(0, last + 1)(text) });
 
 const decodeProbed = Schema.decodeUnknownOption(Schema.fromJsonString(Probed));
 
-/** Pure. Every complete probe record in a probe file's text. A line that is not a record is skipped. */
 const probedIn = (text: string): ReadonlyArray<Probed> => {
 	const lines = Str.split(completeLines(text), "\n");
 
@@ -65,7 +52,6 @@ const probedOf = (id: string, probed: ReadonlyArray<Probed>) => {
 const isEntry = (entry: ReturnType<typeof parseSessionEntries>[number]): entry is SessionEntry =>
 	entry.type !== "session";
 
-/** Pure. One session file's text with its probe records. None when the header is not written yet. */
 const sessionIn = ({
 	file,
 	text,
