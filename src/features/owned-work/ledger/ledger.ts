@@ -75,7 +75,6 @@ export interface LedgerOptions {
 	readonly self: Self;
 	readonly cwd: string;
 	readonly passEnv: Readonly<Record<string, string>>;
-	/** The number of the first ref, past every ref the session's transcript names already. */
 	readonly firstRef: number;
 	/** The state a reload handed over, whose work keeps running. */
 	readonly carried: Option.Option<LedgerState>;
