@@ -10,9 +10,13 @@ import { usage } from "${import.meta.dirname}/index.ts";
 
 const seen = [];
 const registered = {};
+const stored = [];
 
 const feature = usage({
-	appendEntry: (type, card) => seen.push({ entry: type, blocks: card.blocks }),
+	appendEntry: (type, card) => {
+		stored.push(card);
+		seen.push({ entry: type, blocks: card.blocks });
+	},
 	registerCommand: (name, { handler }) => {
 		registered[name] = handler;
 	},
@@ -27,8 +31,8 @@ await registered.usage("", {
 });
 
 const theme = { fg: (_color, text) => text, bold: (text) => text, bg: (_color, text) => text };
-const drawn = registered["usage entry"]({ data: { readAt: "Nov 10, 16:40", blocks: "none" } }, {}, theme);
-seen.push({ entry: "usage", drawn: drawn !== undefined });
+const drawn = (data) => registered["usage entry"]({ data }, {}, theme) !== undefined;
+seen.push({ entry: "usage", storedDrawn: drawn(stored[0]), malformedDrawn: drawn({ readAt: "Nov 10, 16:40", blocks: "none" }) });
 
 await feature.shutdown();
 console.log(JSON.stringify(seen));
@@ -94,7 +98,7 @@ test("/usage shows a card that fills in, then stores the finished card as one en
 					],
 				},
 				{ widget: "usage", shown: false },
-				{ entry: "usage", drawn: false },
+				{ entry: "usage", storedDrawn: true, malformedDrawn: false },
 			]);
 		}).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
 	));
