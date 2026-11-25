@@ -4,7 +4,6 @@ import * as Str from "effect/String";
 
 export type Role = "root" | "owner" | "leaf" | "delegate" | "none";
 
-/** What a session's first system message offered: the guides it listed, and the role its role section names. */
 export interface Offer {
 	readonly listed: ReadonlySet<string>;
 	readonly role: Role;

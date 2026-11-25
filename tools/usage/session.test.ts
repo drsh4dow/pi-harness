@@ -234,3 +234,21 @@ test("delegates a codemode script started count as delegate calls and fire the s
 test("a session file's name, as pi writes it, gives the time the session started", () => {
 	expect(startOf("--home-u-app--/2026-11-08T13-53-21-192Z_0f3c9a.jsonl")).toBe(Date.parse("2026-11-08T13:53:21.192Z"));
 });
+
+test("a later system message changes neither the listed guides nor the role", () => {
+	const later = {
+		...prompt,
+		message: {
+			...prompt.message,
+			sections: {
+				preamble:
+					'<role>\nYou work for the user.\n</role>\n<principles dir="/p">\n- small: when it fits\n</principles>',
+				skills: "",
+			},
+		},
+	};
+
+	const facts = Option.getOrThrow(factsFor([later, reply]));
+
+	expect([Arr.sort([...facts.listed], Order.String), facts.role]).toEqual([["big", "shared", "small"], "leaf"]);
+});
