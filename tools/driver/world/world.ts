@@ -25,7 +25,6 @@ export interface Layout {
 	readonly id: string;
 	/** `<tmp>/pi-driver/<id>`, kept as evidence after the run. */
 	readonly folder: string;
-	/** `HOME` for every process in the run, so `~/.pi/agent`, `~/.local/state` and `~/.config` are the run's. */
 	readonly home: string;
 	/** `PI_CODING_AGENT_DIR`, `<home>/.pi/agent`: links to the worktree's shipped entries and the human's `auth.json`. */
 	readonly agent: string;
@@ -39,7 +38,6 @@ export interface Layout {
 	readonly project: string;
 	/** `--session-dir` of the root. owned-work puts delegates' sessions in `delegates/` under it. */
 	readonly sessions: string;
-	/** `HC_SESSION` of the run's core, unique even when a pid is reused. */
 	readonly coreSession: string;
 	readonly runtime: string;
 	readonly socket: string;
@@ -85,17 +83,6 @@ export const layoutOf = (run: {
 
 const followsHome = new Set(["XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"]);
 
-/**
- * Pure. The environment of every process in the run, from the driver's own.
- *
- * - Drops every `HC_*` and `PI_*` key: the driver may itself run inside a delegate, and owned-work reads any
- *   `PI_OWNED_WORK_LEVEL` as "I am a delegate".
- * - Drops the `XDG_*_HOME` overrides, so they follow the scratch HOME. `XDG_RUNTIME_DIR` is the run's own.
- * - PATH loses `node_modules/.bin` folders and every folder under `<human home>/.pi/` (the live harness's `agent/bin`),
- *   and starts with the run's `bin/`.
- * - `HC_SOCKET` (the `hc` CLI) and `HC_TERMINAL_SOCKET` (owned-work's client) name the run's core.
- * - `borrowed` adds the human's git and gh config locations that exist.
- */
 export const runEnv = ({
 	own,
 	humanHome,

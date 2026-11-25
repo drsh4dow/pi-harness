@@ -15,6 +15,7 @@ const layout = layoutOf({ tmp: "/t", name: "smoke", stamp: "20260514-101010", pi
 const own = {
 	PATH: "/repo/node_modules/.bin:/h/.pi/agent/bin:/h/.pi-worktrees/x/agent/bin:/usr/bin",
 	HC_SESSION: "default",
+	HC_PANE_ID: "p1",
 	PI_OWNED_WORK_SLICE: "parent",
 	XDG_STATE_HOME: "/h/.local/state",
 	XDG_CONFIG_HOME: "/h/.config",
@@ -56,6 +57,7 @@ test.each(setRows)("runEnv: $name", ({ key, value }) => {
 
 const unsetRows = [
 	{ name: "the caller's slice is dropped", key: "PI_OWNED_WORK_SLICE" },
+	{ name: "the caller's hc keys are dropped", key: "HC_PANE_ID" },
 	{ name: "the state folder follows the scratch home", key: "XDG_STATE_HOME" },
 	{ name: "the config folder follows the scratch home", key: "XDG_CONFIG_HOME" },
 	{ name: "an unset key stays unset", key: "UNSET" },
@@ -63,6 +65,12 @@ const unsetRows = [
 
 test.each(unsetRows)("runEnv: $name", ({ key }) => {
 	expect(env).not.toHaveProperty(key);
+});
+
+test("layoutOf: a reused pid gets another core session under another tag", () => {
+	const again = layoutOf({ tmp: "/t", name: "smoke", stamp: "20260514-101010", pid: 42, tag: "0def34" });
+
+	expect(again.coreSession).not.toBe(layout.coreSession);
 });
 
 const settingsRows = [
