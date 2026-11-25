@@ -112,6 +112,9 @@ Terms from the usage feature, which shows `/usage`.
 - **Card.** What `/usage` shows: one block per account and the time it read them.
 - **Block.** One account in a card: the account, where its numbers came from, and its rows, or the reason it could not be read.
 - **Meter.** One number read for an account, which becomes a row of its block, such as a rate-limit window's percent used.
+- **Row.** One line of a block as the card shows it: a gauge or a note. The session stores a card's rows, not its meters, so a card read back shows what it showed when read.
+- **Gauge.** A row that shows a share of a limit as a bar.
+- **Note.** A row that shows a value with no limit to fill. A quiet note tells of something switched off and reads dimmed.
 - **Probe.** A one-token message to a Claude account that cannot read the usage page, whose reply carries the rate-limit windows.
 - **Estimate.** What pi priced its own replies at, from the models' list prices. It leaves out every other client that uses the same key.
 - **Window.** A rate-limit window of an account's plan, such as `5-hour` or `weekly`, with the percent of it the account has used and when it resets.

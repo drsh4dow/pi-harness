@@ -18,10 +18,6 @@ export type Outcome =
 	| { readonly kind: "read"; readonly meters: ReadonlyArray<Meter> }
 	| { readonly kind: "unreadable"; readonly why: string };
 
-/**
- * A row as the card shows it. A gauge is a share of a limit, drawn as a bar. A note is a value with no limit to fill.
- * The card keeps rows, not meters, because the session stores it as JSON and shows it again as it was when read.
- */
 const Gauge = Schema.Struct({
 	kind: Schema.Literal("gauge"),
 	name: Schema.String,
