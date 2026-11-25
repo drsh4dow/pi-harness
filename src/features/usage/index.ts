@@ -56,7 +56,6 @@ const planMeters = (ctx: ExtensionCommandContext, account: Account) =>
 		return [...windowMeters(plan.windows), ...Option.toArray(extra)];
 	});
 
-/** An OAuth login can read the usage page. A setup-token lacks the `user:profile` scope, so only a probe's headers tell. */
 const claudeVia = { oauth: "usage page", "setup-token": "one-token probe" } satisfies Record<Login, string>;
 
 const claudeSource = (account: Account): Source => ({
@@ -116,7 +115,6 @@ const blockFor = (source: Source, ctx: ExtensionCommandContext) =>
 
 const cardType = "usage";
 
-/** The session stores a card as JSON, so a card read back from it is checked like any other input. */
 const decodeCard = Schema.decodeUnknownOption(Card);
 
 const widgetKey = "usage";
@@ -125,10 +123,6 @@ const spinnerEvery = Duration.millis(80);
 
 type Host = Pick<ExtensionAPI, "appendEntry" | "registerCommand" | "registerEntryRenderer">;
 
-/**
- * Shows a card under the transcript that fills in as each account answers, then swaps it for the same card stored in
- * the session, so the result survives a reload.
- */
 const showUsage = (pi: Host, ctx: ExtensionCommandContext) =>
 	Effect.gen(function* () {
 		const reading = Arr.map(sources, ({ account, via }): Block => ({ account, via, body: { kind: "reading" } }));
