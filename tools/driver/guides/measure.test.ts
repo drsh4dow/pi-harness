@@ -98,7 +98,7 @@ const fakeRun = ({ folder, sessions }: { readonly folder: string; readonly sessi
 			prompt: () => Effect.never,
 			steer: () => Effect.void,
 			compact: Effect.void,
-			output: Effect.succeed(""),
+			stderr: Effect.succeed(""),
 		},
 		waitFor: (what, _within, find) =>
 			Effect.flatMap(sessions, (now) =>

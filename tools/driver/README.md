@@ -111,7 +111,7 @@ The run's name is the file name without `.scenario.ts`.
   after the current tool calls, before its next model call. It fails when pi is idle, so send it while a prompt runs.
 - `run.root.compact` runs pi's manual compaction, as `/compact` does, and returns once pi answers. It fails when pi
   rejects it, as when there is nothing to compact.
-- `run.root.output` is the root pi's stderr so far.
+- `run.root.stderr` is the root pi's stderr so far.
 - `run.waitFor(what, within, find)` reads the root's and every delegate's session once a second until `find` returns
   `Option.some(value)`, and returns the value. It fails with `timed out after <within> waiting for <what>`, and fails
   at once if the root pi exits. Use it for every read: pi writes session files as it goes.

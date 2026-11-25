@@ -26,8 +26,7 @@ export interface Root {
 	readonly steer: (message: Message) => Effect.Effect<void, ScenarioFailed>;
 	/** Runs pi's manual compaction, as `/compact` does, and returns once pi answers. */
 	readonly compact: Effect.Effect<void, ScenarioFailed>;
-	/** The root pi's stderr so far. */
-	readonly output: Effect.Effect<string>;
+	readonly stderr: Effect.Effect<string>;
 }
 
 /** The root as the driver holds it: the scenario's `Root` plus what only the driver reads. */
@@ -281,7 +280,7 @@ export const startRoot = (input: {
 			prompt: prompted(wire, input.progress),
 			steer: (message: Message) => Effect.asVoid(asked(wire, { type: "steer", ...sentOf(message) }, Schema.Unknown)),
 			compact: Effect.asVoid(asked(wire, { type: "compact" }, Schema.Unknown)),
-			output: wire.stderr,
+			stderr: wire.stderr,
 			session: { id: state.sessionId, file: state.sessionFile },
 			exited: wire.exited,
 		};
