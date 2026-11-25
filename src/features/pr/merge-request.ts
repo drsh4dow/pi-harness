@@ -70,7 +70,6 @@ const parsed = (argv: ReadonlyArray<string>): Parsed => {
 
 type Values = (...names: ReadonlyArray<string>) => ReadonlyArray<string>;
 
-/** The spellings of false that gh's flag parser accepts. */
 const falseValues = new Set(["false", "0", "f", "F", "FALSE", "False"]);
 
 const isOn = (values: ReadonlyArray<string>) => Option.exists(Arr.last(values), (value) => !falseValues.has(value));

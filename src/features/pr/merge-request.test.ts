@@ -106,6 +106,13 @@ test.each(calls)("gh $command $expect", (row) => {
 	expect(summary(row.argv)).toBe(row.expect);
 });
 
+test.each(["false", "0", "f", "F", "FALSE", "False"])(
+	"gh pr merge 5 --auto=%s merges now, since gh reads it as false",
+	(value) => {
+		expect(summary(["pr", "merge", "5", `--auto=${value}`, "--squash"])).toBe("merge 5");
+	},
+);
+
 test("a deferred merge's refusal names a merge in the repository the call named", () => {
 	const why = Option.match(mergeRequestOf(["pr", "merge", "5", "-R", "o/r", "--auto", "--squash"]), {
 		onNone: () => "",

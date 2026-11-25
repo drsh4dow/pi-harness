@@ -6,7 +6,6 @@
 	"src/features/compaction/summary.ts no-comments": 2,
 	"src/features/pr/gate.ts no-comments": 1,
 	"src/features/pr/merge-gate.scenario.ts no-comments": 4,
-	"src/features/pr/merge-request.ts no-comments": 1,
 	"src/features/state-folder/index.test.ts no-comments": 2,
 	"src/features/state-folder/index.ts no-comments": 9
 }
