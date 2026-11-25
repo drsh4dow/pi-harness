@@ -31,11 +31,11 @@ const contentText = (content: typeof Content.Type) =>
 				"\n",
 			);
 
-/** A turn of the conversation: a user message, a Chat Completions tool message, or a Responses tool output. */
-const Turn = Schema.Union([
-	Schema.Struct({ role: Schema.Literals(["user", "tool"]), content: Content }),
-	Schema.Struct({ type: Schema.Literal("function_call_output"), output: Content }),
-]);
+const UserOrChatToolMessage = Schema.Struct({ role: Schema.Literals(["user", "tool"]), content: Content });
+
+const ResponsesToolOutput = Schema.Struct({ type: Schema.Literal("function_call_output"), output: Content });
+
+const Turn = Schema.Union([UserOrChatToolMessage, ResponsesToolOutput]);
 
 const decodeTurn = Schema.decodeUnknownOption(Turn);
 
