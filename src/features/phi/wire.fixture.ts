@@ -18,10 +18,8 @@ export const providersOf = (entries: ReadonlyArray<SessionEntry>) =>
 export const toolUse = (name: string) => (input: Schema.JsonObject) =>
 	Reply.ToolUse({ before: Option.none(), name, input });
 
-/** A JSON string's text for `token`, so a search finds a canary that holds a quote or a backslash. */
 const escapedOf = (token: string) => Str.replaceAll('"', String.raw`\"`)(Str.replaceAll("\\", String.raw`\\`)(token));
 
-/** The tokens found in any body, as written or as a JSON string holds them. */
 export const foundIn = (bodies: ReadonlyArray<string>) => (tokens: ReadonlyArray<string>) =>
 	Arr.filter(tokens, (token) =>
 		Arr.some(bodies, (body) => Str.includes(token)(body) || Str.includes(escapedOf(token))(body)),

@@ -36,7 +36,6 @@
 	"src/features/phi/router.fixture.ts no-comments": 2,
 	"src/features/phi/send-compaction.scenario.ts no-comments": 1,
 	"src/features/phi/switch-away.scenario.ts no-comments": 1,
-	"src/features/phi/wire.fixture.ts no-comments": 2,
 	"src/features/pr/gate.ts no-comments": 2,
 	"src/features/pr/index.ts no-comments": 1,
 	"src/features/pr/merge-gate.scenario.ts no-comments": 4,
