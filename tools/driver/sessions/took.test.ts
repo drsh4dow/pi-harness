@@ -18,7 +18,7 @@ const asked: AskedOfRoot = {
 	model: "p/m",
 	contextWindow: 40_000,
 	setup: { settings: { compaction }, models: { prov: { modelOverrides: { mod: { contextWindow: 40_000 } } } } },
-	socket,
+	runCoreSocket: socket,
 };
 
 const taken: Loaded = {
@@ -87,13 +87,13 @@ const rows: ReadonlyArray<{
 		name: "a context window given only through models is refused",
 		asked: {
 			contextWindow: undefined,
-			models: { prov: { modelOverrides: { mod: { contextWindow: 40_000 } } } },
+			scenarioModels: { prov: { modelOverrides: { mod: { contextWindow: 40_000 } } } },
 		},
 		expected: ["models sets a context window, which the driver confirms only as contextWindow"],
 	},
 	{
 		name: "a context window in a provider's list of models is refused",
-		asked: { contextWindow: undefined, models: { prov: { models: [{ id: "mod", contextWindow: 40_000 }] } } },
+		asked: { contextWindow: undefined, scenarioModels: { prov: { models: [{ id: "mod", contextWindow: 40_000 }] } } },
 		expected: ["models sets a context window, which the driver confirms only as contextWindow"],
 	},
 	{

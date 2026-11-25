@@ -133,9 +133,11 @@ const playIn = <Failure>({
 		const sessions = readSessions({ root: root.session, sessionDir: layout.sessions, probeDir: layout.probe });
 
 		yield* tookSetup(Effect.provideService(sessions, FileSystem.FileSystem, fs), {
-			...spec,
+			model: spec.model,
+			contextWindow: spec.contextWindow,
+			scenarioModels: spec.models,
 			setup,
-			socket: layout.socket,
+			runCoreSocket: layout.socket,
 		});
 
 		const run: Run = {

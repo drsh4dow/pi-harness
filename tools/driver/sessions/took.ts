@@ -16,11 +16,9 @@ import type { Sessions } from "./sessions.ts";
 export interface AskedOfRoot {
 	readonly model: string;
 	readonly contextWindow?: number | undefined;
-	/** The scenario's own `models`, before `contextWindow` adds its entry. */
-	readonly models?: Setup["models"];
+	readonly scenarioModels?: Setup["models"];
 	readonly setup: Setup;
-	/** The run's own terminal core. */
-	readonly socket: string;
+	readonly runCoreSocket: string;
 }
 
 const confirmable = new Set(["compaction.enabled", "compaction.reserveTokens", "compaction.keepRecentTokens"]);
@@ -66,7 +64,7 @@ export const unmetOf = ({ asked, loaded }: { readonly asked: AskedOfRoot; readon
 	const unconfirmed = Arr.filter(Arr.flatMap(settings, fieldsOf), (path) => !confirmable.has(path));
 	const missed = Arr.filter(settings, ([key, value]) => !Equal.equals(loaded.settings[key], value));
 	const dropped = asked.setup.models === undefined ? Option.none() : loaded.modelsError;
-	const windowInModels = Arr.some(Rec.values(asked.models ?? {}), setsWindow);
+	const windowInModels = Arr.some(Rec.values(asked.scenarioModels ?? {}), setsWindow);
 
 	return [
 		...(loaded.model === asked.model ? [] : [`it runs ${loaded.model}, not ${asked.model}`]),
@@ -82,10 +80,10 @@ export const unmetOf = ({ asked, loaded }: { readonly asked: AskedOfRoot; readon
 			(path) => `the driver cannot confirm the setting ${path}, only ${Arr.join([...confirmable], ", ")}`,
 		),
 		...(windowInModels ? ["models sets a context window, which the driver confirms only as contextWindow"] : []),
-		...(Option.contains(loaded.socket, asked.socket)
+		...(Option.contains(loaded.socket, asked.runCoreSocket)
 			? []
 			: [
-					`it starts delegates in ${Option.getOrElse(loaded.socket, () => "no core")}, not the run's ${asked.socket}`,
+					`it starts delegates in ${Option.getOrElse(loaded.socket, () => "no core")}, not the run's ${asked.runCoreSocket}`,
 				]),
 	];
 };
