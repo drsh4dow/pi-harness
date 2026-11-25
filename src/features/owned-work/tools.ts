@@ -14,7 +14,7 @@ import * as Option from "effect/Option";
 import type { Static } from "typebox";
 
 import { type BriefSources, briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { type Gh, ghLayer } from "#src/client/gh/index.ts";
+import { type Gh, ghLayer } from "#src/client/github/index.ts";
 import { makeSessionFolder, type PiHost, readStagedBrief, type SessionAddress } from "#src/client/pi/index.ts";
 import { type ClaudeUsage, claudeUsageFetchLayer, PhiRouter } from "#src/client/providers/index.ts";
 import { type Caller, type DelegateParams, delegateParams, parseCall } from "./brief.ts";

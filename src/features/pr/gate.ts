@@ -4,8 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { Gh, type PrView, type StackMember } from "#src/client/gh/index.ts";
-import { type VerdictRecord, verdictsOf } from "#src/client/verdicts/index.ts";
+import { Gh, type PrView, type StackMember, type VerdictRecord, verdictsOf } from "#src/client/github/index.ts";
 import { MergeRequest } from "./merge-request.ts";
 
 /** `pin` holds the arguments that bind the real merge to the head the gate checked. */

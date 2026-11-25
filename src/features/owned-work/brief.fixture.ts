@@ -13,7 +13,7 @@ import * as Struct from "effect/Struct";
 import type { Static } from "typebox";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { Gh, GhError } from "#src/client/gh/index.ts";
+import { Gh, GhError } from "#src/client/github/index.ts";
 import { type Design, piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter, PhiRouterError } from "#src/client/providers/index.ts";
 import type { DelegateParams } from "./brief.ts";

@@ -36,7 +36,7 @@ export class Gh extends Context.Service<
 		/** The pull requests of the stack numbered `ceiling`, or else of the stack that holds pull request `ceiling`, bottom first. */
 		readonly stackOf: (ceiling: string) => Effect.Effect<ReadonlyArray<StackMember>, GhError>;
 	}
->()("pi-harness/client/gh/Gh") {}
+>()("pi-harness/client/github/gh/Gh") {}
 
 const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
 

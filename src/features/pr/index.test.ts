@@ -9,7 +9,7 @@ import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import * as TestClock from "effect/testing/TestClock";
 
-import { Gh, GhError, type PrView } from "#src/client/gh/index.ts";
+import { Gh, GhError, type PrView } from "#src/client/github/index.ts";
 import { changes, pin, prWait } from "./index.ts";
 
 const open: PrView = {

@@ -1,7 +1,6 @@
 import * as Effect from "effect/Effect";
 
-import { Gh, GhError } from "#src/client/gh/index.ts";
-import type { VerdictRecord } from "#src/client/verdicts/index.ts";
+import { Gh, GhError, type VerdictRecord } from "#src/client/github/index.ts";
 
 export type ReviewTarget = Pick<VerdictRecord, "repo" | "number" | "head" | "patchId">;
 

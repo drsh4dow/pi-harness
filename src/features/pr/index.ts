@@ -3,15 +3,21 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { Gh, type GhError, type PrView, type Review, type ReviewDecision } from "#src/client/gh/index.ts";
+import { Gh, type GhError, type PrView, type Review, type ReviewDecision } from "#src/client/github/index.ts";
 
-export { ghLayer, patchIdOf } from "#src/client/gh/index.ts";
+export {
+	ghLayer,
+	patchIdOf,
+	recordVerdict,
+	VerdictRecord,
+	VerdictResult,
+	verdictsFolder,
+	verdictsOf,
+} from "#src/client/github/index.ts";
 
 export { Authorization, gate } from "./gate.ts";
 
 export { mergeRequestOf } from "./merge-request.ts";
-
-export { recordVerdict, VerdictRecord, VerdictResult, verdictsFolder, verdictsOf } from "#src/client/verdicts/index.ts";
 
 export { pin, type ReviewTarget } from "./verdict.ts";
 

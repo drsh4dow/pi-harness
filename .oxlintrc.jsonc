@@ -85,7 +85,7 @@
 					},
 					{
 						"name": "node:child_process",
-						"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/gh/index.ts. Add a client for a new one.",
+						"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/github/index.ts. Add a client for a new one.",
 					},
 					{
 						"name": "@effect/platform-node/NodeHttpClient",
@@ -99,7 +99,7 @@
 					},
 					{
 						"group": ["effect/process/*"],
-						"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/gh/index.ts. Add a client for a new one.",
+						"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/github/index.ts. Add a client for a new one.",
 					},
 				],
 			},
@@ -172,17 +172,17 @@
 			{
 				"object": "Bun",
 				"property": "spawn",
-				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/gh/index.ts. Add a client for a new one.",
+				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/github/index.ts. Add a client for a new one.",
 			},
 			{
 				"object": "Bun",
 				"property": "spawnSync",
-				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/gh/index.ts. Add a client for a new one.",
+				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/github/index.ts. Add a client for a new one.",
 			},
 			{
 				"object": "Bun",
 				"property": "$",
-				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/gh/index.ts. Add a client for a new one.",
+				"message": "Run outside commands through the src/client/ folder for that system, such as #src/client/github/index.ts. Add a client for a new one.",
 			},
 		],
 		// Effect's own setting; pi writes `string[]`, Effect wins

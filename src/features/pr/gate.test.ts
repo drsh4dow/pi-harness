@@ -7,8 +7,15 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { Gh, GhError, type PrView, type StackMember } from "#src/client/gh/index.ts";
-import { recordVerdict, type VerdictRecord, type VerdictResult } from "#src/client/verdicts/index.ts";
+import {
+	Gh,
+	GhError,
+	type PrView,
+	recordVerdict,
+	type StackMember,
+	type VerdictRecord,
+	type VerdictResult,
+} from "#src/client/github/index.ts";
 import { Authorization, gate } from "./gate.ts";
 import { mergeRequestOf } from "./merge-request.ts";
 

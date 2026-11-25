@@ -6,7 +6,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { ghPassthrough } from "#src/client/gh/index.ts";
+import { ghPassthrough } from "#src/client/github/index.ts";
 import { Authorization, gate, ghLayer, mergeRequestOf, verdictsFolder } from "#src/features/pr/index.ts";
 
 const [real = "gh", ...args] = process.argv.slice(2);

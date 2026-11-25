@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 import { Type } from "typebox";
 
-import type { Gh } from "#src/client/gh/index.ts";
+import type { Gh } from "#src/client/github/index.ts";
 import { pin, type ReviewTarget, VerdictResult } from "#src/features/pr/index.ts";
 import { answerOf } from "./answer.ts";
 import type { Brief } from "./child.ts";

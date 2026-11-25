@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { briefSourcesLayer } from "#src/client/brief-sources/index.ts";
-import { Gh } from "#src/client/gh/index.ts";
+import { Gh } from "#src/client/github/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
 import { ClaudeUsage, PhiRouter } from "#src/client/providers/index.ts";
 import { Self } from "./child.ts";
