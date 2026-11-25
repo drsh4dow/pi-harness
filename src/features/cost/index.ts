@@ -13,7 +13,6 @@ import { appendedLines, piHost, sessionFileById } from "#src/client/pi/index.ts"
 import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
 import { emptyTally, type StartedDelegate, type Tally, tallyLines } from "./tally.ts";
 
-/** The hc label on a root agent's own terminal that holds its `CostLabel`, which herdr-app's status bar reads. */
 export const labelKey = "pi.cost";
 
 const Usd = Schema.Finite;
@@ -140,17 +139,11 @@ export const labelSpend = (session: Pick<SessionManager, "getSessionFile" | "get
 				ownTerminal,
 				Option.match({
 					onNone: () => Effect.void,
-					// Where owned-work puts a root's delegates, at every level (`delegatesDirOf`).
 					onSome: (terminal) => publish({ root, delegates: `${session.getSessionDir()}/delegates` }, terminal),
 				}),
 			),
 	});
 
-/**
- * Keeps the `pi.cost` label on a root agent's hc terminal equal to what its session tree has spent at list prices, and
- * removes it when the session ends. Delegates never load it: their spend reaches the root's label through their files.
- * Outside herdr-core, or without a session file, it does nothing.
- */
 export const cost = (pi: Pick<ExtensionAPI, "on">) => {
 	const host = piHost(NodeServices.layer);
 	let running: Option.Option<Fiber.Fiber<unknown>> = Option.none();

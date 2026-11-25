@@ -124,7 +124,7 @@ Terms from the cost feature, the cache feature and herdr-app's status bar. See A
 
 - **Spend.** What a session tree, delegates included, priced its model calls at, at the list price pi stored on each. Unlike an **Estimate**, it covers one session tree.
 - **Cache miss.** A reply that rewrote at full price at least 50,000 tokens of the prompt the session's last model call had sent, once some call in the session has read or written the cache.
-- **Cost label.** The hc label on a root agent's own terminal that holds the spend of the root and of each delegate below it.
+- **Cost label.** The `pi.cost` hc label on a root agent's own terminal that holds the spend of the root and of each delegate below it, which herdr-app's status bar reads.
 - **Session tree files.** The files a session tree's spend is read from: the root's own session file, and its delegates folder, which holds the session file of every delegate below the root at any level.
 - **Read offset.** The byte in a session file where the cost feature's next read starts, just past the last whole line it read. A file shorter than its read offset was replaced, so the next read starts at 0.
 

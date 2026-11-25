@@ -2,13 +2,18 @@ import { afterAll, beforeAll, expect, test } from "bun:test";
 
 import { SessionManager } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as Arr from "effect/Array";
 import * as Clock from "effect/Clock";
+import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import * as FileSystem from "effect/FileSystem";
+import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
+import { childExtensions } from "#src/features/owned-work/index.ts";
 import { eventually } from "#src/primitives/eventually.ts";
-import { treeReader } from "./index.ts";
+import { labelSpend, treeReader } from "./index.ts";
 
 const scratch = `${Bun.env["TMPDIR"] ?? "/tmp"}/cost-${String(process.pid)}`;
 
@@ -311,3 +316,93 @@ test("lines before a session header count nothing", () =>
 			expect(label.own).toBe(0);
 		}),
 	));
+
+const Labels = Schema.Record(Schema.String, Schema.String);
+
+const LabelRequest = Schema.fromJsonString(
+	Schema.Struct({ method: Schema.String, params: Schema.Struct({ terminal: Schema.String, labels: Labels }) }),
+);
+
+const fakeHc = Effect.gen(function* () {
+	const fs = yield* FileSystem.FileSystem;
+	const socket = `${yield* fs.makeTempDirectoryScoped()}/hc.sock`;
+	const lines: Array<string> = [];
+
+	yield* Effect.acquireRelease(
+		Effect.sync(() =>
+			Bun.listen({
+				unix: socket,
+				socket: {
+					data: (client, chunk) => {
+						const received = Str.trimEnd(chunk.toString());
+
+						lines.push(...Str.split(received, "\n"));
+						client.write('{"result":{"address":"t7"}}\n');
+					},
+				},
+			}),
+		),
+		(server) =>
+			Effect.sync(() => {
+				server.stop(true);
+			}),
+	);
+
+	return { socket, lines, requests: Effect.forEach(lines, (line) => Schema.decodeEffect(LabelRequest)(line)) };
+});
+
+const inHerdr = (env: Readonly<Record<string, string>>) =>
+	Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown(env)));
+
+test("a root's terminal holds its session tree's spend under pi.cost until the session ends", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir, delegates } = yield* sessionsDir;
+			const [root, child] = [open(dir), open(delegates)];
+
+			reply(root, 1);
+			startDelegate(root, child, "review auth");
+			reply(child, 0.5);
+
+			const hc = yield* fakeHc;
+			const env = { HC_TERMINAL_ID: "t7", HC_TERMINAL_SOCKET: hc.socket };
+			const labelling = yield* Effect.forkScoped(labelSpend(root).pipe(inHerdr(env)));
+
+			yield* eventually(
+				Effect.sync(() => hc.lines.length > 0),
+				"10 seconds",
+			);
+			yield* Fiber.interrupt(labelling);
+
+			const label = '{"own":1,"delegates":[{"name":"review auth","usd":0.5}]}';
+			const requests = yield* hc.requests;
+
+			expect(requests).toEqual([
+				{ method: "terminal.label", params: { terminal: "t7", labels: { "pi.cost": label } } },
+				{ method: "terminal.label", params: { terminal: "t7", labels: { "pi.cost": "" } } },
+			]);
+		}).pipe(Effect.scoped),
+	));
+
+test("a session without a file, or a pi outside herdr-core, labels no terminal", () =>
+	run(
+		Effect.gen(function* () {
+			const { dir } = yield* sessionsDir;
+			const saved = open(dir);
+
+			reply(saved, 1);
+
+			const hc = yield* fakeHc;
+
+			yield* labelSpend(SessionManager.inMemory("/work")).pipe(
+				inHerdr({ HC_TERMINAL_ID: "t7", HC_TERMINAL_SOCKET: hc.socket }),
+			);
+			yield* labelSpend(saved).pipe(inHerdr({ HC_TERMINAL_SOCKET: hc.socket }));
+
+			expect(hc.lines).toEqual([]);
+		}).pipe(Effect.scoped),
+	));
+
+test("no delegate loads the cost extension", () => {
+	expect(Arr.filter(childExtensions, Str.endsWith("/extensions/cost/index.ts"))).toEqual([]);
+});
