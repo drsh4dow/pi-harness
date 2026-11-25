@@ -19,7 +19,7 @@
       "count": 3
     }
   },
-  "src/features/owned-work/child.test.ts": {
+  "src/features/owned-work/delegates.test.ts": {
     "max-params": {
       "count": 1
     }

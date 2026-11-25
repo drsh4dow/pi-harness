@@ -1,0 +1,251 @@
+import { afterAll, expect, test } from "bun:test";
+
+import * as Arr from "effect/Array";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+
+import { Design, PiCli } from "#src/client/pi/index.ts";
+import type { RunSpec } from "#src/client/terminals/index.ts";
+import { type ChildRole, inheritedEnv, launch } from "./child.ts";
+import { Act, type Row, runRow } from "./ledger.fixture.ts";
+import { commandSpec } from "./ledger.ts";
+import { StartRequest, WorkRef } from "./work.ts";
+import { exit, killed, node, sessionRoot } from "./world.fixture.ts";
+
+const { Hook, Start, Answer, Cancel, TurnEnds, Wakes, Leftovers } = Act;
+
+const runs = Hook({ event: "run starts" });
+
+const idles = Hook({ event: "goes idle" });
+
+const delegate = Start({ kind: "delegate" });
+
+const rows: ReadonlyArray<Row> = [
+	{
+		name: "a root's child starts at level 2, and its answer followed by an empty closing message is done with that answer",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			Act.SpawnLevels({ expect: ["delegate-1 at level 2"] }),
+			Answer({ terminal: "t1", text: "a", closing: "", end: exit(0) }),
+			TurnEnds({ expect: "continue: delegate-1 done: a" }),
+		],
+	},
+	{
+		name: "a child whose last provider call errored after its answer settles failed with the provider's error",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			Answer({ terminal: "t1", text: "a", closing: "", stopReason: "error", end: exit(0) }),
+			TurnEnds({ expect: "continue: delegate-1 failed: errored: 429 rate limit" }),
+		],
+	},
+	{
+		name: "a child whose last provider call errored and that was then killed by SIGKILL settles failed: oom",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			Answer({ terminal: "t1", text: "a", stopReason: "error", end: killed(9) }),
+			TurnEnds({ expect: "continue: delegate-1 failed: oom" }),
+		],
+	},
+	{
+		name: "a child whose last provider call errored settles errored even when it exits with an error code",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			Answer({ terminal: "t1", text: "a", stopReason: "error", end: exit(1) }),
+			TurnEnds({ expect: "continue: delegate-1 failed: errored: 429 rate limit" }),
+		],
+	},
+	{
+		name: "a child aborted mid-answer settles failed, even if it exits cleanly",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			Answer({ terminal: "t1", text: "half", stopReason: "aborted", end: exit(0) }),
+			TurnEnds({ expect: "continue: delegate-1 failed: exited" }),
+		],
+	},
+	{
+		name: "a child killed by SIGKILL settles failed: oom, even with an assistant text in its session",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			TurnEnds({ expect: "idle: delegate-1" }),
+			idles,
+			Answer({ terminal: "t1", text: "half an answer", end: killed(9) }),
+			Wakes({ expect: ["delegate-1 failed: oom"] }),
+		],
+	},
+	{
+		name: "a delegate's staged files and slice are gone once it settles, however it ends",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			delegate,
+			delegate,
+			Leftovers({
+				expect: ["t1.brief.json", "t1.message", "t2.brief.json", "t2.message", "t3.brief.json", "t3.message"],
+			}),
+			Act.Slices({ expect: ["delegate-1", "delegate-2", "delegate-3"] }),
+			Answer({ terminal: "t1", text: "a", end: exit(0) }),
+			Answer({ terminal: "t2", text: "half", end: killed(9) }),
+			Cancel({ refs: ["delegate-3"], expect: "delegate-3 failed: cancelled by your cancel call" }),
+			Leftovers({ expect: ["t1.answer.md", "t2.answer.md"] }),
+			TurnEnds({ expect: "continue: delegate-1 done: a; delegate-2 failed: oom" }),
+		],
+	},
+	{
+		name: "a root that shuts down before its work settles leaves no staged files",
+		role: "root",
+		acts: [
+			runs,
+			delegate,
+			delegate,
+			Answer({ terminal: "t1", text: "a", end: exit(0) }),
+			Hook({ event: "parent dies" }),
+			Leftovers({ expect: ["t1.answer.md"] }),
+		],
+	},
+	{
+		name: "a task message and instructions longer than one argv word still start their delegate",
+		role: "root",
+		acts: [
+			runs,
+			Start({ kind: "delegate", messageKiB: 200, instructionsKiB: 200 }),
+			Answer({ terminal: "t1", text: "a", end: exit(0) }),
+			TurnEnds({ expect: "continue: delegate-1 done: a" }),
+		],
+	},
+];
+
+test.each(rows)("$name", (row) => Effect.runPromise(runRow(row)));
+
+const parentEnv = inheritedEnv({
+	PATH: "/bin",
+	HC_TERMINAL_ID: "t9",
+	PI_OWNED_WORK_LEVEL: "2",
+	PI_OWNED_WORK_ROLE: "owner",
+	PI_OWNED_WORK_SLICE: "pi-ow-test-delegate1",
+});
+
+const brief = {
+	name: "Review the retry cap, again!",
+	message: "Do it.",
+	model: "a/b",
+	goal: "Cap the retries.",
+	state: Option.none(),
+	facts: Option.none(),
+	destinationFile: Option.none(),
+	sharedDocuments: [],
+	instructions: Option.none(),
+};
+
+const delegateLaunch = (role: ChildRole, level: number, thinking: Option.Option<string>, readOnly = false) =>
+	Effect.flatMap(PiCli, (pi) =>
+		launch(pi)({
+			brief:
+				role === "owner"
+					? { ...brief, role, thinking, readOnly, ownerRules: Option.none(), design: Design.cases.Yours.make({}) }
+					: { ...brief, role, thinking, readOnly },
+			level,
+			childSession: { id: "launched", cwd: sessionRoot, dir: `${sessionRoot}/delegates` },
+			passEnv: parentEnv,
+		}),
+	);
+
+const plumbing = ({ name, argv, env }: Pick<RunSpec, "name" | "argv" | "env">) => {
+	const shownAs: string = name;
+	const flags = Arr.zip(argv, Arr.drop(argv, 1));
+
+	const valuesOf = (flag: string) =>
+		Arr.map(
+			Arr.filter(flags, ([word]) => word === flag),
+			([, value]) => value,
+		);
+
+	return {
+		name: shownAs,
+		argv: Arr.take(argv, 4),
+		tools: valuesOf("--tools"),
+		excluded: valuesOf("--exclude-tools"),
+		thinking: valuesOf("--thinking"),
+		env,
+	};
+};
+
+const piServe = {
+	...StartRequest.Serve({ name: "say hi", command: "pi --print hi", ready: Option.none() }),
+	startTime: "10:00:00",
+};
+
+const launchRows = [
+	{
+		name: "a level-2 owner starts at OOM score adjustment 333 with codemode, its thinking level and its role",
+		spec: delegateLaunch("owner", 2, Option.some("high")),
+		expect: {
+			name: "review-the-retry-cap-again",
+			argv: ["choom", "-n", "333", "--"],
+			tools: ["+codemode"],
+			excluded: [],
+			thinking: ["high"],
+			env: { PATH: "/bin", PI_OWNED_WORK_LEVEL: "2", PI_OWNED_WORK_ROLE: "owner" },
+		},
+	},
+	{
+		name: "a read-only leaf at level 4 starts at the kernel's highest OOM score adjustment, 1000, without the edit and write tools, and keeps codemode",
+		spec: delegateLaunch("leaf", 4, Option.none(), true),
+		expect: {
+			name: "review-the-retry-cap-again",
+			argv: ["choom", "-n", "1000", "--"],
+			tools: ["+codemode"],
+			excluded: ["edit,write"],
+			thinking: [],
+			env: { PATH: "/bin", PI_OWNED_WORK_LEVEL: "4", PI_OWNED_WORK_ROLE: "leaf" },
+		},
+	},
+	{
+		name: "an owner at the last level starts at OOM score adjustment 667, and with no thinking level passes none",
+		spec: delegateLaunch("owner", 3, Option.none()),
+		expect: {
+			name: "review-the-retry-cap-again",
+			argv: ["choom", "-n", "667", "--"],
+			tools: ["+codemode"],
+			excluded: [],
+			thinking: [],
+			env: { PATH: "/bin", PI_OWNED_WORK_LEVEL: "3", PI_OWNED_WORK_ROLE: "owner" },
+		},
+	},
+	{
+		name: "a serve or watch runs as a leaf at the last level, so a pi it starts has no delegate tool, and is named by its name",
+		spec: Effect.succeed(commandSpec({ cwd: "/", passEnv: parentEnv })(WorkRef("serve-1"), piServe)),
+		expect: {
+			name: "say-hi",
+			argv: ["choom", "-n", "667", "--"],
+			tools: [],
+			excluded: [],
+			thinking: [],
+			env: { PATH: "/bin", PI_OWNED_WORK_LEVEL: "3", PI_OWNED_WORK_ROLE: "leaf" },
+		},
+	},
+];
+
+test.each(launchRows)("$name", (row) =>
+	Effect.runPromise(
+		Effect.map(row.spec, (spec) => {
+			expect(plumbing(spec)).toEqual(row.expect);
+		}).pipe(Effect.provide(node)),
+	),
+);
+
+const cleanup = Effect.promise(() => Bun.$`rm -rf ${sessionRoot}`.quiet());
+
+afterAll(() => Effect.runPromise(cleanup));
