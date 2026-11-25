@@ -149,7 +149,14 @@ const brief = {
 	instructions: Option.none(),
 };
 
-const delegateLaunch = (role: ChildRole, level: number, thinking: Option.Option<string>, readOnly = false) =>
+interface Launched {
+	readonly role: ChildRole;
+	readonly level: number;
+	readonly thinking: Option.Option<string>;
+	readonly readOnly: boolean;
+}
+
+const delegateLaunch = ({ role, level, thinking, readOnly }: Launched) =>
 	Effect.flatMap(PiCli, (pi) =>
 		launch(pi)({
 			brief:
@@ -190,7 +197,7 @@ const piServe = {
 const launchRows = [
 	{
 		name: "a level-2 owner starts at OOM score adjustment 333 with codemode, its thinking level and its role",
-		spec: delegateLaunch("owner", 2, Option.some("high")),
+		spec: delegateLaunch({ role: "owner", level: 2, thinking: Option.some("high"), readOnly: false }),
 		expect: {
 			name: "review-the-retry-cap-again",
 			argv: ["choom", "-n", "333", "--"],
@@ -202,7 +209,7 @@ const launchRows = [
 	},
 	{
 		name: "a read-only leaf at level 4 starts at the kernel's highest OOM score adjustment, 1000, without the edit and write tools, and keeps codemode",
-		spec: delegateLaunch("leaf", 4, Option.none(), true),
+		spec: delegateLaunch({ role: "leaf", level: 4, thinking: Option.none(), readOnly: true }),
 		expect: {
 			name: "review-the-retry-cap-again",
 			argv: ["choom", "-n", "1000", "--"],
@@ -214,7 +221,7 @@ const launchRows = [
 	},
 	{
 		name: "an owner at the last level starts at OOM score adjustment 667, and with no thinking level passes none",
-		spec: delegateLaunch("owner", 3, Option.none()),
+		spec: delegateLaunch({ role: "owner", level: 3, thinking: Option.none(), readOnly: false }),
 		expect: {
 			name: "review-the-retry-cap-again",
 			argv: ["choom", "-n", "667", "--"],

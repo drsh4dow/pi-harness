@@ -14,26 +14,6 @@
       "count": 1
     }
   },
-  "src/features/owned-work/brief/design.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/features/owned-work/ledger/delegates.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/features/owned-work/ledger/verdicts.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
-  "src/features/owned-work/levels.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/phi/switch-away.scenario.ts": {
     "max-params": {
       "count": 1

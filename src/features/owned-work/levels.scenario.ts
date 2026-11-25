@@ -98,7 +98,13 @@ const processOf = (run: Run, name: string) =>
 		return { pid, oom, cgroup: Str.replace(/^0::/u, "")(cgroup) };
 	});
 
-const scopeOf = (run: Run, name: string, level: number, role: ChildRole) =>
+interface Started {
+	readonly name: string;
+	readonly level: number;
+	readonly role: ChildRole;
+}
+
+const scopeOf = (run: Run, { name, level, role }: Started) =>
 	Effect.gen(function* () {
 		const { oomScoreAdj } = atLevel({ level, role });
 		const found = yield* processOf(run, name);
@@ -164,9 +170,9 @@ scenario({
 				startedAs("level four", root, delegates),
 			);
 
-			const levelTwo = yield* scopeOf(run, "level two", 2, "owner");
-			const levelThree = yield* scopeOf(run, "level three", 3, "owner");
-			const levelFour = yield* scopeOf(run, "level four", 4, "leaf");
+			const levelTwo = yield* scopeOf(run, { name: "level two", level: 2, role: "owner" });
+			const levelThree = yield* scopeOf(run, { name: "level three", level: 3, role: "owner" });
+			const levelFour = yield* scopeOf(run, { name: "level four", level: 4, role: "leaf" });
 
 			yield* checkNesting(run, { levelTwo, levelThree, levelFour });
 

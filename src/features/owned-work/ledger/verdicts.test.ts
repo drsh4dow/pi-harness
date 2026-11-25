@@ -35,7 +35,15 @@ const wake = ({ ref, name, session, text, verdict }: Woken) => ({
 	outcome: { status: "done", text, cut: false, answer: answerFile(session), verdict },
 });
 
-const recordOf = (pr: number, head: string, result: string, name: string, session: string) => ({
+interface Recorded {
+	readonly pr: number;
+	readonly head: string;
+	readonly result: string;
+	readonly name: string;
+	readonly session: string;
+}
+
+const recordOf = ({ pr, head, result, name, session }: Recorded) => ({
 	repo: "o/r",
 	number: pr,
 	head,
@@ -65,7 +73,12 @@ const rows: ReadonlyArray<Row> = [
 					}),
 				],
 			}),
-			VerdictRecords({ pr: 1, expect: (sessionOf) => [recordOf(1, "h1", "pass", "verifier", sessionOf("t1"))] }),
+			VerdictRecords({
+				pr: 1,
+				expect: (sessionOf) => [
+					recordOf({ pr: 1, head: "h1", result: "pass", name: "verifier", session: sessionOf("t1") }),
+				],
+			}),
 		],
 	},
 	{
@@ -78,7 +91,9 @@ const rows: ReadonlyArray<Row> = [
 			TurnEnds({ expect: "continue: delegate-1 done: The tests pass." }),
 			VerdictRecords({
 				pr: 2,
-				expect: (sessionOf) => [recordOf(2, "h2", "incomplete", "verifier", sessionOf("t1"))],
+				expect: (sessionOf) => [
+					recordOf({ pr: 2, head: "h2", result: "incomplete", name: "verifier", session: sessionOf("t1") }),
+				],
 			}),
 		],
 	},
@@ -95,8 +110,8 @@ const rows: ReadonlyArray<Row> = [
 			VerdictRecords({
 				pr: 3,
 				expect: (sessionOf) => [
-					recordOf(3, "h3", "pass", "verifier a", sessionOf("t1")),
-					recordOf(3, "h3", "pass+notes", "verifier b", sessionOf("t2")),
+					recordOf({ pr: 3, head: "h3", result: "pass", name: "verifier a", session: sessionOf("t1") }),
+					recordOf({ pr: 3, head: "h3", result: "pass+notes", name: "verifier b", session: sessionOf("t2") }),
 				],
 			}),
 		],

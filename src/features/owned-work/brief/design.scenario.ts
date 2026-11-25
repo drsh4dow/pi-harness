@@ -51,7 +51,14 @@ const wakeOf = (parent: Session, name: string) =>
 		),
 	);
 
-const ownerTask = (child: string, role: string, design: string, task: string) =>
+interface DelegateAsked {
+	readonly child: string;
+	readonly role: string;
+	readonly design: string;
+	readonly task: string;
+}
+
+const ownerTask = ({ child, role, design, task }: DelegateAsked) =>
 	Arr.join(
 		[
 			"This run tests how a design reaches each owner, so do nothing else: read no files, run no playbook or skill.",
@@ -69,7 +76,7 @@ const runnerTask = "Run the bash command `echo $PI_OWNED_WORK_LEVEL`, then reply
 const levelThreeTask = Arr.join(
 	[
 		"Read no skill: start the runner this message names and nothing else.",
-		ownerTask("runner", "leaf", "", runnerTask),
+		ownerTask({ child: "runner", role: "leaf", design: "", task: runnerTask }),
 	],
 	"\n",
 );
@@ -78,12 +85,12 @@ const request = (sketch: string) =>
 	Arr.join(
 		[
 			'Name the goal "Prove a last-level owner handed its own design starts leaves" in your delegate call.',
-			ownerTask(
-				"level two",
-				"owner",
-				` and design ${sketch}`,
-				ownerTask("level three", "owner", " and design yours", levelThreeTask),
-			),
+			ownerTask({
+				child: "level two",
+				role: "owner",
+				design: ` and design ${sketch}`,
+				task: ownerTask({ child: "level three", role: "owner", design: " and design yours", task: levelThreeTask }),
+			}),
 		],
 		"\n",
 	);
