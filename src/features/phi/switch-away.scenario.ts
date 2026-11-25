@@ -9,10 +9,23 @@ import { laneLog, routerSetup } from "./router.fixture.ts";
 
 const ssn = "123-45-6789";
 
-const prompts = {
-	sealed: `Synthetic intake: Maria Delgado-Ruiz, ssn ${ssn}. Reply with the single word done.`,
-	after: "Reply with the single word done.",
-} as const;
+interface PiPrompt {
+	readonly model: string;
+	readonly prompt: string;
+	readonly continues: boolean;
+}
+
+const sealedOnPhi: PiPrompt = {
+	model: "phi/auto",
+	prompt: `Synthetic intake: Maria Delgado-Ruiz, ssn ${ssn}. Reply with the single word done.`,
+	continues: false,
+};
+
+const afterSwitch: PiPrompt = {
+	model: "ultra-a/claude-opus-5-5",
+	prompt: "Reply with the single word done.",
+	continues: true,
+};
 
 const mocks = {
 	"ultra-a": serveMock(() => Reply.Text({ text: "done" })),
@@ -24,7 +37,7 @@ const judge = serveOpenAi({ reply: () => Reply.Text({ text: "no chat on the judg
 
 const router = routerSetup({ env: process.env, claude: mocks, openai: judge });
 
-const piOn = (run: Run, sessions: string, model: string, extra: ReadonlyArray<string>, prompt: string) =>
+const piOn = (run: Run, sessions: string, { model, prompt, continues }: PiPrompt) =>
 	run.exec([
 		"pi",
 		"--no-extensions",
@@ -40,7 +53,7 @@ const piOn = (run: Run, sessions: string, model: string, extra: ReadonlyArray<st
 		model,
 		"--session-dir",
 		sessions,
-		...extra,
+		...(continues ? ["--continue"] : []),
 		"-p",
 		prompt,
 	]);
@@ -49,7 +62,7 @@ const switchedAway = (run: Run, sessions: string) =>
 	Effect.gen(function* () {
 		const before = mocks["ultra-a"].bodies().length;
 		const routedBefore = (yield* laneLog(run)).length;
-		const away = yield* piOn(run, sessions, "ultra-a/claude-opus-5-5", ["--continue"], prompts.after);
+		const away = yield* piOn(run, sessions, afterSwitch);
 		const reached = Arr.drop(mocks["ultra-a"].bodies(), before);
 		const routedAfter = (yield* laneLog(run)).length;
 
@@ -73,7 +86,7 @@ scenario({
 			const pwd = yield* run.exec(["pwd"]);
 			const sessions = `${Str.trim(pwd.output)}/switch-sessions`;
 
-			const onPhi = yield* piOn(run, sessions, "phi/auto", [], prompts.sealed);
+			const onPhi = yield* piOn(run, sessions, sealedOnPhi);
 			yield* run.check(onPhi.code === 0, `pi on phi/auto exited 0 (${Str.trim(onPhi.output)})`);
 			yield* run.check(
 				Arr.some(mocks.ent.bodies(), Str.includes(ssn)),

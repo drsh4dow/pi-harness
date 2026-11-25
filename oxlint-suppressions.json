@@ -14,11 +14,6 @@
       "count": 1
     }
   },
-  "src/features/phi/switch-away.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/pr/gate.test.ts": {
     "max-params": {
       "count": 1
