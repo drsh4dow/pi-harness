@@ -1,8 +1,3 @@
-/**
- * A pi extension the driver's `bin/pi` wrapper loads into every pi of a run, delegates included. It records what each
- * session loaded and the text of every provider payload it built, one JSON line each, to `$PI_DRIVER_PROBE/<pid>.jsonl`. It only
- * listens: no handler returns a value, and it does nothing while `PI_DRIVER_PROBE` is unset.
- */
 import {
 	type BeforeProviderRequestEvent,
 	type ExtensionAPI,
@@ -26,11 +21,8 @@ export const Loaded = Schema.Struct({
 	/** The running pi's own `VERSION`. */
 	version: Schema.String,
 	model: Schema.TemplateLiteral([Schema.String, "/", Schema.String]),
-	/** The model's context window, after any `modelOverrides` of the setup. */
 	contextWindow: Schema.Finite,
-	/** Extension files that registered a tool or a command, links resolved, sorted, distinct. */
 	extensions: Schema.Array(Schema.String),
-	/** The settings pi runs on, its global and project files merged. */
 	settings: Schema.JsonObject,
 	modelsError: Schema.OptionFromOptionalKey(Schema.String),
 	/** `HC_TERMINAL_SOCKET`, the terminal core this pi starts its delegates in. */
@@ -90,7 +82,6 @@ const record = (line: Probed) =>
 		yield* fs.writeFileString(`${folder.value}/${String(process.pid)}.jsonl`, `${json}\n`, { flag: "a" });
 	});
 
-/** Files of the tools and the extension commands pi registered. Built-in tools name no file, and skills are commands. */
 const extensionFilesOf = (pi: ExtensionAPI) => {
 	const tools = Arr.map(pi.getAllTools(), (tool) => tool.sourceInfo.path);
 	const commands = Arr.filter(pi.getCommands(), (command) => command.source === "extension");
@@ -136,7 +127,6 @@ const run = <Failure>(effect: Effect.Effect<void, Failure, FileSystem.FileSystem
 
 export default function probeExtension(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => run(loaded(pi, ctx)));
-	// The probe loads first, so at `session_start` the extensions that register tools in their own handler have not yet.
 	pi.on("agent_start", (_event, ctx) => run(loaded(pi, ctx)));
 	pi.on("before_provider_request", (event, ctx) => run(sent(event, ctx)));
 }
