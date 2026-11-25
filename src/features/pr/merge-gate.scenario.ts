@@ -44,8 +44,7 @@ const wakeNamed = (entries: ReadonlyArray<SessionEntry>, name: string) =>
 
 const inputOf = ({ id = "", arguments: input }: typeof Part.Type) => [id, input?.command ?? input?.code ?? ""] as const;
 
-/** The output of the first `tool` call in `session` whose command or script holds `command`. */
-const outputOf = (session: Session, tool: string, command: string) => {
+const firstOutputOf = (session: Session, tool: string, command: string) => {
 	const calls = Arr.getSomes(Arr.map(session.entries, (entry) => decodeCall(entry)));
 	const inputs = new Map(Arr.flatMap(calls, ({ message }) => Arr.map(message.content, inputOf)));
 	const results = Arr.getSomes(Arr.map(session.entries, (entry) => decodeResult(entry)));
@@ -76,10 +75,11 @@ const inScratch = (run: Run, script: string) => sh(run, `cd scratch; ${script}`)
 const opening = (branch: string) =>
 	`git checkout -q -B ${branch} origin/main; printf 'a b\\nc\\n' > ${branch}.txt; git add .; git commit -q -m 'add ${branch}'; git push -q origin ${branch}; gh pr create -R ${repository} --head ${branch} --base main --title ${branch} --body 'merge-gate scenario'`;
 
+const lastLine = Str.replace(/^[\s\S]*\n/u, "");
+
 const open = (run: Run, branch: string) =>
 	Effect.map(inScratch(run, opening(branch)), (output): Pr => {
-		// Even with -q, git push prints GitHub's hints before gh prints the URL.
-		const url = Str.replace(/^[\s\S]*\n/u, "")(output);
+		const url = lastLine(output);
 
 		return { branch, url, number: Str.replace(/^.*\/pull\//u, "")(url) };
 	});
@@ -138,16 +138,16 @@ const unverified = (run: Run, prs: Prs) =>
 		);
 
 		const { root, leaf } = yield* finished(run, "merger 1");
-		const codemode = outputOf(leaf, "codemode", byUrl(prs.codemode));
+		const codemode = firstOutputOf(leaf, "codemode", byUrl(prs.codemode));
 
 		yield* prints(run, {
 			where: "the root's bash",
-			output: outputOf(root, "bash", byNumber(prs.bash)),
+			output: firstOutputOf(root, "bash", byNumber(prs.bash)),
 			expected: noVerdict(prs.bash),
 		});
 		yield* prints(run, {
 			where: "merger 1's bash",
-			output: outputOf(leaf, "bash", byNumber(prs.bash)),
+			output: firstOutputOf(leaf, "bash", byNumber(prs.bash)),
 			expected: noVerdict(prs.bash),
 		});
 		yield* prints(run, { where: "merger 1's codemode", output: codemode, expected: noVerdict(prs.codemode) });
@@ -205,7 +205,6 @@ fi
 exec ${realGh} "$@"
 `;
 
-/** Agents find this gh after the wrapper on PATH, so its push lands after the gate allowed the merge. */
 const armed = (run: Run, pr: Pr, realGh: string) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -254,7 +253,7 @@ const mergerTwo = (run: Run, prs: Prs) =>
 
 		const { leaf } = yield* finished(run, "merger 2");
 
-		return (tool: string, command: string) => outputOf(leaf, tool, command);
+		return (tool: string, command: string) => firstOutputOf(leaf, tool, command);
 	});
 
 const merged = (run: Run, prs: Prs, raceHead: string) =>
@@ -297,7 +296,6 @@ const stackPin = (run: Run, pr: Pr, realGh: string) =>
 	Effect.gen(function* () {
 		const humanHome = yield* Config.String("HOME");
 		const pinned = `${realGh} stack merge ${pr.number} --yes --squash --match-head-commit 0000000000000000000000000000000000000000`;
-		// The human's gh extensions, gh stack among them, live in a data folder the scratch HOME lacks.
 		const { code, output } = yield* shell(run, `cd scratch && XDG_DATA_HOME=${humanHome}/.local/share ${pinned}`);
 
 		yield* run.say(`gh stack merge with a pin exits ${String(code)}: ${output}`);
