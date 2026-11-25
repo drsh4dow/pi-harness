@@ -6,7 +6,6 @@ export type Role = "root" | "owner" | "leaf" | "delegate" | "none";
 
 /** What a session's first system message offered: the guides it listed, and the role its role section names. */
 export interface Offer {
-	/** Every guide name listed as an entry, under any kind. */
 	readonly listed: ReadonlySet<string>;
 	readonly role: Role;
 }

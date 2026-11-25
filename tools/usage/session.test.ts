@@ -38,7 +38,8 @@ const prompt = {
 		content: "",
 		timestamp: 0,
 		sections: {
-			preamble: '<role>\nYou are a leaf.\n</role>\n<principles dir="/p">\n- small: when it fits\n</principles>',
+			preamble:
+				'<role>\nYou are a leaf.\n</role>\n<principles dir="/p">\n- small: when it fits\n</principles>\n<playbooks dir="/b">\n- shared: when it fits\n</playbooks>',
 			skills: "<available_skills>\n- big: when it fits\n</available_skills>",
 		},
 	},
@@ -198,11 +199,11 @@ test("a session the model never answered has no facts", () => {
 	expect(factsFor([unanswered])).toEqual(Option.none());
 });
 
-test("a session lists the guides its system prompt names, under its role", () => {
+test("a session lists the principles, playbooks and skills its system prompt names, under its role", () => {
 	const facts = Option.getOrThrow(factsFor([reply]));
 
 	expect([Arr.sort([...facts.listed], Order.String), facts.role, facts.scope]).toEqual([
-		["big", "small"],
+		["big", "shared", "small"],
 		"leaf",
 		"product",
 	]);
