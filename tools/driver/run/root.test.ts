@@ -71,7 +71,7 @@ for await (const line of console) {
 	const data = {
 		get_state: { sessionId: "s", sessionFile: "/s.jsonl" },
 		prompt: { disposition: "queued" },
-		get_last_assistant_text: { text },
+		get_last_assistant_text: { text: process.env.FAKE_NULL_TEXT === undefined ? text : null },
 	}[command.type];
 	const response = { type: "response", id: command.id, command: command.type, success: true, data };
 	if (command.type !== "prompt") {
@@ -131,14 +131,18 @@ test("prompt returns the text pi has once it settles, not before", () =>
 		}),
 	));
 
-test("prompt returns none when pi has no assistant text", () =>
-	withRoot({}, (root) =>
+test.each([
+	{ name: "leaves text out", env: {} },
+	{ name: "answers text null", env: { FAKE_NULL_TEXT: "1" } },
+])("prompt returns none when pi has no assistant text and $name", ({ env }) =>
+	withRoot(env, (root) =>
 		Effect.gen(function* () {
 			const reply = yield* root.prompt("hi");
 
 			expect(reply).toEqual(Option.none());
 		}),
-	));
+	),
+);
 
 test("prompt returns none when pi settles aborted, even with an earlier assistant text", () =>
 	withRoot({ FAKE_TEXT: "ok", FAKE_ABORTED: "1" }, (root) =>

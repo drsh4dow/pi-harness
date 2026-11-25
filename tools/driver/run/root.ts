@@ -207,7 +207,6 @@ const asked = <Value>(wire: Wire, command: Command, schema: Schema.Decoder<Value
 
 const decodeDisposition = Schema.decodeUnknownEffect(Schema.Struct({ disposition: Schema.String }));
 
-/** With no assistant text, pi's RPC docs promise `null`, and pi 1.5.2 leaves the key out. */
 const LastText = Schema.Struct({ text: Schema.String.pipe(Schema.NullOr, Schema.optionalKey) });
 
 /** `within` bounds the whole prompt: pi's acknowledgement, the settle, and the final text. */
