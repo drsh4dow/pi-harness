@@ -7,7 +7,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { type Call, editedPaths, firedBy, firedByGroups, type GuideEvent } from "./events.ts";
-import type { Guide, Library } from "./guides.ts";
+import type { GuideOnDisk, Library } from "./guides.ts";
 import { noOffer, type Offer, offerOf, type Role } from "./offer.ts";
 
 /** Trial work runs under `/tmp`. Harness work runs in this repo, its state folders or the PHI router. */
@@ -29,7 +29,7 @@ export interface SessionFacts {
 	readonly role: Role;
 	readonly scope: Scope;
 	readonly listed: ReadonlySet<string>;
-	readonly loaded: ReadonlyMap<Guide, LoadedBy>;
+	readonly loaded: ReadonlyMap<GuideOnDisk, LoadedBy>;
 	readonly events: ReadonlySet<GuideEvent>;
 	readonly delegateCalls: ReadonlyArray<DelegateCall>;
 }
@@ -40,10 +40,10 @@ interface Named {
 }
 
 interface Scan {
-	readonly byKey: ReadonlyMap<string, Guide>;
-	readonly owner: ReadonlyMap<string, Guide>;
-	readonly seen: Map<Guide, Set<string>>;
-	readonly named: Map<Guide, Named>;
+	readonly byKey: ReadonlyMap<string, GuideOnDisk>;
+	readonly owner: ReadonlyMap<string, GuideOnDisk>;
+	readonly seen: Map<GuideOnDisk, Set<string>>;
+	readonly named: Map<GuideOnDisk, Named>;
 	readonly events: Set<GuideEvent>;
 	readonly delegateCalls: Array<DelegateCall>;
 	header: { readonly started: string; readonly cwd: string };
@@ -156,7 +156,7 @@ const guidesNamedIn = (scan: Scan, text: string) =>
 		return guide === undefined ? [] : [guide];
 	});
 
-const mark = (scan: Scan, guide: Guide, { read, edited }: Named) => {
+const mark = (scan: Scan, guide: GuideOnDisk, { read, edited }: Named) => {
 	const slot = scan.named.get(guide) ?? { read: false, edited: false };
 
 	slot.read ||= read;
@@ -227,7 +227,7 @@ const step = (scan: Scan, entry: FileEntry) => {
 };
 
 const loadedOf = ({ seen, named }: Scan) => {
-	const loaded = new Map<Guide, LoadedBy>();
+	const loaded = new Map<GuideOnDisk, LoadedBy>();
 
 	for (const guide of new Set([...seen.keys(), ...named.keys()])) {
 		const marked = isMarked(seen.get(guide)?.size ?? 0, guide.ownLines);

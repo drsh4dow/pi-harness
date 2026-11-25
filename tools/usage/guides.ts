@@ -4,8 +4,7 @@ import * as Str from "effect/String";
 
 import type { GuideKind } from "#src/features/loaded/index.ts";
 
-/** A guide on disk now. */
-export interface Guide {
+export interface GuideOnDisk {
 	readonly kind: GuideKind;
 	readonly name: string;
 	readonly ownLines: number;
@@ -21,8 +20,8 @@ interface GuideText {
 
 /** The guides on disk, and each line that marks one of them wherever its text lands. */
 export interface Library {
-	readonly guides: ReadonlyArray<Guide>;
-	readonly owner: ReadonlyMap<string, Guide>;
+	readonly guides: ReadonlyArray<GuideOnDisk>;
+	readonly owner: ReadonlyMap<string, GuideOnDisk>;
 }
 
 const minMarkerLength = 20;
@@ -54,9 +53,9 @@ const holdersOf = (texts: ReadonlyArray<Pick<GuideText, "name" | "text">>) => {
 	return holders;
 };
 
-const ownerOf = (holders: ReadonlyMap<string, ReadonlySet<string>>, guides: ReadonlyArray<Guide>) => {
+const ownerOf = (holders: ReadonlyMap<string, ReadonlySet<string>>, guides: ReadonlyArray<GuideOnDisk>) => {
 	const byName = new Map(Arr.map(guides, (guide) => [guide.name, guide]));
-	const owner = new Map<string, Guide>();
+	const owner = new Map<string, GuideOnDisk>();
 
 	for (const [line, names] of holders) {
 		const [name = ""] = names;
@@ -87,7 +86,7 @@ export const libraryOf = ({
 	const onlyBy = (name: string) => (line: string) =>
 		holders.get(line)?.size === 1 && holders.get(line)?.has(name) === true;
 
-	const guides = Arr.map(today, ({ kind, name, text }): Guide => {
+	const guides = Arr.map(today, ({ kind, name, text }): GuideOnDisk => {
 		const own = Arr.filter(markLines(text), onlyBy(name));
 		const frontmatter = Str.slice(0, frontmatterSpan)(text);
 

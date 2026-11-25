@@ -5,7 +5,7 @@ import * as Str from "effect/String";
 
 import type { GuideKind } from "#src/features/loaded/index.ts";
 import { guideEvents } from "./events.ts";
-import type { Guide, Library } from "./guides.ts";
+import type { GuideOnDisk, Library } from "./guides.ts";
 import type { Role } from "./offer.ts";
 import type { Scope, SessionFacts } from "./session.ts";
 
@@ -31,7 +31,7 @@ interface Usage {
 	readonly pathOnly: number;
 }
 
-const usageOf = (guide: Guide, real: ReadonlyArray<SessionFacts>, trials: ReadonlyArray<SessionFacts>): Usage => {
+const usageOf = (guide: GuideOnDisk, real: ReadonlyArray<SessionFacts>, trials: ReadonlyArray<SessionFacts>): Usage => {
 	const loading = Arr.filter(real, (session) => session.loaded.has(guide));
 
 	return {
@@ -47,7 +47,7 @@ const usageOf = (guide: Guide, real: ReadonlyArray<SessionFacts>, trials: Readon
 	};
 };
 
-const guideRow = (guide: Guide, usage: Usage, total: number) =>
+const guideRow = (guide: GuideOnDisk, usage: Usage, total: number) =>
 	row([
 		guide.hidden ? `${guide.name} (hidden)` : guide.name,
 		usage.listed,
@@ -60,11 +60,11 @@ const guideRow = (guide: Guide, usage: Usage, total: number) =>
 	]);
 
 const byLoads = Order.combine(
-	Order.mapInput(Order.Number, ([, { loaded }]: readonly [Guide, Usage]) => -loaded),
-	Order.mapInput(Order.String, ([{ name }]: readonly [Guide, Usage]) => name),
+	Order.mapInput(Order.Number, ([, { loaded }]: readonly [GuideOnDisk, Usage]) => -loaded),
+	Order.mapInput(Order.String, ([{ name }]: readonly [GuideOnDisk, Usage]) => name),
 );
 
-const kindSection = (kind: GuideKind, usage: ReadonlyArray<readonly [Guide, Usage]>) => {
+const kindSection = (kind: GuideKind, usage: ReadonlyArray<readonly [GuideOnDisk, Usage]>) => {
 	const ranked = Arr.sort(
 		Arr.filter(usage, ([guide]) => guide.kind === kind),
 		byLoads,

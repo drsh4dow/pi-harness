@@ -6,7 +6,7 @@ import * as Order from "effect/Order";
 import * as Schema from "effect/Schema";
 
 import type { GuideEvent } from "./events.ts";
-import { type Guide, libraryOf } from "./guides.ts";
+import { type GuideOnDisk, libraryOf } from "./guides.ts";
 import { factsOf } from "./session.ts";
 
 const linesOf = (name: string, count: number) =>
@@ -101,7 +101,7 @@ const factsFor = (entries: ReadonlyArray<Entry>) => {
 
 const loadedIn = (entries: ReadonlyArray<Entry>) => {
 	const loaded = Option.match(factsFor(entries), {
-		onNone: () => new Map<Guide, string>(),
+		onNone: () => new Map<GuideOnDisk, string>(),
 		onSome: (facts) => facts.loaded,
 	});
 
