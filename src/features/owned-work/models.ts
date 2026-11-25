@@ -33,7 +33,6 @@ export interface Alias {
 
 export interface ModelTable {
 	readonly aliases: Readonly<Record<string, Alias>>;
-	/** Model names, aliases or `provider/id`, one per seat. */
 	readonly panel: ReadonlyArray<string>;
 }
 

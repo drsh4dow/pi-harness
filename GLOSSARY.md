@@ -41,19 +41,20 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Fork tab.** The herdr-app tab where `/fork` and `/clone` put the copy of a session: a new pi in a new tab of the same space, while the source tab keeps its session and its work.
 - **Delegate.** A child pi its parent starts on one task message, as an **owner** or a **leaf**, that ends each run in one **answer** and cannot ask its parent anything. It is known by its child session and its name, the few words its parent gives to set it apart from its other live delegates.
   _Avoid_: subagent
-- **Brief.** What a delegate starts from, set by its parent's call and kept for its life: its task message, the **goal**, the state folder, the **project facts**, the shared documents of its repo and its **instructions**, plus an owner's **design** and **owner rules**.
+- **Brief.** What a delegate starts from, set by its parent's call and kept for its life: its task message, the **goal**, the state folder and its **destination file**, the **project facts**, the shared documents at the root of its repo and its **instructions**, plus an owner's **design** and **owner rules**.
 - **Brief source.** A file or folder a **brief** is built from: an instructions file, a state-folder note, a design sketch, a repo's shared documents, or the folder a delegate starts or keeps its state in. Owned work reads them and never writes them.
 - **Goal.** What the human's work is for, in one statement that every delegate's prompt carries.
+- **Destination file.** The `STATE.md` in a work's state folder, which holds the work's **destination** and its **acceptance criteria**.
 - **Continuation.** Another run of a delegate in its own child session, which its parent starts with a new message. Not a new delegate, since it keeps its name and child session.
 - **Answer.** The last assistant text of a delegate's run, its reply to its parent.
 - **Answer cap.** The most of an answer that one wake carries, the same for every delegate.
 - **Profile.** Who a delegate is, from the frontmatter of its instructions file: its model, thinking level, whether it is read-only, and its role.
 - **Model alias.** A name for one model and the work it is for, such as judgment or worker, that a delegate call or a profile gives in place of a model id. Not a **role**.
-- **Panel.** The models a skill runs one delegate on each, for work such as competing designs or a review.
+- **Panel.** The models a skill runs one delegate on each, for work such as competing designs or a review. Each seat is a **model alias** or a `provider/id`.
 - **Model table.** The aliases and the panel: the models a delegate call may name.
 - **Claude account.** One Claude login as its own provider, with Anthropic's models and its own credential: the personal subscriptions ultra-a and ultra-b, and ent, the **BAA account**.
 - **Limited account.** A Claude account that answered 429, until the reset that reply names. A session that hits a 429 moves to an account that is not limited, or waits for the first one back.
-- **Role.** What an agent is for: root, owner or leaf. The root is the pi at the human's terminal, and a delegate's parent names its role.
+- **Role.** What an agent is for: root, owner or leaf. The root is the pi at the human's terminal, and a delegate's parent names its role. A prompt file's frontmatter `for` lists the roles it fits.
 - **Owner.** A delegate handed one slice and its **design**, to build, verify, commit and report on. It can hand parts of its slice to delegates of its own.
 - **Design.** Who settled the shape of an owner's slice: a sketch made before the hand-off, which the owner builds to, or the owner itself as it builds.
 - **Leaf.** A delegate handed one bounded task, such as a search, a review, a verification lane or a scoped edit, that starts no delegates.
@@ -61,16 +62,20 @@ Terms from the owned-work feature. See ADRs 0002, 0006, 0008 and 0020.
 - **Level.** How deep an agent sits: the root is level 1, its delegates level 2, and so on down.
 - **Serve.** A long-running command, such as a dev server, whose end never wakes anyone.
 - **Watch.** A command whose exit wakes the agent with its exit code and last lines.
+- **Watch log.** The file that holds a watch's full output, once its command has started.
+- **Start time.** The local wall-clock time at which the ledger took a start request, which the pane's header shows.
 - **Job.** A delegate, a watch or a group: work that settles with a result. A serve is not a job.
 - **Group.** Work moved out of the agent's hands into one unit, under a name its caller gives, that wakes the agent once with every result.
 - **Holder.** Who receives a piece of work's result: the agent, or the group it was moved into.
 - **Handle.** The plain JSON a start tool returns, such as `{ "ref": "delegate-3", "kind": "delegate", "terminal": "t7" }`.
 - **Ref.** A handle's id, such as `delegate-3`, unique within a session's transcript.
 - **Settle.** A job's end: done, fired, failed, or a group's member results.
+- **Cancel.** End live work before it settles on its own. The failure names the group whose settling ended a serve it held, and names no group when the agent's own `cancel` call ended the work.
 - **Deliver.** Hand a settled result to the agent, exactly once: at the end of a turn, by a wake while idle, or in a `cancel` or `wait` reply.
 - **Wake.** A message that carries results to an idle agent and starts its next turn.
 - **Wait.** A tool call that keeps the agent's turn until a job it holds settles, then delivers the results due in its reply.
 - **Ledger.** The one module that records owned work, who holds it and what was delivered.
+- **Entry kind.** The `customType` a feature gives the session entries it writes. Owned work's is `owned-work`, which also marks the results the ledger hands the agent.
 - **Terminal name.** The name Herdr shows for a delegate, serve or watch: the name its agent gave it.
 - **Slice.** The systemd user slice a delegate, serve or watch runs in, nested below its parent's.
 - **Child session.** A delegate's own pi session, kept apart from the sessions the human resumes.

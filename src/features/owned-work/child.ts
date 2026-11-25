@@ -21,7 +21,6 @@ export const ChildRole = Schema.Literals(["owner", "leaf"]);
 
 export type ChildRole = typeof ChildRole.Type;
 
-/** The roles a prompt file fits, from its frontmatter's `for`. */
 export const Roles = Role.pipe(Schema.NonEmptyArray);
 
 const levelUpTo = (maximum: number) =>
@@ -107,9 +106,7 @@ interface BriefCommon extends Omit<ChildPi, "session" | "brief"> {
 	readonly goal: string;
 	readonly state: Option.Option<string>;
 	readonly facts: Option.Option<string>;
-	/** The state folder's `STATE.md`, which holds the work's destination and its acceptance criteria. */
 	readonly destinationFile: Option.Option<string>;
-	/** The glossary, coding standards and ADR folder at the root of the repo the delegate works in, by absolute path. */
 	readonly sharedDocuments: ReadonlyArray<string>;
 	readonly instructions: Option.Option<{ readonly file: string; readonly text: string }>;
 }

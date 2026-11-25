@@ -32,7 +32,6 @@ export type FailReason = Data.TaggedEnum<{
 	Deadline: { readonly after: Duration.Duration };
 	SpawnFailed: { readonly why: string };
 	Errored: { readonly why: string };
-	/** `group` is the group whose settling ended a serve; none when the agent's own `cancel` call did. */
 	Cancelled: { readonly group: Option.Option<WorkRef> };
 }>;
 
@@ -67,7 +66,6 @@ export interface Settled {
 	readonly ref: WorkRef;
 	readonly who: Identity;
 	readonly outcome: Outcome;
-	/** The file holding a watch's full output, once its command started. */
 	readonly log: Option.Option<string>;
 }
 
@@ -136,7 +134,6 @@ export type StartRequest = Data.TaggedEnum<{
 
 export const StartRequest = Data.taggedEnum<StartRequest>();
 
-/** A request the ledger took at `startTime`, the local wall-clock time a pane's header shows. */
 export type TimedRequest = StartRequest & { readonly startTime: string };
 
 export type DelegateStart = Data.TaggedEnum.Value<StartRequest, "Delegate">;

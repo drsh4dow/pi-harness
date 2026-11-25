@@ -4,7 +4,6 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-/** The `customType` of the entries the ledger writes, and of the results it hands the agent. */
 export const entryKind = "owned-work";
 
 const NumberedRef = Schema.String.check(Schema.isPattern(/^[a-z]+-\d+$/u));
