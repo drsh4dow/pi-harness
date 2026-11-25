@@ -22,7 +22,6 @@ export const Cause = Schema.TaggedUnion({
 
 export type Cause = typeof Cause.Type;
 
-/** A reply that rewrote its cached prompt at full price, and every cause that held. Empty causes: nothing here explains it. */
 export const Miss = Schema.Struct({
 	missedTokens: Schema.Finite,
 	cacheRead: Schema.Finite,

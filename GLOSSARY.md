@@ -185,6 +185,12 @@ Terms for the footer, which replaces pi's own.
 
 - **Stats line.** The footer's second line: the time from the first message to the latest, the latest response's cache hit rate, the session's cost and the context use, with the model on the right. It shows no token counters. The footer's other lines match pi's. Unlike pi's, it never shows where a virtual model routed the latest response, since pi gives extensions no way to tell a virtual model apart.
 
+## Cache
+
+Terms for the cache feature. **Cache miss** is under Cost.
+
+- **Miss cause.** What a cache miss records as a reason it happened: idle past the cache lifetime, a model change, a compaction, a context edit, a changed prompt or changed tools. A miss with no cause is one that none of these explains.
+
 ## Merge
 
 Terms for what lets an agent merge a pull request. See ADR 0009.
