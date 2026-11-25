@@ -252,3 +252,19 @@ test("a later system message changes neither the listed guides nor the role", ()
 
 	expect([Arr.sort([...facts.listed], Order.String), facts.role]).toEqual([["big", "shared", "small"], "leaf"]);
 });
+
+const scopeIn = (cwd: string) => {
+	const text = Arr.join(Arr.map([{ ...header, cwd }, prompt, reply], jsonLine), "\n");
+
+	return Option.map(factsOf({ library, text }), ({ scope }) => scope);
+};
+
+test.each([
+	{ cwd: "/tmp/trial-7", scope: "trial" },
+	{ cwd: "/home/u/.pi/.worktrees/pi-harness/fix", scope: "harness" },
+	{ cwd: "/home/u/.local/state/pi-agent/pi-harness/run-1", scope: "harness" },
+	{ cwd: "/home/u/code/phi-router", scope: "harness" },
+	{ cwd: "/home/u/app", scope: "product" },
+])("a session run in $cwd is $scope work", ({ cwd, scope }) => {
+	expect(scopeIn(cwd)).toEqual(Option.some(scope));
+});

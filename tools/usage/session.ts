@@ -10,7 +10,6 @@ import { type Call, editedPaths, firedBy, firedByGroups, type GuideEvent } from 
 import type { GuideOnDisk, Library } from "./guides.ts";
 import { noOffer, type Offer, offerOf, type Role } from "./offer.ts";
 
-/** Trial work runs under `/tmp`. Harness work runs in this repo, its state folders or the PHI router. */
 export type Scope = "product" | "harness" | "trial";
 
 type LoadedBy = "lines" | "path";
