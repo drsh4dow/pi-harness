@@ -109,8 +109,7 @@ const nameOf = (filePath: string) => Str.replace(/^.*\//u, "")(dirOf(filePath));
 
 const hiddenFromModel = /^disable-model-invocation: true$/mu;
 
-/** Every `.md` in a skill's folder, `SKILL.md` and the files it points at, keyed `<skill>/<path>`. */
-const docsOf = (filePath: string) =>
+const everyDocInSkillFolder = (filePath: string) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const dir = dirOf(filePath);
@@ -155,7 +154,7 @@ test("no skill an owner or a leaf loads points it at a skill hidden from its rol
 
 					return yield* Effect.forEach(modelLoads, ({ filePath }) =>
 						Effect.gen(function* () {
-							const docs = yield* docsOf(filePath);
+							const docs = yield* everyDocInSkillFolder(filePath);
 							const texts = Arr.map(docs, ({ text }) => text);
 
 							return Arr.map(
@@ -232,7 +231,7 @@ test("no skill contradicts a rule the always-on prompt owns", () =>
 			);
 
 			const found = yield* Effect.forEach(skills, ({ filePath }) =>
-				Effect.map(docsOf(filePath), (docs) =>
+				Effect.map(everyDocInSkillFolder(filePath), (docs) =>
 					Arr.flatMap(docs, ({ doc, text }) =>
 						Arr.map(
 							contradictedRules({ text, seenByDelegate: delegateSees.has(filePath) }),

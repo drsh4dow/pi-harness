@@ -27,6 +27,7 @@ Terms from the prompt feature, which builds every agent's system prompt. The roo
 - **Skills section.** The part of the system prompt that lists each skill a role may invoke, under the skills rule, in place of pi's own list.
 - **Tool context.** The guidelines of each tool and extension that pi's default prompt carries, kept in the harness's prompt.
 - **Playbook.** The workflow for one kind of work, such as a bug fix or opening a PR, which the agent reads when its **trigger** matches. Several can shape one session.
+- **Self-contained skill.** A skill published on skills.sh, which runs in any agent with only its own folder, so no file in it reaches into the harness.
 - **Reference file.** A file a playbook points at, such as a script or a checklist. It is not a playbook, and the prompt never lists it.
 - **Trigger.** The line the model matches a task against: a skill's description, or a principle's or a playbook's when.
 

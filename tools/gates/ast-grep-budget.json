@@ -32,8 +32,6 @@
 	"src/features/pr/merge-request.ts no-comments": 6,
 	"src/features/pr/verdict.ts no-comments": 1,
 	"src/features/prompt/kinds.test.ts no-comments": 2,
-	"src/features/prompt/self-contained-skills.test.ts no-comments": 2,
-	"src/features/prompt/skills.test.ts no-comments": 1,
 	"src/features/skill-menu/index.test.ts no-comments": 1,
 	"src/features/skill-menu/index.ts no-comments": 3,
 	"src/features/state-folder/index.test.ts no-comments": 2,

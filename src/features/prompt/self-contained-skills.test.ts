@@ -9,7 +9,6 @@ import * as Str from "effect/String";
 
 const skills = Bun.fileURLToPath(new URL("../../../agent/skills/", import.meta.url));
 
-/** Skills published on skills.sh, which run in any agent with only their own folder. */
 const selfContained = ["making-videos"];
 
 const harnessOnly = /~\/\.pi\b|\.pi\/agent|~\/Projects\/|instructionsFile|\/reload\b|\*\*[a-z0-9-]+\*\* skill/u;
@@ -34,8 +33,7 @@ const hitsInEntry = Effect.fn("hitsInEntry")(function* (entry: string) {
 	return hitsIn(entry, text);
 });
 
-/** Every hit in the text files of one skill's folder. */
-const hitsInSkill = Effect.fn("hitsInSkill")(function* (skill: string) {
+const hitsInTextFiles = Effect.fn("hitsInTextFiles")(function* (skill: string) {
 	const fs = yield* FileSystem.FileSystem;
 	const entries = yield* fs.readDirectory(`${skills}${skill}`, { recursive: true });
 	const textEntries = Arr.map(Arr.filter(entries, isText), (entry) => `${skill}/${entry}`);
@@ -62,7 +60,7 @@ test("a harness path, a pi tool field, a pi command or a cited skill is a hit, a
 test("no file in a self-contained skill reaches outside its folder into the harness", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
-			const hits = yield* Effect.forEach(selfContained, hitsInSkill);
+			const hits = yield* Effect.forEach(selfContained, hitsInTextFiles);
 
 			expect(Arr.flatten(hits)).toEqual([]);
 		}).pipe(Effect.provide(NodeServices.layer)),
