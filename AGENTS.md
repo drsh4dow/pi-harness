@@ -1,7 +1,5 @@
 # pi harness
 
-Next-gen coding harness, built on pi + Herdr-Core. This folder is also pi's live config dir (`~/.pi`), so `.gitignore` is an allowlist: credentials (`agent/auth.json`) and session history (`agent/sessions/`) must never be committed.
-
 Run `bun run check` before every commit. It must exit 0.
 
 Read `CODING_STANDARDS.md` before you write code, change a gate's config, or change the harness's prompts.
