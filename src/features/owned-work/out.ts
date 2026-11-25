@@ -7,7 +7,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import { Type } from "typebox";
 
-import type { TerminalEnd } from "#src/client/hc/index.ts";
+import type { TerminalEnd } from "#src/client/terminals/index.ts";
 import { VerdictResult } from "#src/features/pr/index.ts";
 import type { LedgerFailure } from "./ledger.ts";
 import {

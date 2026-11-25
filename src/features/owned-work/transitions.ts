@@ -4,8 +4,8 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 
-import { TerminalEnd, type TerminalAddress, type TerminalSnapshot } from "#src/client/hc/index.ts";
 import type { ChildReply } from "#src/client/pi/index.ts";
+import { type TerminalAddress, TerminalEnd, type TerminalSnapshot } from "#src/client/terminals/index.ts";
 import type { Role } from "./child.ts";
 import { Groups } from "./groups.ts";
 import { carried, deadlineOf, nameTaken, running } from "./lifetime.ts";

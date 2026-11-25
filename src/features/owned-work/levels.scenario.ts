@@ -5,7 +5,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { terminalNameOf } from "#src/client/hc/index.ts";
+import { terminalNameOf } from "#src/client/terminals/index.ts";
 import { treeReader } from "#src/features/cost/index.ts";
 import { type Run, type Session, scenario } from "#tools/driver/index.ts";
 import { atLevel, type ChildRole } from "./child.ts";

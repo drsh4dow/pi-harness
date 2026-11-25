@@ -21,8 +21,6 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { type Hc, hcLayer, TerminalAddress } from "#src/client/hc/index.ts";
-import { type HerdrApp, herdrAppLayer } from "#src/client/herdr-app/index.ts";
 import { phiRouterLayer, routerExtensionOf } from "#src/client/phi-router/index.ts";
 import {
 	type PiCli,
@@ -34,7 +32,15 @@ import {
 	unwrapMessage,
 } from "#src/client/pi/index.ts";
 import { sourceStampLayer } from "#src/client/source-stamp/index.ts";
-import { type Slices, slicesLayer } from "#src/client/systemd/index.ts";
+import {
+	type Hc,
+	hcLayer,
+	type HerdrApp,
+	herdrAppLayer,
+	type Slices,
+	slicesLayer,
+	TerminalAddress,
+} from "#src/client/terminals/index.ts";
 import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "./child.ts";
 import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";

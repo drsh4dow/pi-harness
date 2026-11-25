@@ -12,9 +12,8 @@ import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
-import { Hc, type HcError, type RunSpec, terminalNameOf } from "#src/client/hc/index.ts";
 import { PiCli, PiSessions } from "#src/client/pi/index.ts";
-import { Slices } from "#src/client/systemd/index.ts";
+import { Hc, type HcError, type RunSpec, Slices, terminalNameOf } from "#src/client/terminals/index.ts";
 import { recordVerdict, type VerdictRecord, verdictsFolder } from "#src/features/pr/index.ts";
 import { atLevel, launch, levels, type Self } from "./child.ts";
 import { continuationOf } from "./continuation.ts";

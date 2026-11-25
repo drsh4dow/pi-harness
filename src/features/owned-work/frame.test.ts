@@ -8,9 +8,8 @@ import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
-import { Hc, TerminalAddress, TerminalEnd } from "#src/client/hc/index.ts";
 import { piSessionsLayer } from "#src/client/pi/index.ts";
-import { Slices } from "#src/client/systemd/index.ts";
+import { Hc, Slices, TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
 import { eventually } from "#src/primitives/eventually.ts";
 import { Self } from "./child.ts";
 import { type CommandRequest, watchOutputOf } from "./frame.ts";

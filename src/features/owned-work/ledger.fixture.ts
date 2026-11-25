@@ -14,7 +14,7 @@ import * as Scope from "effect/Scope";
 import * as Semaphore from "effect/Semaphore";
 import * as Str from "effect/String";
 
-import { HcNotice, TerminalAddress, type TerminalEnd } from "#src/client/hc/index.ts";
+import { HcNotice, TerminalAddress, type TerminalEnd } from "#src/client/terminals/index.ts";
 import { type Act, recordsAre, type Row } from "./act.fixture.ts";
 import type { LedgerFailure } from "./ledger.ts";
 import { Out } from "./out.ts";

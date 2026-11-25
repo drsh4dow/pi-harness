@@ -11,9 +11,15 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Schedule from "effect/Schedule";
 
-import { Hc, type HcError, type TerminalAddress, terminalNameOf } from "#src/client/hc/index.ts";
-import { HerdrApp, type HerdrAppError } from "#src/client/herdr-app/index.ts";
 import { PiSessions, type SessionUnwritable } from "#src/client/pi/index.ts";
+import {
+	Hc,
+	type HcError,
+	HerdrApp,
+	type HerdrAppError,
+	type TerminalAddress,
+	terminalNameOf,
+} from "#src/client/terminals/index.ts";
 import { entryKind, unsettledRefs } from "./recorded.ts";
 
 type Sessions = ExtensionContext["sessionManager"];

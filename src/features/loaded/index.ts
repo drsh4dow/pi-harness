@@ -12,8 +12,8 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { labelTerminal, TerminalAddress } from "#src/client/hc/index.ts";
 import { agentFileText, markdownIn, piHost } from "#src/client/pi/index.ts";
+import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
 import { type GuideKind, guidesOf, type Index, indexOf, inContext, Loaded } from "./context.ts";
 
 export { type GuideKind, guidesOf, type Index, indexOf, inContext, Loaded } from "./context.ts";

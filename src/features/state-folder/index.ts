@@ -16,9 +16,9 @@ import * as Order from "effect/Order";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { labelTerminal, TerminalAddress } from "#src/client/hc/index.ts";
 import { piHost } from "#src/client/pi/index.ts";
 import { type Fingerprint, StateFolder, stateFolderLayer } from "#src/client/state-folder/index.ts";
+import { labelTerminal, TerminalAddress } from "#src/client/terminals/index.ts";
 import type { FormatProblem } from "./action-items.ts";
 import { checks, type Place } from "./checks.ts";
 

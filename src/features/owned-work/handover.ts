@@ -7,7 +7,7 @@ import * as Str from "effect/String";
 
 import { PiCli } from "#src/client/pi/index.ts";
 import { SourceStamp } from "#src/client/source-stamp/index.ts";
-import { ownCgroup, Slices, stopRoot } from "#src/client/systemd/index.ts";
+import { ownCgroup, Slices, stopRoot } from "#src/client/terminals/index.ts";
 import { Ledger } from "./ledger.ts";
 import type { LedgerState } from "./step.ts";
 

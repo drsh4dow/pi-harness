@@ -7,8 +7,15 @@ import * as Rec from "effect/Record";
 import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 
-import { Hc, HcError, HcNotice, type RunSpec, TerminalAddress, TerminalEnd } from "#src/client/hc/index.ts";
-import { Slices } from "#src/client/systemd/index.ts";
+import {
+	Hc,
+	HcError,
+	HcNotice,
+	type RunSpec,
+	Slices,
+	TerminalAddress,
+	TerminalEnd,
+} from "#src/client/terminals/index.ts";
 import type { World } from "./world.fixture.ts";
 
 /** Fakes of hc and systemd that record into `world` what the ledger asked of each. */

@@ -1,10 +1,10 @@
 {
-  "src/client/hc/index.ts": {
+  "src/client/terminals/hc/index.ts": {
     "max-params": {
       "count": 1
     }
   },
-  "src/client/systemd/index.ts": {
+  "src/client/terminals/systemd/index.ts": {
     "max-params": {
       "count": 1
     }

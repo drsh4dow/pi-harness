@@ -19,7 +19,7 @@ export class HerdrApp extends Context.Service<
 		/** Shows `terminal` and puts the person's typing there. Fails when no window is open. */
 		readonly focus: (terminal: string) => Effect.Effect<void, HerdrAppError>;
 	}
->()("pi-harness/client/herdr-app/HerdrApp") {}
+>()("pi-harness/client/terminals/herdr-app/HerdrApp") {}
 
 const failed = (command: string) => (message: string) => HerdrAppError.make({ command, message });
 

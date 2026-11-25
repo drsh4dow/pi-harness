@@ -80,7 +80,7 @@ export class Hc extends Context.Service<
 		readonly read: (terminal: TerminalAddress, history: number) => Effect.Effect<string, HcError>;
 		readonly notices: Stream.Stream<HcNotice>;
 	}
->()("pi-harness/client/hc/Hc") {}
+>()("pi-harness/client/terminals/hc/Hc") {}
 
 export interface HcOptions {
 	readonly agentKey: string;

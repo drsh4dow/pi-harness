@@ -9,7 +9,7 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
-import type { RunSpec } from "#src/client/hc/index.ts";
+import type { RunSpec } from "#src/client/terminals/hc/index.ts";
 
 export class Slices extends Context.Service<
 	Slices,
@@ -20,7 +20,7 @@ export class Slices extends Context.Service<
 		/** Stops every job the root started. A reload skips it, so the work outlives the extension and the next load takes it over. */
 		readonly stopAll: Effect.Effect<void>;
 	}
->()("pi-harness/client/systemd/Slices") {}
+>()("pi-harness/client/terminals/systemd/Slices") {}
 
 class NoUserManager extends Schema.TaggedError<NoUserManager, { readonly brand: unique symbol }>()("NoUserManager", {
 	message: Schema.String,

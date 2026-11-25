@@ -8,8 +8,7 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { type Hc, type HcError, type TerminalAddress, TerminalEnd } from "#src/client/hc/index.ts";
-import { isHeartbeat } from "#src/client/heartbeat/index.ts";
+import { type Hc, type HcError, isHeartbeat, type TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
 import type { TimedRequest, WatchWork, WorkRef } from "./work.ts";
 
 export type CommandRequest = Data.TaggedEnum.Value<TimedRequest, "Serve" | "Watch">;

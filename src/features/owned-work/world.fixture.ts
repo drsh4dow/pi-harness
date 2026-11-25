@@ -17,9 +17,8 @@ import * as Scope from "effect/Scope";
 import * as Semaphore from "effect/Semaphore";
 import * as Str from "effect/String";
 
-import { type Hc, type HcNotice, TerminalEnd } from "#src/client/hc/index.ts";
 import { PiCli, piCliLayer, piSessionsLayer } from "#src/client/pi/index.ts";
-import type { Slices } from "#src/client/systemd/index.ts";
+import { type Hc, type HcNotice, type Slices, TerminalEnd } from "#src/client/terminals/index.ts";
 import { type ChildSession, type Role, Self } from "./child.ts";
 import { Host, Ledger, ledgerLayer } from "./ledger.ts";
 import { Out } from "./out.ts";

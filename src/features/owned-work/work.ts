@@ -7,7 +7,7 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
-import type { TerminalAddress, TerminalEnd } from "#src/client/hc/index.ts";
+import type { TerminalAddress, TerminalEnd } from "#src/client/terminals/index.ts";
 import type { VerdictRecord } from "#src/features/pr/index.ts";
 import type { Brief, ChildSession } from "./child.ts";
 

@@ -4,8 +4,8 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 
-import type { RunSpec } from "#src/client/hc/index.ts";
 import { Design, PiCli } from "#src/client/pi/index.ts";
+import type { RunSpec } from "#src/client/terminals/index.ts";
 import { atLevel, type ChildRole, childExtensions, inheritedEnv, launch, selfFromEnv } from "./child.ts";
 import { Act, type Row, runRow } from "./ledger.fixture.ts";
 import { commandSpec } from "./ledger.ts";

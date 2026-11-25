@@ -2,7 +2,7 @@ import type { StopReason } from "@earendil-works/pi-ai";
 import * as Data from "effect/Data";
 import type * as Effect from "effect/Effect";
 
-import type { TerminalEnd } from "#src/client/hc/index.ts";
+import type { TerminalEnd } from "#src/client/terminals/index.ts";
 import type { ReviewTarget } from "#src/features/pr/index.ts";
 import type { Role } from "./child.ts";
 import type { HeldSpawn, World } from "./world.fixture.ts";
