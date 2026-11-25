@@ -117,7 +117,7 @@ const resolvedOf = (ctx: ModelCaller, table: ModelTable, name: ModelName) =>
 				spelled: Option.some(provider),
 				model: key,
 				naming: `The model \`${key}\``,
-				source: "",
+				whyClause: "",
 			});
 		},
 		Alias: ({ alias }) =>
@@ -129,7 +129,7 @@ const resolvedOf = (ctx: ModelCaller, table: ModelTable, name: ModelName) =>
 					spelled: Option.none<string>(),
 					model: aliasedModel(ctx, entry),
 					naming: `The alias \`${alias}\` names ${entry.provider}/${entry.id}`,
-					source: `, which the alias ${alias} names,`,
+					whyClause: `, which the alias ${alias} names,`,
 				})),
 			),
 	});
@@ -167,41 +167,40 @@ const standingOf = Effect.fn("standingOf")(function* (ctx: ModelCaller) {
 
 interface Placement {
 	readonly model: string;
-	/** Why it runs there, as the refusal of a model the registry lacks words it. */
-	readonly source: string;
+	readonly whyClause: string;
 	readonly pin: boolean;
 	readonly substitution: Option.Option<string>;
 }
 
 const routerPicks = ", which phi-router picks,";
 
-const runs = (model: string, source: string, pin: boolean): Placement => ({
+const runs = (model: string, whyClause: string, pin: boolean): Placement => ({
 	model,
-	source,
+	whyClause,
 	pin,
 	substitution: Option.none(),
 });
 
 const openPlacement = Effect.fn("openPlacement")(function* (
 	ctx: ModelCaller,
-	{ spelled, model, id, source }: Resolved,
+	{ spelled, model, id, whyClause }: Resolved,
 ) {
 	const account = accountOf(Arr.headNonEmpty(Str.split(model, "/")));
 
 	if (Option.isSome(spelled) || Option.isNone(account)) {
-		return runs(model, source, false);
+		return runs(model, whyClause, false);
 	}
 
 	const roomiest = yield* roomiestAccount({ registry: ctx.modelRegistry, from: account.value, id });
 
-	return runs(`${roomiest.id}/${id}`, source, false);
+	return runs(`${roomiest.id}/${id}`, whyClause, false);
 });
 
 const substituted = (naming: string): Placement => {
 	const model = `${phiProvider}/${sealedId}`;
 	const sentence = `${naming}, which neither phi-router nor a BAA provider carries, so this delegate runs on ${model}.`;
 
-	return { model, source: routerPicks, pin: false, substitution: Option.some(sentence) };
+	return { model, whyClause: routerPicks, pin: false, substitution: Option.some(sentence) };
 };
 
 const protectedPlacement = (ctx: ModelCaller, standing: Exclude<Standing, "open">, resolved: Resolved): Placement => {
@@ -232,7 +231,7 @@ export const modelOf = Effect.fn("modelOf")(function* (ctx: ModelCaller, table: 
 
 	if (!isRegistered(ctx)(placement.model)) {
 		return yield* BadDelegate.make({
-			why: `model ${placement.model}${placement.source} is not in the model registry`,
+			why: `model ${placement.model}${placement.whyClause} is not in the model registry`,
 		});
 	}
 
