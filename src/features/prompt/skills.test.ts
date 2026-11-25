@@ -1,5 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
 
+import { loadSkills } from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -81,20 +82,15 @@ test("a skill file that cannot be read is left out and reported", () =>
 		}),
 	));
 
-const isSkillFile = (entry: string) => /^[^/]+\/SKILL\.md$/u.test(entry);
-
-/** Every `SKILL.md` pi loads from this harness: `agent/skills/*` and the web feature's skills. */
-const shippedSkills = Effect.gen(function* () {
-	const fs = yield* FileSystem.FileSystem;
-
-	const found = yield* Effect.forEach(["agent/skills", "src/features/web"], (folder) =>
-		Effect.map(fs.readDirectory(`${harness}/${folder}`, { recursive: true }), (entries) =>
-			Arr.map(Arr.filter(entries, isSkillFile), (entry) => ({ filePath: `${harness}/${folder}/${entry}` })),
-		),
-	);
-
-	return Arr.flatten(found);
-});
+const shippedSkills = Effect.sync(
+	() =>
+		loadSkills({
+			cwd: scratch,
+			agentDir: `${harness}/agent`,
+			skillPaths: [`${harness}/src/features/web`],
+			includeDefaults: true,
+		}).skills,
+);
 
 test("every shipped skill's `for` names known roles", () =>
 	run(
