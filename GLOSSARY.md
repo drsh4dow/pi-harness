@@ -19,7 +19,7 @@ Terms from the prompt feature, which builds every agent's system prompt. The roo
 
 - **Shared layer.** The first part of every agent's system prompt: how to operate inside this harness, the same for every agent.
 - **Role layer.** The part of an agent's system prompt that its **role** and, for a delegate, its **brief** decide. It comes right after the shared layer.
-- **Role file.** The prompt text of one **role**, tags included, that every agent of that role reads at every level.
+- **Role file.** The prompt text of one **role**, its `<role>` and `<collaboration>` blocks, that every agent of that role reads at every level.
 - **Instructions.** A persona or one delegate's job, such as a cold reader or a code reviewer, from the body of a file its parent names when it starts the delegate. Not the **project facts** or the **owner rules**.
 - **Project facts.** What every delegate of one piece of work needs to know about its project, such as its commands, conventions and hazards. Not **instructions**, which a call names for one delegate.
 - **Owner rules.** The rules of one piece of work that only its owners follow, such as how an owner builds and ships its slice. Not the owner's **role file**, which every owner of every piece of work shares.

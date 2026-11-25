@@ -27,11 +27,11 @@ const options = (overrides: Partial<NormalizedBuildSystemPromptOptions>): Normal
 });
 
 const root: Layers = {
-	role: "<role>\nroot\n</role>",
+	roleFile: "<role>\nroot\n</role>",
 	brief: Option.none(),
-	principles: Option.none(),
-	playbooks: Option.none(),
-	skills: [],
+	principlesIndex: Option.none(),
+	playbooksIndex: Option.none(),
+	skillsForRole: [],
 };
 
 const composed = (given: NormalizedBuildSystemPromptOptions, layers: Layers) => {
@@ -57,7 +57,7 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 		name: "an owner reads SYSTEM.md, its role file, its goal, state folder and the sketch to build to, project facts, owner rules and instructions, the principles index, then the playbooks workflow and index",
 		shared: "you are a coding agent.",
 		layers: {
-			role: "<role>\nowner\n</role>\n",
+			roleFile: "<role>\nowner\n</role>\n",
 			brief: Option.some({
 				role: "owner",
 				goal: "Cap the retries.\n",
@@ -69,9 +69,9 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 				design: Design.cases.Sketch.make({ path: "/state/work/sketch.md" }),
 				instructions: Option.some("Review one diff.\n"),
 			}),
-			principles: Option.some("<principles>\n…\n</principles>"),
-			playbooks: Option.some("<playbooks>\n…\n</playbooks>"),
-			skills: [],
+			principlesIndex: Option.some("<principles>\n…\n</principles>"),
+			playbooksIndex: Option.some("<playbooks>\n…\n</playbooks>"),
+			skillsForRole: [],
 		},
 		expect: `you are a coding agent.\n\n<role>\nowner\n</role>\n\n<work>\nThe user's goal: Cap the retries.\nThe work's state folder: /state/work\nBuild to the sketch /state/work/sketch.md. Where the code shows a smaller shape that meets the same acceptance criteria, build that, and say in your answer what the sketch got wrong.\n</work>\n\n<project-facts>\nBuild with make.\n</project-facts>\n\n<owner-rules>\nPush only to work branches.\n</owner-rules>\n\n<instructions>\nReview one diff.\n</instructions>\n\n<principles>\n…\n</principles>\n\n${playbooksWorkflow}\n\n<playbooks>\n…\n</playbooks>`,
 	},
@@ -79,7 +79,7 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 		name: "a leaf with project facts and no state folder reads its goal and the facts, and no owner rules",
 		shared: "you are a coding agent.",
 		layers: {
-			role: "<role>\nleaf\n</role>",
+			roleFile: "<role>\nleaf\n</role>",
 			brief: Option.some({
 				role: "leaf",
 				goal: "Cap the retries.",
@@ -89,9 +89,9 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 				sharedDocuments: [],
 				instructions: Option.none(),
 			}),
-			principles: Option.some("<principles>\n…\n</principles>"),
-			playbooks: Option.none(),
-			skills: [],
+			principlesIndex: Option.some("<principles>\n…\n</principles>"),
+			playbooksIndex: Option.none(),
+			skillsForRole: [],
 		},
 		expect:
 			"you are a coding agent.\n\n<role>\nleaf\n</role>\n\n<work>\nThe user's goal: Cap the retries.\n</work>\n\n<project-facts>\nBuild with make.\n</project-facts>\n\n<principles>\n…\n</principles>",
@@ -101,7 +101,7 @@ const preambleRows: ReadonlyArray<{ name: string; shared: string; layers: Layers
 		shared: "",
 		layers: {
 			...root,
-			role: "<role>\nleaf\n</role>",
+			roleFile: "<role>\nleaf\n</role>",
 			brief: Option.some({
 				role: "leaf",
 				goal: "Cap the retries.",
@@ -203,7 +203,7 @@ test("the skills section lists each skill the model may invoke as one line under
 		skill("tdd", "Red, then green."),
 	];
 
-	const section = composed(options({}), { ...root, skills }).sections["skills"];
+	const section = composed(options({}), { ...root, skillsForRole: skills }).sections["skills"];
 
 	expect(section).toStartWith("Skills are workflows, not suggestions.");
 
@@ -218,7 +218,7 @@ test("a skill whose file is not <dir>/<name>/SKILL.md is listed with its path", 
 		skill("renamed", "Renamed.", { filePath: "/skills/old-name/SKILL.md" }),
 	];
 
-	expect(composed(options({}), { ...root, skills }).sections["skills"]).toEndWith(
+	expect(composed(options({}), { ...root, skillsForRole: skills }).sections["skills"]).toEndWith(
 		"\n\n<available_skills>\n- notes (/skills/notes.md): Take notes.\n- renamed (/skills/old-name/SKILL.md): Renamed.\n</available_skills>",
 	);
 });
@@ -226,12 +226,12 @@ test("a skill whose file is not <dir>/<name>/SKILL.md is listed with its path", 
 test("with no skill the model may invoke, the prompt gets no skills section", () => {
 	const skills = [skill("handoff", "Hand off.", { disableModelInvocation: true })];
 
-	expect(composed(options({}), { ...root, skills }).sections).not.toHaveProperty("skills");
+	expect(composed(options({}), { ...root, skillsForRole: skills }).sections).not.toHaveProperty("skills");
 });
 
 test("pi keeps only the skills the role may load, so its own list never brings back a hidden one", () => {
 	const loaded = [skill("grilling", "Grill the user's plan."), skill("handoff", "Hand off.")];
 	const fitting = [skill("handoff", "Hand off.")];
 
-	expect(composed(options({ skills: loaded }), { ...root, skills: fitting }).skills).toEqual(fitting);
+	expect(composed(options({ skills: loaded }), { ...root, skillsForRole: fitting }).skills).toEqual(fitting);
 });

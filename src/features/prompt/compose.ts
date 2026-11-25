@@ -7,15 +7,11 @@ import { Design, type StagedBrief } from "#src/client/pi/index.ts";
 import { skillsSection } from "./skills.ts";
 
 export interface Layers {
-	/** The role file: its `<role>` and `<collaboration>` blocks. */
-	readonly role: string;
+	readonly roleFile: string;
 	readonly brief: Option.Option<StagedBrief>;
-	/** The `<principles>` index. */
-	readonly principles: Option.Option<string>;
-	/** The `<playbooks>` index. */
-	readonly playbooks: Option.Option<string>;
-	/** The skills this agent's role may load. */
-	readonly skills: ReadonlyArray<Skill>;
+	readonly principlesIndex: Option.Option<string>;
+	readonly playbooksIndex: Option.Option<string>;
+	readonly skillsForRole: ReadonlyArray<Skill>;
 }
 
 const bullets = (lines: ReadonlyArray<string>) =>
@@ -98,18 +94,18 @@ export const compose = (layers: Layers) => (event: BeforeAgentStartEvent) => {
 
 	const parts = [
 		options.customPrompt ?? "",
-		layers.role,
+		layers.roleFile,
 		...Option.toArray(Option.map(layers.brief, briefBlocks)),
-		...Option.toArray(layers.principles),
-		...Option.toArray(Option.map(layers.playbooks, (index) => `${playbooksWorkflow}\n\n${index}`)),
+		...Option.toArray(layers.principlesIndex),
+		...Option.toArray(Option.map(layers.playbooksIndex, (index) => `${playbooksWorkflow}\n\n${index}`)),
 	];
 
 	options.customPrompt = Arr.join(Arr.filter(Arr.map(parts, Str.trim), Str.isNonEmpty), "\n\n");
 	options.sections["rules"] = rulesSection(options);
 
-	options.skills = [...layers.skills];
+	options.skills = [...layers.skillsForRole];
 
-	const skills = skillsSection(layers.skills);
+	const skills = skillsSection(layers.skillsForRole);
 
 	if (Option.isSome(skills)) {
 		options.sections["skills"] = skills.value;

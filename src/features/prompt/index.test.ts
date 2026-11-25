@@ -41,10 +41,15 @@ test.each(rows)("a $role reads its own role file, every principle, and only the 
 		Effect.gen(function* () {
 			const { layers, problems } = yield* layersOf({ agentDir, role: row.role, brief: Option.none(), loaded: [] });
 
-			expect({ role: layers.role, principles: layers.principles, playbooks: layers.playbooks, problems }).toEqual({
-				role: `<role>\n${row.role}\n</role>`,
-				principles,
-				playbooks: row.playbooks,
+			expect({
+				roleFile: layers.roleFile,
+				principlesIndex: layers.principlesIndex,
+				playbooksIndex: layers.playbooksIndex,
+				problems,
+			}).toEqual({
+				roleFile: `<role>\n${row.role}\n</role>`,
+				principlesIndex: principles,
+				playbooksIndex: row.playbooks,
 				problems: [],
 			});
 		}).pipe(Effect.provide(NodeServices.layer)),
@@ -57,7 +62,7 @@ test("an edit to a role file lands in the next layers", () =>
 			const dir = `${agentDir}/edited`;
 			const roleFile = `${dir}/roles/root.md`;
 			const sources = { agentDir: dir, role: "root", brief: Option.none(), loaded: [] } as const;
-			const roleLayer = Effect.map(layersOf(sources), ({ layers }) => layers.role);
+			const roleLayer = Effect.map(layersOf(sources), ({ layers }) => layers.roleFile);
 
 			yield* Effect.promise(() => Bun.write(roleFile, "<role>\nbefore\n</role>"));
 			const before = yield* roleLayer;

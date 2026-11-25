@@ -39,11 +39,11 @@ export const layersOf = Effect.fn("layersOf")(function* ({ agentDir, role, brief
 
 	return {
 		layers: {
-			role: roleText,
+			roleFile: roleText,
 			brief,
-			principles: principles.index,
-			playbooks: playbooks.index,
-			skills: skills.skills,
+			principlesIndex: principles.index,
+			playbooksIndex: playbooks.index,
+			skillsForRole: skills.skills,
 		},
 		problems: [...principles.problems, ...playbooks.problems, ...skills.problems],
 	};
