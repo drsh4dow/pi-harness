@@ -198,11 +198,11 @@ const backOnOpen = (run: Run, { atSeal, atEnd, childProviders, blocked }: Seen) 
 			childOnPhi && Arr.some(openBodies(), Str.includes("CHILD-TASK")),
 			`the judgment child ran through phi-router, which sent its clean brief to an open account's mock (its answers came from ${Arr.join(childProviders, ", ")})`,
 		);
-		const summaries = Arr.filter([...openBodies(), ...mocks.ent.bodies()], isSummary);
+		const narratives = Arr.filter([...openBodies(), ...mocks.ent.bodies()], Str.includes(compactionPrompt));
 
 		yield* run.check(
-			summaries.length > 0,
-			`the compaction's summary request went through phi-router (${String(summaries.length)} summary requests)`,
+			narratives.length > 0,
+			`the compaction's narrative request went through phi-router (${String(narratives.length)} narrative requests)`,
 		);
 		yield* run.check(blocked, "the codemode script that calls models was blocked by the PHI guard");
 	});
