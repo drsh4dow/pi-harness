@@ -24,7 +24,7 @@ const gated = (request: Parameters<ReturnType<typeof gate>>[0]) =>
 		const authorization = yield* gate(verdictsFolder(home))(request);
 
 		yield* Authorization.$match(authorization, {
-			Allow: ({ pin }) => runReal([...args, ...pin]),
+			Allow: ({ headPinArgs }) => runReal([...args, ...headPinArgs]),
 			Refuse: ({ why }) => Effect.andThen(Console.error(why), exitWith(1)),
 		});
 	});

@@ -78,18 +78,18 @@ interface Case {
 	readonly world: World;
 }
 
-const allowedRows: ReadonlyArray<Case & { readonly pin: ReadonlyArray<string> }> = [
+const allowedRows: ReadonlyArray<Case & { readonly headPinArgs: ReadonlyArray<string> }> = [
 	{
 		name: "lets a merge through on a pass at the head, pinned to it",
 		argv: ["pr", "merge", "5", "--squash"],
 		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass" })] },
-		pin: ["--match-head-commit", pr5.head],
+		headPinArgs: ["--match-head-commit", pr5.head],
 	},
 	{
 		name: "carries a pass with notes from an older head with the same patch",
 		argv: ["pr", "merge", "5", "--squash"],
 		world: { views: [pr5], verdicts: [verdict({ number: 5, result: "pass+notes", head: oldHead })] },
-		pin: ["--match-head-commit", pr5.head],
+		headPinArgs: ["--match-head-commit", pr5.head],
 	},
 	{
 		name: "lets a stack merge through when every open pull request up to the ceiling has a pass",
@@ -103,7 +103,7 @@ const allowedRows: ReadonlyArray<Case & { readonly pin: ReadonlyArray<string> }>
 				{ number: "8", state: "open" },
 			],
 		},
-		pin: [],
+		headPinArgs: [],
 	},
 ];
 
@@ -213,7 +213,7 @@ test.each(allowedRows)("the merge gate $name", (row) => {
 		const request = Option.getOrThrow(mergeRequestOf(row.argv));
 		const authorization = yield* gate(root)(request);
 
-		expect(authorization).toEqual(Authorization.Allow({ pin: row.pin }));
+		expect(authorization).toEqual(Authorization.Allow({ headPinArgs: row.headPinArgs }));
 	});
 
 	const world = Layer.merge(ghOf(row.world), NodeServices.layer);

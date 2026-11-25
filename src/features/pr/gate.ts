@@ -7,9 +7,8 @@ import * as Str from "effect/String";
 import { Gh, type PrView, type StackMember, type VerdictRecord, verdictsOf } from "#src/client/github/index.ts";
 import { MergeRequest } from "./merge-request.ts";
 
-/** `pin` holds the arguments that bind the real merge to the head the gate checked. */
 export type Authorization = Data.TaggedEnum<{
-	Allow: { readonly pin: ReadonlyArray<string> };
+	Allow: { readonly headPinArgs: ReadonlyArray<string> };
 	Refuse: { readonly why: string };
 }>;
 
@@ -66,12 +65,16 @@ const refusalOf = (reading: Reading): Option.Option<string> => {
 	);
 };
 
-const decide = (header: string, readings: ReadonlyArray<Reading>, pin: ReadonlyArray<string>): Authorization => {
+const decide = (
+	header: string,
+	readings: ReadonlyArray<Reading>,
+	headPinArgs: ReadonlyArray<string>,
+): Authorization => {
 	const refusals = Arr.getSomes(Arr.map(readings, refusalOf));
 
 	return Arr.isReadonlyArrayNonEmpty(refusals)
 		? Authorization.Refuse({ why: Arr.join([header, ...refusals], "\n") })
-		: Authorization.Allow({ pin });
+		: Authorization.Allow({ headPinArgs });
 };
 
 const readingOf = (root: string) => (pr: string) =>
