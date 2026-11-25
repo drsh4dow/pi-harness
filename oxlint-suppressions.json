@@ -89,11 +89,6 @@
       "count": 1
     }
   },
-  "tools/oxlint/fixtures/effect-pi-idioms.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "tools/prompts/index.ts": {
     "max-params": {
       "count": 1

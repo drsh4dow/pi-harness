@@ -398,7 +398,11 @@
 		},
 		{
 			// pi's tool and completion handlers take five arguments, approved 2026-11-25
-			"files": ["src/features/owned-work/tools.ts", "src/features/skill-menu/index.ts"],
+			"files": [
+				"src/features/owned-work/tools.ts",
+				"src/features/skill-menu/index.ts",
+				"tools/oxlint/fixtures/effect-pi-idioms.ts",
+			],
 			"rules": {
 				"eslint/max-params": ["error", { "max": 5 }],
 			},
