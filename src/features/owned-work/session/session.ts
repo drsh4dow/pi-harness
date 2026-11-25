@@ -203,8 +203,15 @@ interface Current {
 	session: Option.Option<Session>;
 }
 
+interface Load {
+	readonly pi: ExtensionAPI;
+	readonly env: Env;
+	readonly childExtensions: ReadonlyArray<string>;
+	readonly current: Current;
+}
+
 const begin =
-	(pi: ExtensionAPI, env: Env, childExtensions: ReadonlyArray<string>, current: Current) =>
+	({ pi, env, childExtensions, current }: Load) =>
 	(event: SessionStartEvent, ctx: ExtensionContext) =>
 		Effect.gen(function* () {
 			const stamp = yield* Handover.ledgerStamp;
@@ -240,6 +247,7 @@ export const ownedWork =
 		const env = withAgentBin(agentDir)(processEnv);
 		const host = piHost(Layer.provideMerge(sourceStampLayer, NodeServices.layer));
 		const current: Current = { session: Option.none() };
+		const load: Load = { pi, env, childExtensions, current };
 
 		const withLedger = <Reply>(
 			use: (
@@ -257,7 +265,7 @@ export const ownedWork =
 
 		return {
 			sessionStart: (event: SessionStartEvent, ctx: ExtensionContext): Promise<void> =>
-				host.run(begin(pi, env, childExtensions, current)(event, ctx)),
+				host.run(begin(load)(event, ctx)),
 			input: ({ text }: InputEvent, ctx: ExtensionContext) => {
 				const session = { dir: ctx.sessionManager.getSessionDir(), id: ctx.sessionManager.getSessionId() };
 
