@@ -98,7 +98,7 @@
 	"tools/driver/failed.ts no-comments": 1,
 	"tools/driver/false-fact.scenario.ts no-comments": 1,
 	"tools/driver/guides/timeline.ts no-comments": 1,
-	"tools/driver/index.ts no-comments": 22,
+	"tools/driver/index.ts no-comments": 21,
 	"tools/driver/report.ts no-comments": 1,
 	"tools/driver/run/message.ts no-comments": 4,
 	"tools/driver/run/root.test.ts no-comments": 1,

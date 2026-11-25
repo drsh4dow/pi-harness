@@ -42,8 +42,7 @@ export type { Exited } from "./world/index.ts";
 export interface Scenario<Failure> extends Setup {
 	/** The environment of the process that runs the scenario, `process.env`. The run copies it, as `runEnv` describes. */
 	readonly env: Readonly<Record<string, string | undefined>>;
-	/** The root's `provider/id`. Required, so every scenario states what it spends. */
-	readonly model: string;
+	readonly model: `${string}/${string}`;
 	/**
 	 * Gives the root's model a context window of this many tokens, and replaces the human's compaction settings with a
 	 * reserve of a quarter of it and an eighth kept, so pi compacts once a session passes three quarters of it. A key of
