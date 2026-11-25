@@ -12,6 +12,7 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
+import { stdoutOf } from "#src/client/child-process/index.ts";
 import { git, type GitError } from "#src/client/git/index.ts";
 import { fields, type PrView, viewOf } from "./view.ts";
 
@@ -36,27 +37,10 @@ export class Gh extends Context.Service<
 	}
 >()("pi-harness/client/github/gh/Gh") {}
 
-const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
-
 const gh = (args: ReadonlyArray<string>) =>
-	Effect.flatMap(ChildProcessSpawner.ChildProcessSpawner, (spawner) => {
-		const failed = (why: string) => GhError.make({ args: ["gh", ...args], why });
-
-		return spawner.spawn(ChildProcess.make("gh", args, { stdin: Stream.empty })).pipe(
-			Effect.flatMap((handle) =>
-				Effect.all(
-					{ code: handle.exitCode, stdout: text(handle.stdout), stderr: text(handle.stderr) },
-					{ concurrency: 3 },
-				),
-			),
-			Effect.scoped,
-			Effect.mapError((error) => failed(error.message)),
-			Effect.filterOrFail(
-				({ code }) => code === 0,
-				({ stderr }) => failed(Str.trim(stderr)),
-			),
-			Effect.map(({ stdout }) => stdout),
-		);
+	stdoutOf({
+		command: ChildProcess.make("gh", args, { stdin: Stream.empty }),
+		failed: (why) => GhError.make({ args: ["gh", ...args], why }),
 	});
 
 export const ghPassthrough = ({

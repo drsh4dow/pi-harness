@@ -7,8 +7,9 @@ import * as Option from "effect/Option";
 import * as ChildProcess from "effect/process/ChildProcess";
 import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Schema from "effect/Schema";
-import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
+
+import { stdoutOf } from "#src/client/child-process/index.ts";
 
 export class PhiRouterError extends Schema.TaggedError<PhiRouterError, { readonly brand: unique symbol }>()(
 	"PhiRouterError",
@@ -32,8 +33,6 @@ export const routerExtensionOf = (commands: ReadonlyArray<SlashCommandInfo>) =>
 	);
 
 const launcherOf = (extension: string) => `${Str.replace(/\/[^/]*$/u, "")(extension)}/../claude/bin/phi-router`;
-
-const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
 
 const Status = Schema.fromJsonString(Schema.Struct({ pinned: Schema.Boolean }));
 
@@ -61,21 +60,10 @@ export const phiRouterLayer = ({ extension, env }: Located) =>
 					return Effect.fail(failed("phi-router's pi package is not loaded, so no extension added /phi"));
 				}
 
-				return spawner.spawn(ChildProcess.make(launcherOf(extension.value), args, { stdin: "ignore" })).pipe(
-					Effect.flatMap((handle) =>
-						Effect.all(
-							{ code: handle.exitCode, stdout: text(handle.stdout), stderr: text(handle.stderr) },
-							{ concurrency: 3 },
-						),
-					),
-					Effect.scoped,
-					Effect.mapError((error) => failed(error.message)),
-					Effect.filterOrFail(
-						({ code }) => code === 0,
-						({ stderr }) => failed(Str.trim(stderr)),
-					),
-					Effect.map(({ stdout }) => stdout),
-				);
+				return stdoutOf({
+					command: ChildProcess.make(launcherOf(extension.value), args, { stdin: "ignore" }),
+					failed,
+				}).pipe(Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner));
 			};
 
 			return PhiRouter.of({
