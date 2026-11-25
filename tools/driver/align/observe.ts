@@ -78,7 +78,6 @@ export const longestBodyLine = (text: string) => {
 
 const holds = (session: Session, line: string) => Arr.some(session.requests, Str.includes(line));
 
-/** Whether the root or any delegate read the guide at `guide`, a path inside the agent folder. */
 export const read = ({
 	run,
 	sessions,
@@ -132,7 +131,6 @@ ${eachWorktree(`git -C "$tree" status --porcelain --untracked-files=all -- . ':(
 		({ output }) => Arr.filter(Str.split(output, "\n"), Str.isNonEmpty),
 	);
 
-/** The text of `file` at the tip of every branch and in every worktree, so an edit later undone no longer shows. */
 export const versions = ({ run, file }: { readonly run: Run; readonly file: string }) =>
 	Effect.map(
 		sh(
@@ -143,10 +141,6 @@ ${eachWorktree(`cat "$tree/${file}" 2>/dev/null || true`)}`,
 		({ output }) => output,
 	);
 
-/**
- * Writes the user's history into the root's project folder, one commit each, nine hours apart and the last nine hours ago, pushes `main` to `origin.git` beside the
- * project, and returns the last commit, so `filesChangedSince` sees only what came after.
- */
 export const plant = ({ run, history }: { readonly run: Run; readonly history: ReadonlyArray<Commit> }) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -246,11 +240,6 @@ export const watch = <Failure>({
 	return look(beforeRequest);
 };
 
-/**
- * Sends `request` as the human's one message, then looks every 5 seconds until the root settles idle holding no work or,
- * given `stopAt`, until a file it matches is edited, whichever comes first, per `watch`. Prints what the run spent, which
- * skills and playbooks each session read, the files edited and the root's last reply, as of the sessions `watch` returns.
- */
 export const observe = ({
 	run,
 	base,
