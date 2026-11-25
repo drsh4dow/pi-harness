@@ -128,6 +128,29 @@ case "$*" in
 esac
 `;
 
+const fakeGhWithOneBranch = Layer.effect(
+	ChildProcessSpawner.ChildProcessSpawner,
+	Effect.map(ChildProcessSpawner.ChildProcessSpawner, (real) =>
+		ChildProcessSpawner.make((command) => {
+			const script = `case "$1 $2 $3" in "pr view feature-x") echo '${viewJson("12", "h12")}' ;; *) exit 2 ;; esac`;
+			const args = ChildProcess.isStandardCommand(command) ? command.args : [];
+
+			return real.spawn(ChildProcess.make("sh", ["-c", script, "gh", ...args]));
+		}),
+	),
+);
+
+const ghWithOneBranch = Layer.provide(ghLayer, Layer.provideMerge(fakeGhWithOneBranch, NodeServices.layer));
+
+test("view of a branch name reads that branch's pull request", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const { ref, head } = yield* Effect.flatMap(Gh, (gh) => gh.view("feature-x"));
+
+			expect({ ref, head }).toEqual({ ref: "o/r#12", head: "h12" });
+		}).pipe(Effect.provide(ghWithOneBranch)),
+	));
+
 const threeDot = (base: string, head: string) =>
 	Effect.flatMap(git("diff", "--full-index", `${base}...${head}`), patchIdOf);
 

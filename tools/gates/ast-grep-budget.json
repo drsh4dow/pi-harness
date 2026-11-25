@@ -4,8 +4,6 @@
 	"src/client/checks/receipts.ts no-comments": 2,
 	"src/client/checks/run.ts no-comments": 3,
 	"src/client/checks/tree.ts no-comments": 2,
-	"src/client/github/gh/index.ts no-comments": 3,
-	"src/client/github/verdicts/index.ts no-comments": 1,
 	"src/client/pi/agent-files/index.ts no-comments": 2,
 	"src/client/pi/cli/index.ts no-comments": 3,
 	"src/client/pi/sessions/follow.ts no-comments": 1,

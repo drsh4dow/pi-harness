@@ -30,7 +30,6 @@ export class GhError extends Schema.TaggedError<GhError, { readonly brand: uniqu
 export class Gh extends Context.Service<
 	Gh,
 	{
-		/** `pr` is a number, a URL or a branch, as gh resolves it in the current directory. */
 		readonly view: (pr: string) => Effect.Effect<PrView, GhError>;
 		readonly patchId: (pr: string) => Effect.Effect<string, GhError>;
 		readonly stackOf: (ceiling: string) => Effect.Effect<ReadonlyArray<StackMember>, GhError>;
@@ -75,11 +74,6 @@ export const ghPassthrough = ({
 
 const asGhError = ({ args, why }: GitError) => GhError.make({ args, why });
 
-/**
- * `git patch-id --verbatim` over a diff with its context lines. It is strict on purpose: whitespace counts, and a base
- * that changed a line next to the patch changes the id too, so a verdict carries only across a rebase that left the
- * whole diff as it was.
- */
 export const patchIdOf = (diff: string) =>
 	git({ args: ["patch-id", "--verbatim"], input: diff }).pipe(
 		Effect.mapBoth({
@@ -141,7 +135,6 @@ const fetchedDiff = (pr: string) =>
 		yield* gitIn(["init", "-q", "--bare"]);
 		yield* gitIn([...auth, "fetch", "-q", "--depth=1", "--no-tags", remote, mergeBase, head]);
 
-		// `--full-index` keeps a binary change, whose diff is only its blob ids, from sharing an id with another blob of the same abbreviation.
 		return yield* gitIn(["diff-tree", "-p", "-M", "--full-index", mergeBase, head]);
 	}).pipe(Effect.scoped);
 

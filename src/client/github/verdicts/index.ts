@@ -30,7 +30,6 @@ const decode = Schema.decodeUnknownEffect(Schema.fromJsonString(VerdictRecord));
 const folderOf = (root: string, { repo, number }: Pick<VerdictRecord, "repo" | "number">) =>
 	`${root}/${repo}/${String(number)}`;
 
-/** Every record of one pull request, by file name. A file that does not read as a record is left out. */
 export const verdictsOf = (root: string) => (pr: Pick<VerdictRecord, "repo" | "number">) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
