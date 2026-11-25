@@ -54,7 +54,7 @@ const openai: Block = {
 	via: "estimate",
 	body: blockOf({
 		now,
-		outcome: { kind: "read", meters: [{ kind: "estimate", usd: 423.184, replies: 17_955, days: 30 }] },
+		outcome: { kind: "read", meters: [{ kind: "estimate", usd: 423.184, replies: 17_955, pastDays: 30 }] },
 	}),
 };
 

@@ -25,11 +25,12 @@ import { cardComponent, liveCard } from "./view.ts";
 
 type Services = ClaudeUsage | OpencodeGo | Effect.Services<ReturnType<typeof spendSince>>;
 
-/** One account `/usage` reads, and how. A failure is the reason it could not, as the user reads it. */
+type Unreadable = Extract<Outcome, { readonly kind: "unreadable" }>;
+
 interface Source {
 	readonly account: string;
 	readonly via: string;
-	readonly read: (ctx: ExtensionCommandContext) => Effect.Effect<ReadonlyArray<Meter>, string, Services>;
+	readonly read: (ctx: ExtensionCommandContext) => Effect.Effect<ReadonlyArray<Meter>, Unreadable["why"], Services>;
 }
 
 const estimateDays = 30;
@@ -87,7 +88,7 @@ const openai: Source = {
 			const request = { root: `${getAgentDir()}/sessions`, provider: "openai", since };
 			const spend = yield* Effect.mapError(spendSince(request), ({ path, why }) => `${path}: ${why}`);
 
-			return [{ kind: "estimate", usd: spend.usd, replies: spend.replies, days: estimateDays }];
+			return [{ kind: "estimate", usd: spend.usd, replies: spend.replies, pastDays: estimateDays }];
 		}),
 };
 

@@ -11,8 +11,7 @@ import type { Money, Spend, Window } from "#src/client/providers/index.ts";
 export type Meter =
 	| { readonly kind: "window"; readonly window: Window }
 	| { readonly kind: "extra"; readonly spend: Spend }
-	/** What pi priced its own replies at over the last `days` days. Other clients on the same key are not in it. */
-	| { readonly kind: "estimate"; readonly usd: number; readonly replies: number; readonly days: number };
+	| { readonly kind: "estimate"; readonly usd: number; readonly replies: number; readonly pastDays: number };
 
 export type Outcome =
 	| { readonly kind: "read"; readonly meters: ReadonlyArray<Meter> }
@@ -120,7 +119,7 @@ const rowOf = (meter: Meter, now: DateTime.Utc): Row => {
 
 			return {
 				kind: "note",
-				name: `last ${meter.days} days`,
+				name: `last ${meter.pastDays} days`,
 				text: `${usdText(meter.usd)} over ${replies} replies`,
 				quiet: false,
 			};
