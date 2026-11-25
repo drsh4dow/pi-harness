@@ -68,8 +68,14 @@ const bashOutputsOf = (entries: ReadonlyArray<SessionEntry>) => {
 const wakeOf = (entries: ReadonlyArray<SessionEntry>, kind: string) =>
 	Arr.findFirst(entries, (entry) => Option.filter(decodeWake(entry), ({ details }) => details.kind === kind));
 
-const says = (run: Run, text: string, what: string, claim: string) =>
-	run.check(Str.includes(what)(text), `${claim} (it printed: ${Str.slice(-600)(text)})`);
+interface Printed {
+	readonly output: string;
+	readonly includes: string;
+	readonly claim: string;
+}
+
+const printed = (run: Run, { output, includes, claim }: Printed) =>
+	run.check(Str.includes(includes)(output), `${claim} (it printed: ${Str.slice(-600)(output)})`);
 
 const seeded = (run: Run) =>
 	Effect.gen(function* () {
@@ -102,18 +108,37 @@ interface Seen {
 const judged = (run: Run, seen: Seen) =>
 	Effect.gen(function* () {
 		yield* run.say({ ...seen });
-		yield* says(run, seen.first, "check: receipt", "the first `make test` ran and recorded a receipt");
-		yield* says(
-			run,
-			seen.second,
-			"tests ok\ncheck: receipt",
-			"the second printed the first one's output and receipt",
-		);
+		yield* printed(run, {
+			output: seen.first,
+			includes: "check: receipt",
+			claim: "the first `make test` ran and recorded a receipt",
+		});
+		yield* printed(run, {
+			output: seen.second,
+			includes: "tests ok\ncheck: receipt",
+			claim: "the second printed the first one's output and receipt",
+		});
 		yield* run.check(seen.runs === 1, `make test ran once (it ran ${String(seen.runs)} times)`);
-		yield* says(run, seen.together, "check: queued", "a check past the slot count queued");
-		yield* says(run, seen.together, "got a place after", "the queued check ran once a slot freed");
-		yield* says(run, seen.watched, "did not run again", "the watch's `make test` printed the receipt");
-		yield* says(run, seen.leafRun, "did not run again", "the leaf's `make test` printed the receipt");
+		yield* printed(run, {
+			output: seen.together,
+			includes: "check: queued",
+			claim: "a check past the slot count queued",
+		});
+		yield* printed(run, {
+			output: seen.together,
+			includes: "got a place after",
+			claim: "the queued check ran once a slot freed",
+		});
+		yield* printed(run, {
+			output: seen.watched,
+			includes: "did not run again",
+			claim: "the watch's `make test` printed the receipt",
+		});
+		yield* printed(run, {
+			output: seen.leafRun,
+			includes: "did not run again",
+			claim: "the leaf's `make test` printed the receipt",
+		});
 	});
 
 scenario({

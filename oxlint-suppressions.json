@@ -1,9 +1,4 @@
 {
-  "src/features/checks/slots.scenario.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "src/features/compaction/compaction.scenario.ts": {
     "max-params": {
       "count": 1
