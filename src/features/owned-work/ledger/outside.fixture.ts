@@ -18,7 +18,6 @@ import {
 } from "#src/client/terminals/index.ts";
 import type { World } from "./world.fixture.ts";
 
-/** Fakes of hc and systemd that record into `world` what the ledger asked of each. */
 const hangUp = (terminal: TerminalAddress) =>
 	HcNotice.Ended({ terminal, end: TerminalEnd.Exited({ code: Option.none(), signal: Option.some(1) }) });
 

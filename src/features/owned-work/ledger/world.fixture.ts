@@ -31,7 +31,6 @@ export type HeldSpawn = "succeeds" | "fails";
 
 export interface World extends Pacing {
 	ledger: (typeof Ledger)["Service"];
-	/** Freezes this load's ledger and starts the next one from its state, as a pi reload does. */
 	readonly reload: Effect.Effect<void>;
 	readonly notices: Queue.Queue<HcNotice>;
 	/** Like hc's subscription, which each load opens on its first run: closed until then, so notices wait. */
@@ -39,7 +38,6 @@ export interface World extends Pacing {
 	readonly spawns: Array<HeldSpawn>;
 	readonly gate: Semaphore.Semaphore;
 	readonly pending: Array<Fiber.Fiber<string>>;
-	/** Each wait's reply, and the latch whose opening stops it. */
 	readonly waits: Array<{ readonly reply: Fiber.Fiber<string>; readonly stop: Latch.Latch }>;
 	readonly scope: Scope.Closeable;
 	readonly sessions: Map<string, ChildSession>;
@@ -210,7 +208,6 @@ const reloaded = (
 		return yield* load(Option.some(state));
 	});
 
-/** One load of the extension: what a reload rebuilds, while hc, systemd and the host outlive it. */
 interface Load {
 	readonly ledger: (typeof Ledger)["Service"];
 	readonly cli: (typeof PiCli)["Service"];

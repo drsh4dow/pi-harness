@@ -57,7 +57,6 @@ export type Act = Data.TaggedEnum<{
 	Timers: { readonly expect: number };
 	WallClockSteps: { readonly backMs: number };
 	Pause: { readonly ms: number };
-	/** A step a row's own fixture drives, given `perform` for the acts it runs itself. */
 	Drive: { readonly run: (world: World, perform: (act: Act) => Effect.Effect<void>) => Effect.Effect<void> };
 }>;
 

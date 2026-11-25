@@ -216,7 +216,6 @@ test.each([
 	),
 );
 
-/** An hc whose terminal runs the spec the ledger hands it to the end, then shows what it printed. */
 const hcRunning = () => {
 	const pane = { screen: "", waits: 0 };
 

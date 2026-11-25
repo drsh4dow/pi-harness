@@ -17,7 +17,6 @@ const noneIfEmpty = (shown: string) => (shown === "" ? "none" : shown);
 const showWaited = ({ results, running }: Waited): string =>
 	`${noneIfEmpty(showAll(results))} | running ${noneIfEmpty(Arr.join(running, ", "))}`;
 
-/** Starts a wait that runs until the work ends it or `waitStops`. */
 export const waitStarts = (refs?: ReadonlyArray<string>) =>
 	Act.Drive({
 		run: (world) =>
@@ -36,7 +35,6 @@ export const waitStarts = (refs?: ReadonlyArray<string>) =>
 
 const firstWait = (world: World) => Effect.orDie(Effect.fromNullishOr(world.waits[0]));
 
-/** Stops the first wait as the tool's timeout, a queued message or Escape does. */
 export const waitStops = Act.Drive({ run: (world) => Effect.flatMap(firstWait(world), ({ stop }) => stop.open) });
 
 export const waitsBlocking = (expected: number) =>

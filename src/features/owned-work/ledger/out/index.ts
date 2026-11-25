@@ -30,7 +30,6 @@ export const HandleOut = Type.Object({
 	group: Type.Optional(Type.String()),
 	ready: Type.Optional(Type.Boolean()),
 	next: Type.Optional(Type.String()),
-	/** Set when the whole delegate run lands on another model, because no BAA provider carries the one named. */
 	substituted: Type.Optional(Type.String()),
 	/** Set when a serve's or watch's command keeps its stdout off the pane the human watches. The command still runs. */
 	warning: Type.Optional(Type.String()),

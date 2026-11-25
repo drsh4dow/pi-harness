@@ -35,7 +35,6 @@ const startedIn = (entries: ReadonlyArray<SessionEntry>) => Arr.findFirst(entrie
 
 const wakeIn = (entries: ReadonlyArray<SessionEntry>) => Arr.findFirst(entries, (entry) => decodeWake(entry));
 
-/** What the leaf named by the root's `delegate-started` entry loaded, once its session has started. */
 const leafLoaded = (run: Run) =>
 	run.waitFor("what the leaf loaded", "10 seconds", ({ root, delegates }) =>
 		startedIn(root.entries).pipe(
