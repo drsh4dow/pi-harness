@@ -84,11 +84,6 @@
       "count": 1
     }
   },
-  "tools/gates/gates.test.ts": {
-    "max-params": {
-      "count": 1
-    }
-  },
   "tools/prompts/index.ts": {
     "max-params": {
       "count": 1
