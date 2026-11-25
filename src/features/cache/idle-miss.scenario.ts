@@ -1,8 +1,9 @@
-import type { SessionEntry } from "@earendil-works/pi-coding-agent";
+import { DEFAULT_MAX_BYTES, type SessionEntry } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
+import * as Str from "effect/String";
 
 import { scenario } from "#tools/driver/index.ts";
 import { Cause, cacheTtlMs, entryKind, Miss } from "./index.ts";
@@ -13,13 +14,13 @@ const decodeRecorded = Schema.decodeUnknownOption(Recorded);
 
 const missIn = (entries: ReadonlyArray<SessionEntry>) => Arr.findFirst(entries, (entry) => decodeRecorded(entry));
 
+const isCacheWarm = (entry: SessionEntry) => entry.type === "usage" && entry.kind === "cache_warm";
+
 scenario({
 	env: process.env,
 	model: "ultra-a/claude-fable-5-2",
 	play: (run) =>
 		Effect.gen(function* () {
-			// Random base64 costs about one token a byte, so the leaf's prompt nears 70,000 tokens and stays under 100,000.
-			// The read tool shows at most 50 KB a call, so the filler comes in two files.
 			const filler = yield* run.exec([
 				"sh",
 				"-c",
@@ -28,8 +29,15 @@ scenario({
 
 			yield* run.check(filler.code === 0, `the filler file was written (exit ${String(filler.code)})`);
 
-			// The leaf runs on Haiku because pi's cache warmer refreshes a cache only when that saves at least $0.05, and a
-			// Haiku prompt this size saves about $0.005, so nothing refreshes the leaf's cache while it sleeps.
+			yield* Effect.forEach(["filler-1.txt", "filler-2.txt"], (file) =>
+				Effect.flatMap(run.exec(["stat", "-c", "%s", file]), ({ output }) =>
+					run.check(
+						Number(output) < DEFAULT_MAX_BYTES,
+						`${file} fits one read call of at most ${String(DEFAULT_MAX_BYTES)} bytes (it holds ${Str.trim(output)})`,
+					),
+				),
+			);
+
 			yield* run.root.prompt(
 				Arr.join(
 					[
@@ -41,8 +49,10 @@ scenario({
 				),
 			);
 
-			const { data } = yield* run.waitFor("the leaf's cache-miss entry", "10 minutes", ({ delegates }) =>
-				Arr.findFirst(delegates, (session) => missIn(session.entries)),
+			const { leaf, data } = yield* run.waitFor("the leaf's cache-miss entry", "10 minutes", ({ delegates }) =>
+				Arr.findFirst(delegates, (session) =>
+					Option.map(missIn(session.entries), (recorded) => ({ leaf: session, data: recorded.data })),
+				),
 			);
 
 			yield* run.say(data);
@@ -56,5 +66,10 @@ scenario({
 					" ",
 				)})`,
 			);
+			yield* run.check(
+				data.prompt < 100_000,
+				`the leaf's prompt stayed under 100,000 tokens (it sent ${String(data.prompt)})`,
+			);
+			yield* run.check(!Arr.some(leaf.entries, isCacheWarm), "nothing warmed the leaf's cache while it slept");
 		}),
 });
