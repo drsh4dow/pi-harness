@@ -56,6 +56,12 @@ test.each(rows)("lfLines: $name", ({ carried, chunk, expected }) => {
 });
 
 const fakePi = `#!/usr/bin/env bun
+import { appendFileSync } from "node:fs";
+const print = (...records) => {
+	const text = records.map((record) => JSON.stringify(record) + "\\n").join("");
+	appendFileSync("stdout.jsonl", text);
+	process.stdout.write(text);
+};
 let text;
 for await (const line of console) {
 	console.error(line);
@@ -67,10 +73,15 @@ for await (const line of console) {
 		prompt: { disposition: "queued" },
 		get_last_assistant_text: { text },
 	}[command.type];
-	console.log(JSON.stringify({ type: "response", id: command.id, command: command.type, success: true, data }));
-	if (command.type === "prompt") setTimeout(() => {
+	const response = { type: "response", id: command.id, command: command.type, success: true, data };
+	if (command.type !== "prompt") {
+		print(response);
+		continue;
+	}
+	print(response, { type: "agent_start" });
+	setTimeout(() => {
 		text = process.env.FAKE_TEXT;
-		console.log(JSON.stringify({ type: "agent_settled", aborted: process.env.FAKE_ABORTED !== undefined }));
+		print({ type: "agent_settled", aborted: process.env.FAKE_ABORTED !== undefined });
 	}, 200);
 }
 `;
@@ -187,5 +198,20 @@ test("pi reads each command the root sends, as root.in.jsonl logs it, each with 
 				'{"id":"c5","type":"compact"}',
 				"",
 			]);
+		}),
+	));
+
+test("root.out.jsonl holds all of pi's stdout, the records the driver drops included", () =>
+	withRoot({ FAKE_TEXT: "ok" }, (root, layout) =>
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+
+			yield* root.prompt("hi");
+
+			const logged = yield* fs.readFileString(layout.rpcOut);
+			const written = yield* fs.readFileString(`${layout.project}/stdout.jsonl`);
+
+			expect(logged).toContain('{"type":"agent_start"}');
+			expect(logged).toBe(written);
 		}),
 	));

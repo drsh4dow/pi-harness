@@ -48,7 +48,6 @@ const Response = Schema.Struct({
 	error: Schema.optionalKey(Schema.String),
 });
 
-/** The stdout records the driver acts on. Every other record is only logged to `root.out.jsonl`. */
 const Settled = Schema.Struct({ type: Schema.Literal("agent_settled"), aborted: Schema.Boolean });
 
 const Inbound = Schema.Union([Response, Settled]);
@@ -66,7 +65,6 @@ const isResponseTo =
 
 const failed = (message: string) => Effect.fail(ScenarioFailed.make({ message }));
 
-/** As text, each chunk appended to `log` as it arrives. */
 const logged = <Failure>(fs: FileSystem.FileSystem, bytes: Stream.Stream<Uint8Array, Failure>, log: string) =>
 	bytes.pipe(
 		Stream.tap((chunk) => fs.writeFile(log, chunk, { flag: "a" })),

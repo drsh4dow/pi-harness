@@ -96,7 +96,7 @@
 	"src/features/usage/view.ts no-comments": 4,
 	"tools/driver/guides/timeline.ts no-comments": 1,
 	"tools/driver/run/message.ts no-comments": 3,
-	"tools/driver/run/root.ts no-comments": 11,
+	"tools/driver/run/root.ts no-comments": 9,
 	"tools/driver/run/spawn.ts no-comments": 5,
 	"tools/driver/service/service.ts no-comments": 4,
 	"tools/driver/service/tripwire.ts no-comments": 5,
