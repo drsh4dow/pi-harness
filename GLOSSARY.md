@@ -10,6 +10,8 @@ See ADR 0014.
 - **Client.** The one writer of a durable value, or a typed adapter to one outside system such as hc, systemd or pi's session store.
 - **Pi host.** The one place that runs an Effect for a pi callback.
 - **Primitive.** A building block that knows no feature and owns no state.
+- **Harness entry.** An `agent/` entry this checkout ships into an agent folder: one that a `!/agent/<entry>` line of `.gitignore` lets git track.
+- **User agent folder.** The user's own pi agent folder, the one `getAgentDir()` names, which holds what the harness does not ship: credentials, settings and sessions.
 
 ## Prompt
 
@@ -124,6 +126,8 @@ Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
 - **Guide name.** A principle's or a playbook's file name without `.md`. Only a file directly in its folder has one. The files in its subfolders are **reference files**.
 - **In context.** A guide is in context when the lines of its body that no other guide shares appear in text the model sees now. It is **partial** when only some of them do.
 - **Context label.** The hc label on an agent's own terminal that lists the guides in its context.
+- **Marker.** A guide and one line of its body whose presence in a session shows the guide reached it.
+- **Guide event.** A moment, such as a commit or an edit of a `.ts` file, that the guides it names are written for.
 
 ## PHI routing
 
@@ -194,3 +198,14 @@ Terms from the root role for the work the human hands the agent. See ADRs 0011, 
 - **Decision trail.** The record of each decision the agent made, with its why, evidence, and result.
 - **Action item.** Something the work needs from the human that no agent can do on its own, with its **only-you reason**.
 - **Only-you reason.** The line of an action item that says why only the human can do it, as one of these kinds: a decision, an approval, an irreversible action, or access the agent lacks.
+
+## Driver
+
+Terms from the scenario driver in `tools/driver/`, which proves a runtime fact against the real pi. See ADR 0026.
+
+- **Run core.** The terminal core a driver run starts for itself. `HC_TERMINAL_SOCKET` names its socket, and every pi of the run starts its delegates in it.
+- **Message.** A prompt or a steering message as a scenario writes it: its text, or its text and images.
+- **Loaded record.** What one pi of a run runs on, as the probe extension inside it reports it: its own pi `VERSION`, which can differ from the pi the driver resolved, its model, context window, extensions and settings, any error pi gave for `models.json`, and the core it starts its delegates in.
+- **Session.** In the driver, one pi session file as it stood when the driver read it.
+- **Session id.** The id in a pi session file's header. owned-work records a delegate's as its `child_session_id`.
+- **Settled reply.** The root's last turn-ending text, once every job it started has settled and no owned-work entry follows it.

@@ -77,7 +77,6 @@ const capture = Effect.fn("capture")(function* (run: Run, cwd: string, workDir: 
 	return { title: run.title, whichPi: run.whichPi, payload } satisfies Capture;
 });
 
-/** The user's own agent folder, which holds what the harness does not ship: credentials, settings, sessions. */
 const userAgentDir = getAgentDir();
 
 const stockAgentDir = Effect.fn("stockAgentDir")(function* (harnessRoot: string, into: string) {

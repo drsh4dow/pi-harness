@@ -1,4 +1,3 @@
-/** What this checkout ships into an agent folder, shared by every tool that runs pi on it. */
 import * as Arr from "effect/Array";
 import * as Str from "effect/String";
 

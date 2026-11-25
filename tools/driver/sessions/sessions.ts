@@ -11,9 +11,7 @@ import * as Struct from "effect/Struct";
 import { ScenarioFailed } from "#tools/driver/failed.ts";
 import { type Loaded, Probed } from "./probe.ts";
 
-/** One pi session file as it stood when read. */
 export interface Session {
-	/** The id in the file's header, the one owned-work records as `child_session_id`. */
 	readonly id: string;
 	readonly file: string;
 	readonly entries: ReadonlyArray<SessionEntry>;

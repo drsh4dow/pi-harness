@@ -16,16 +16,13 @@ import * as Rec from "effect/Record";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-/** What one pi runs on, as it reports it. */
 export const Loaded = Schema.Struct({
-	/** The running pi's own `VERSION`. */
 	version: Schema.String,
 	model: Schema.TemplateLiteral([Schema.String, "/", Schema.String]),
 	contextWindow: Schema.Finite,
 	extensions: Schema.Array(Schema.String),
 	settings: Schema.JsonObject,
 	modelsError: Schema.OptionFromOptionalKey(Schema.String),
-	/** `HC_TERMINAL_SOCKET`, the terminal core this pi starts its delegates in. */
 	socket: Schema.OptionFromOptionalKey(Schema.String),
 });
 

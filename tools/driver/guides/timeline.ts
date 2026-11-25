@@ -44,7 +44,6 @@ export interface Window {
 	readonly closes: string;
 }
 
-/** A guide and the line of its body that shows it reached a session. */
 export interface Marker {
 	readonly guide: GuidePathInAgentDir;
 	readonly line: string;

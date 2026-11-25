@@ -6,7 +6,6 @@ type Trigger =
 	| { readonly kind: "edit"; readonly pattern: RegExp }
 	| { readonly kind: "group"; readonly size: number };
 
-/** A moment the guides it names are written for. */
 export interface GuideEvent {
 	readonly name: string;
 	readonly guides: ReadonlyArray<string>;
