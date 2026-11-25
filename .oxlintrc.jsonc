@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/@effect/tsgo/oxlint-schema.json",
 	"extends": ["./oxlint-effect.json"],
-	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise", "node", "jsdoc"],
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise", "node"],
 	"categories": {
 		"correctness": "error",
 		"suspicious": "error",
@@ -187,9 +187,11 @@
 		],
 		// Effect's own setting; pi writes `string[]`, Effect wins
 		"typescript/array-type": ["error", { "default": "generic", "readonly": "generic" }],
-		// pi tool handlers take (toolCallId, params, signal, onUpdate, ctx)
-		"eslint/max-params": ["error", { "max": 5 }],
-		// Effect constructors are capitalized calls, e.g. Schema.Struct(...)
+		"eslint/max-lines": ["error", { "max": 600 }],
+		"eslint/max-lines-per-function": "off", // the user's standing choice
+		"eslint/max-statements": "off", // the user's standing choice
+		"eslint/max-params": "error",
+		// With the user's approval (2026-11-25): Effect constructors are capitalized calls, e.g. Schema.Struct(...)
 		"eslint/new-cap": ["error", { "capIsNew": false }],
 		"eslint/one-var": ["error", "never"],
 		// Each rule turned off from here on names its collision, or the user approved it on 2026-11-17
@@ -211,16 +213,17 @@
 		"eslint/sort-keys": "off",
 		// pi's ExtensionAPI and Effect callback parameter types are not deeply readonly
 		"typescript/prefer-readonly-parameter-types": "off",
-		// tsconfig's namespaceImportPackages, copied from Effect's own config, makes effecttsgo/prefer-namespace-import require `import * as`
+		// collides with effecttsgo/prefer-namespace-import under tsconfig's namespaceImportPackages, which requires `import * as`
 		"import/no-namespace": "off",
 		// Effect's namespace imports give each module its own import line, so a feature passes ten at once
 		"import/max-dependencies": "off",
-		// Effect code exports each value by name, inline
+		// collide with import/no-default-export: a module with exports fails one side whichever form it takes
 		"import/no-named-export": "off",
+		"import/prefer-default-export": "off",
+		// Effect code exports each value by name, inline
 		"import/group-exports": "off",
 		"import/exports-last": "off",
-		"import/prefer-default-export": "off",
-		// pi and Effect write `import { type X, y }`; with no-duplicate-imports, no other form passes
+		// Off with the user's approval (2026-11-17)
 		"import/consistent-type-specifier-style": "off",
 		// `_tag` is Effect's discriminant
 		"eslint/no-underscore-dangle": "off",
@@ -229,16 +232,11 @@
 		// misread Effect's Array module functions as native array methods
 		"unicorn/no-array-callback-reference": "off",
 		"unicorn/no-array-method-this-argument": "off",
-		// reports a different set of sites on each run of the same tree (161, 164, 159 in three runs), so no baseline can hold it; waits on the user
+		// Off with the user's approval (2026-11-25): it reported 188, 184 and 178 on three runs of one tree
 		"effecttsgo/api-stability-leak": "off",
 		// Off with the user's approval (2026-11-17): tsc infers these return types, including Effect.fn generators
 		"typescript/explicit-function-return-type": "off",
 		"typescript/explicit-module-boundary-types": "off",
-		// Off with the user's approval (2026-11-17): TypeScript signatures already carry what these tags would repeat
-		"jsdoc/require-param": "off",
-		"jsdoc/require-returns": "off",
-		"jsdoc/require-param-type": "off",
-		"jsdoc/require-returns-type": "off",
 		// Off with the user's approval (2026-11-17): pi's APIs and exactOptionalPropertyTypes take undefined explicitly
 		"eslint/no-undefined": "off",
 		// Off with the user's approval (2026-11-17): a?.b reads plainer than an Option pipeline for pi's optional fields
@@ -380,7 +378,7 @@
 			},
 		},
 		{
-			// pi and oxlint load these files' default export, so no other export form works
+			// With the user's approval (2026-11-25): pi and oxlint load these files' default export, so no other export form works
 			"files": [
 				"agent/extensions/*/index.ts",
 				"tools/driver/probe.ts",
@@ -392,10 +390,31 @@
 			},
 		},
 		{
-			// The URL guard pins the address it checked by replacing node:http's DNS lookup, which only node:dns and node:net offer
+			// With the user's approval (2026-11-25): the URL guard pins the address it checked by replacing node:http's DNS lookup, which only node:dns and node:net offer
 			"files": ["src/client/web/guard.ts"],
 			"rules": {
 				"import/no-nodejs-modules": ["error", { "allow": ["node:dns", "node:net"] }],
+			},
+		},
+		{
+			// pi's tool and completion handlers take five arguments, approved 2026-11-25
+			"files": ["src/features/owned-work/tools.ts", "src/features/skill-menu/index.ts"],
+			"rules": {
+				"eslint/max-params": ["error", { "max": 5 }],
+			},
+		},
+		{
+			// the user kept a fixed 20 s wait before the first pr-wait reading, made a ledger line 2026-11-25
+			"files": ["src/features/pr/review-wakes.scenario.ts"],
+			"rules": {
+				"eslint/no-restricted-properties": [
+					"error",
+					{
+						"object": "Bun",
+						"property": "sleep",
+						"message": "Wait on a condition, never a fixed time: call eventually from #src/primitives/eventually.ts.",
+					},
+				],
 			},
 		},
 	],

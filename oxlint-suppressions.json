@@ -1,6 +1,126 @@
 {
-  "src/features/pr/review-wakes.scenario.ts": {
-    "no-restricted-properties": {
+  "src/client/gh/index.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/client/hc/index.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/client/systemd/index.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/client/web/github.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/client/web/sites.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/checks/slots.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/compaction/compaction.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/compaction/session.fixture.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/brief.ts": {
+    "max-params": {
+      "count": 3
+    }
+  },
+  "src/features/owned-work/child.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/design.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/levels.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/preview.ts": {
+    "max-params": {
+      "count": 2
+    }
+  },
+  "src/features/owned-work/session.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/owned-work/step.ts": {
+    "max-params": {
+      "count": 2
+    }
+  },
+  "src/features/owned-work/transitions.ts": {
+    "max-params": {
+      "count": 3
+    }
+  },
+  "src/features/owned-work/verdicts.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/phi/switch-away.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/pr/gate.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/pr/merge-gate.scenario.ts": {
+    "max-params": {
+      "count": 3
+    }
+  },
+  "src/features/pr/patch-id.scenario.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/prompt/index.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "tools/gates/gates.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "tools/oxlint/fixtures/effect-pi-idioms.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "tools/prompts/index.ts": {
+    "max-params": {
       "count": 1
     }
   }
