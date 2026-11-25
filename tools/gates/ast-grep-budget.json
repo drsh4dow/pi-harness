@@ -102,7 +102,7 @@
 	"tools/driver/world/core.ts no-comments": 4,
 	"tools/driver/world/setup.ts no-comments": 9,
 	"tools/driver/world/world.ts no-comments": 19,
-	"tools/harness.ts no-comments": 3,
+	"tools/harness.ts no-comments": 1,
 	"tools/loaded/replay.ts no-comments": 4,
 	"tools/prompts/capture.ts no-comments": 2,
 	"tools/prompts/index.ts no-comments": 5,

@@ -2,7 +2,6 @@
 import * as Arr from "effect/Array";
 import * as Str from "effect/String";
 
-/** The `agent/` entries `.gitignore` lets this repo ship. */
 export const harnessEntries = (gitignore: string): ReadonlyArray<string> =>
 	Arr.flatMap(Str.split(gitignore, "\n"), (line) => {
 		const shipped = /^!\/agent\/(?<entry>[^/]+)\/?$/u.exec(line)?.groups?.["entry"];
@@ -12,7 +11,6 @@ export const harnessEntries = (gitignore: string): ReadonlyArray<string> =>
 
 const isPackageBin = (folder: string) => /\/node_modules\/\.bin\/?$/u.test(folder);
 
-/** `env` without `node_modules/.bin` folders in PATH: `bun run` puts them first, which would run this repo's dev pi. */
 export const withoutPackageBins = (env: Readonly<Record<string, string>>) => ({
 	...env,
 	PATH: Arr.join(
