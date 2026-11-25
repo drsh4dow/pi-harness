@@ -9,39 +9,40 @@ const names = (events: ReadonlyArray<{ readonly name: string }>) => Arr.map(even
 const cases = [
 	{
 		tool: "bash",
-		args: String.raw`{"command":"git -C /repo commit -m \"x\""}`,
+		argsJson: String.raw`{"command":"git -C /repo commit -m \"x\""}`,
 		path: undefined,
 		fired: ["git commit"],
 	},
-	{ tool: "read", args: '{"path":"notes/git commit.md"}', path: "notes/git commit.md", fired: [] },
+	{ tool: "read", argsJson: '{"path":"notes/git commit.md"}', path: "notes/git commit.md", fired: [] },
 	{
 		tool: "bash",
-		args: String.raw`{"command":"gh pr create --body \"![demo](https://x.test/demo.gif)\""}`,
+		argsJson: String.raw`{"command":"gh pr create --body \"![demo](https://x.test/demo.gif)\""}`,
 		path: undefined,
 		fired: ["create a PR", "media reference"],
 	},
 	{
 		tool: "bash",
-		args: '{"command":"bun /home/u/.pi/agent/skills/writing-good-prs/scripts/publish-pr.ts create /tmp/body.md --title x"}',
+		argsJson:
+			'{"command":"bun /home/u/.pi/agent/skills/writing-good-prs/scripts/publish-pr.ts create /tmp/body.md --title x"}',
 		path: undefined,
 		fired: ["create a PR"],
 	},
-	{ tool: "bash", args: '{"command":"gh issue create --title t"}', path: undefined, fired: ["create a ticket"] },
-	{ tool: "edit", args: "{}", path: "src/app.ts", fired: ["edit .ts"] },
-	{ tool: "write", args: "{}", path: "db/migrations/0001_init.sql", fired: ["edit a migration or schema"] },
-	{ tool: "write", args: "{}", path: "docs/adr/0003-routing.md", fired: ["edit an ADR"] },
-	{ tool: "write", args: "{}", path: "/state/USER_ACTION_ITEMS.md", fired: ["write USER_ACTION_ITEMS"] },
+	{ tool: "bash", argsJson: '{"command":"gh issue create --title t"}', path: undefined, fired: ["create a ticket"] },
+	{ tool: "edit", argsJson: "{}", path: "src/app.ts", fired: ["edit .ts"] },
+	{ tool: "write", argsJson: "{}", path: "db/migrations/0001_init.sql", fired: ["edit a migration or schema"] },
+	{ tool: "write", argsJson: "{}", path: "docs/adr/0003-routing.md", fired: ["edit an ADR"] },
+	{ tool: "write", argsJson: "{}", path: "/state/USER_ACTION_ITEMS.md", fired: ["write USER_ACTION_ITEMS"] },
 	{
 		tool: "codemode",
-		args: String.raw`{"code":"await tools.edit({ \"path\": \"/repo/GLOSSARY.md\", edits: [] })"}`,
+		argsJson: String.raw`{"code":"await tools.edit({ \"path\": \"/repo/GLOSSARY.md\", edits: [] })"}`,
 		path: undefined,
 		fired: ["edit GLOSSARY"],
 	},
-	{ tool: "bash", args: '{"command":"cat src/app.ts"}', path: undefined, fired: [] },
+	{ tool: "bash", argsJson: '{"command":"cat src/app.ts"}', path: undefined, fired: [] },
 ];
 
-test.each(cases)("$tool $args fires $fired", ({ tool, args, path, fired }) => {
-	expect(names(firedBy({ tool, args, path }))).toEqual(fired);
+test.each(cases)("$tool $argsJson fires $fired", ({ tool, argsJson, path, fired }) => {
+	expect(names(firedBy({ tool, argsJson, path }))).toEqual(fired);
 });
 
 test("three new delegates in one group fire the swarm event, spread over two groups they do not", () => {

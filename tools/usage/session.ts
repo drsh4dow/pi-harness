@@ -165,7 +165,7 @@ const mark = (scan: Scan, guide: Guide, { read, edited }: Named) => {
 };
 
 const nameGuides = (scan: Scan, each: Call) => {
-	for (const guide of guidesNamedIn(scan, each.args)) {
+	for (const guide of guidesNamedIn(scan, each.argsJson)) {
 		mark(scan, guide, { read: reads.has(each.tool), edited: writes.has(each.tool) });
 	}
 
@@ -175,7 +175,7 @@ const nameGuides = (scan: Scan, each: Call) => {
 };
 
 const call = (scan: Scan, tool: string, args: ToolCall["arguments"]) => {
-	const each: Call = { tool, args: Option.getOrElse(jsonOf(args), () => "{}"), path: stringArg(args, "path") };
+	const each: Call = { tool, argsJson: Option.getOrElse(jsonOf(args), () => "{}"), path: stringArg(args, "path") };
 
 	for (const event of firedBy(each)) {
 		scan.events.add(event);

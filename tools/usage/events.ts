@@ -13,10 +13,9 @@ export interface GuideEvent {
 	readonly trigger: Trigger;
 }
 
-/** One tool call as the session stored it, its arguments as JSON text. */
 export interface Call {
 	readonly tool: string;
-	readonly args: string;
+	readonly argsJson: string;
 	readonly path: string | undefined;
 }
 
@@ -56,19 +55,19 @@ const callTools = new Set(["bash", "codemode", "watch", "serve", "write"]);
 
 const codemodeEdit = /tools\.(?:edit|write)\(\{\s*\\?"?path\\?"?:\s*[\\"'`]+(?<path>[^"'`\\]+)/gu;
 
-export const editedPaths = ({ tool, args, path }: Call) => {
+export const editedPaths = ({ tool, argsJson, path }: Call) => {
 	if (tool === "edit" || tool === "write") {
 		return [path ?? ""];
 	}
 
 	return tool === "codemode"
-		? Arr.map([...Str.matchAll(codemodeEdit)(args)], (match) => match.groups?.["path"] ?? "")
+		? Arr.map([...Str.matchAll(codemodeEdit)(argsJson)], (match) => match.groups?.["path"] ?? "")
 		: [];
 };
 
 const fires = (trigger: Trigger, each: Call, paths: ReadonlyArray<string>) => {
 	if (trigger.kind === "call") {
-		return callTools.has(each.tool) && trigger.pattern.test(each.args);
+		return callTools.has(each.tool) && trigger.pattern.test(each.argsJson);
 	}
 
 	return trigger.kind === "edit" && Arr.some(paths, (path) => trigger.pattern.test(path));
