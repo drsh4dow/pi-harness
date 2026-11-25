@@ -1,7 +1,3 @@
-/**
- * `contextWindow` forces compaction: three prompts of inert filler pass three quarters of a 40000 token window, and the
- * root's session gains a compaction entry.
- */
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 
