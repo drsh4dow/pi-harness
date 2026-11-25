@@ -87,9 +87,8 @@ const recordsIn = <Failure>(text: Stream.Stream<string, Failure>) =>
 		},
 	);
 
-/** The running root's channels: records from stdout, its stderr so far, and a way to send a command. */
 interface Wire {
-	readonly records: PubSub.PubSub<Inbound>;
+	readonly stdoutRecords: PubSub.PubSub<Inbound>;
 	readonly stderr: Effect.Effect<string>;
 	readonly exited: Effect.Effect<never, ScenarioFailed>;
 	/** Writes the command with a fresh id to stdin and `root.in.jsonl`, and returns the id. */
@@ -100,7 +99,7 @@ type Needs = Scope.Scope | FileSystem.FileSystem | ChildProcessSpawner.ChildProc
 
 interface Channels {
 	readonly input: Queue.Queue<string, Cause.Done>;
-	readonly records: PubSub.PubSub<Inbound>;
+	readonly stdoutRecords: PubSub.PubSub<Inbound>;
 	readonly ended: Deferred.Deferred<number>;
 }
 
@@ -134,7 +133,7 @@ const spawned = Effect.fn("spawned")(function* ({
 
 	const records = recordsIn(logged(fs, handle.stdout, layout.rpcOut));
 
-	yield* Effect.forkScoped(Stream.runForEach(records, (record) => PubSub.publish(channels.records, record)));
+	yield* Effect.forkScoped(Stream.runForEach(records, (record) => PubSub.publish(channels.stdoutRecords, record)));
 	yield* Effect.forkScoped(Stream.run(handle.stderr, fs.sink(layout.rootStderr)));
 	yield* handle.exitCode.pipe(
 		Effect.orElseSucceed(() => -1),
@@ -157,7 +156,7 @@ const openWire = Effect.fn("openWire")(function* (root: { readonly world: World;
 
 	const channels = yield* Effect.all({
 		input: Queue.unbounded<string, Cause.Done>(),
-		records: PubSub.unbounded<Inbound>(),
+		stdoutRecords: PubSub.unbounded<Inbound>(),
 		ended: Deferred.make<number>(),
 	});
 
@@ -175,7 +174,7 @@ const openWire = Effect.fn("openWire")(function* (root: { readonly world: World;
 	});
 
 	return {
-		records: channels.records,
+		stdoutRecords: channels.stdoutRecords,
 		stderr: Effect.orElseSucceed(fs.readFileString(layout.rootStderr), () => ""),
 		exited: Effect.flatMap(Deferred.await(channels.ended), (code) =>
 			failed(`the root pi exited ${String(code)}, see ${layout.rootStderr}`),
@@ -205,7 +204,7 @@ const request = Effect.fn("request")(function* (
 
 /** `request`, its data decoded with `schema`. */
 const asked = <Value>(wire: Wire, command: Command, schema: Schema.Decoder<Value>) =>
-	PubSub.subscribe(wire.records).pipe(
+	PubSub.subscribe(wire.stdoutRecords).pipe(
 		Effect.flatMap((subscription) => request(wire, subscription, command)),
 		Effect.scoped,
 		Effect.flatMap(Schema.decodeUnknownEffect(schema)),
@@ -222,7 +221,7 @@ const prompted =
 	(wire: Wire, progress: (what: string) => Effect.Effect<void>) =>
 	(message: Message, within: Duration.Input = "10 minutes") =>
 		Effect.gen(function* () {
-			const subscription = yield* PubSub.subscribe(wire.records);
+			const subscription = yield* PubSub.subscribe(wire.stdoutRecords);
 
 			const data = yield* request(wire, subscription, {
 				type: "prompt",
