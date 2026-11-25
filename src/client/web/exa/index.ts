@@ -53,7 +53,7 @@ export class Exa extends Context.Service<
 		readonly search: (request: SearchRequest) => Effect.Effect<Hits, ExaError>;
 		readonly contents: (url: string) => Effect.Effect<Option.Option<Content>, ExaError>;
 	}
->()("pi-harness/client/exa/Exa") {}
+>()("pi-harness/client/web/exa/Exa") {}
 
 const Result = Schema.Struct({
 	title: Schema.String.pipe(Schema.NullOr, Schema.optionalKey),

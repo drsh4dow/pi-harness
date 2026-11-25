@@ -5,7 +5,7 @@ import type * as HttpClient from "effect/http/HttpClient";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { Exa, ExaError, exaLayer, type Hit, type SearchRequest } from "#src/client/exa/index.ts";
+import { Exa, ExaError, exaLayer, type Hit, type SearchRequest } from "./exa/index.ts";
 import { githubTokenLayer } from "./github.ts";
 import { guardedHttp, nodeTransport, type PublicUrl } from "./guard.ts";
 import { type Page, WebError } from "./page.ts";
@@ -18,7 +18,7 @@ export { Body, WebError, type Page } from "./page.ts";
 
 export type { Via } from "./sources.ts";
 
-export { type Hit, Limit, type SearchRequest } from "#src/client/exa/index.ts";
+export { type Hit, Limit, type SearchRequest } from "./exa/index.ts";
 
 export interface Hits {
 	readonly provider: "exa" | "parallel";

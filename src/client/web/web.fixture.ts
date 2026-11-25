@@ -8,7 +8,7 @@ import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { exaLayerWith } from "#src/client/exa/index.ts";
+import { exaLayerWith } from "./exa/index.ts";
 import { type Page, PublicUrl, Web, webLayerWith } from "./index.ts";
 import { fakeTransport, type Routes } from "./transport.fixture.ts";
 

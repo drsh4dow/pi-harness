@@ -7,7 +7,7 @@ import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import type { Hit, SearchRequest } from "#src/client/exa/index.ts";
+import type { Hit, SearchRequest } from "./exa/index.ts";
 import { fetched } from "./guard.ts";
 import { WebError } from "./page.ts";
 import { textOf } from "./text.ts";

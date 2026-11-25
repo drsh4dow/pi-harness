@@ -89,13 +89,13 @@
 					},
 					{
 						"name": "@effect/platform-node/NodeHttpClient",
-						"message": "Call the src/client/ folder for that service, such as #src/client/exa/index.ts. Add a client for a new one.",
+						"message": "Call the src/client/ folder for that service, such as #src/client/web/index.ts. Add a client for a new one.",
 					},
 				],
 				"patterns": [
 					{
 						"group": ["effect/http/*"],
-						"message": "Call the src/client/ folder for that service, such as #src/client/exa/index.ts. Add a client for a new one.",
+						"message": "Call the src/client/ folder for that service, such as #src/client/web/index.ts. Add a client for a new one.",
 					},
 					{
 						"group": ["effect/process/*"],

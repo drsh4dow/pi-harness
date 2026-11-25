@@ -7,7 +7,7 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 
-import { Exa, exaLayerWith } from "#src/client/exa/index.ts";
+import { Exa, exaLayerWith } from "./exa/index.ts";
 import { fetched, guardedHttp, isPublicAddress, lookupWith, problemOf, type Resolve, transportWith } from "./guard.ts";
 
 const urlRows = [

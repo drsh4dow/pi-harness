@@ -7,8 +7,8 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 import { DOMParser } from "linkedom";
 
-import { type Content, Exa, type ExaError } from "#src/client/exa/index.ts";
 import { pageOf, threadMarkdown } from "./direct.ts";
+import { type Content, Exa, type ExaError } from "./exa/index.ts";
 import { fetched } from "./guard.ts";
 import { Body, type Found, rendered, type Source, unlessGone, WebError } from "./page.ts";
 import { decoded, type Fetched, textOf } from "./text.ts";

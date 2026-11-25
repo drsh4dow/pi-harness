@@ -5,8 +5,8 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-import { Exa } from "#src/client/exa/index.ts";
 import { direct } from "./direct.ts";
+import { Exa } from "./exa/index.ts";
 import { github } from "./github.ts";
 import { botCheck, type PublicUrl } from "./guard.ts";
 import { type Found, type Page, WebError } from "./page.ts";
