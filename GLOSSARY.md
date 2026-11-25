@@ -190,6 +190,7 @@ Terms for the footer, which replaces pi's own.
 Terms for the cache feature. **Cache miss** is under Cost.
 
 - **Miss cause.** What a cache miss records as a reason it happened: idle past the cache lifetime, a model change, a compaction, a context edit, a changed prompt or changed tools. A miss with no cause is one that none of these explains.
+- **Request head.** The system prompt and tool declarations a request sends ahead of the conversation. The cache feature compares each request's head with the last one that reached the model, so it names a prompt or tools change a hook makes only inside the request.
 
 ## Merge
 
