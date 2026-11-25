@@ -2,11 +2,6 @@ import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
-/**
- * What counts as a check: a simple command whose words, past its environment assignments and a `timeout`, `nice`,
- * `time` or `env` wrapper, start the way one of these patterns does. A package manager's options, such as `--cwd sub`,
- * may come before or after its `run`.
- */
 const checkPatterns: ReadonlyArray<RegExp> = [
 	/^(?:bun|npm|pnpm|yarn)(?: +-[\w-]+(?:=\S+| +[^\s;&|()-]\S*)?)*?(?: run(?: +-[\w-]+(?:=\S+| +[^\s;&|()-]\S*)?)*?)? (?:check|test|lint|typecheck)(?:[:-]\S*)?(?=[\s;&|)]|$)/u,
 	/^(?:just|make)(?: +[^\s;&|()]+)*? +(?:check|test|lint|typecheck)[\w:-]*(?=[\s;&|)]|$)/u,
@@ -20,10 +15,6 @@ const assignments = /^(?:[A-Za-z_]\w*=(?:'[^']*'|"(?:[^"\\]|\\.)*"|[^\s'";&|()])
 const wrappers =
 	/^(?:(?:timeout(?: +-\S+(?: +\S+)?)* +\d\S*|nice(?: +-n +-?\d+)?|time|env(?: +-\S+)*(?: +[A-Za-z_]\w*=(?:'[^']*'|"(?:[^"\\]|\\.)*"|[^\s'";&|()])*)*) +)*/u;
 
-/**
- * One shell token: a here-document with its body, a character that ends a simple command, a blank or comment, or a
- * piece of a word. A here-document takes the rest of its line with it.
- */
 const token =
 	/(?<heredoc>(?<!<)<<-?[ \t]*(?<quote>['"]?)(?<delimiter>\w+)\k<quote>[^\n]*\n[\s\S]*?\n\t*\k<delimiter>(?=\n|$))|(?<separator>[;&|\n()`])|(?<blank>[ \t\r]+|(?<=^|[\s;&|()])#[^\n]*)|'[^']*'?|"(?:[^"\\]|\\[\s\S])*"?|\\[\s\S]?|[^\s'"\\;&|()`<]+|[\s\S]/gu;
 
@@ -44,7 +35,6 @@ const scanned = (scan: Scan, { groups, index }: RegExpMatchArray): Scan => {
 	return { starts: [...scan.starts, index ?? 0], atStart: false };
 };
 
-/** Where each simple command of a shell command line starts, outside quotes, comments and here-document bodies. */
 const commandStarts = (line: string) =>
 	Arr.reduce(Str.matchAll(token)(line), { starts: [], atStart: true }, scanned).starts;
 
@@ -66,10 +56,6 @@ const throughCheckAt = (prefix: string) => (line: string, start: number) => {
 	return `${Str.slice(0, at)(line)}${prefix}${assigned === 0 ? "" : "env "}${command}`;
 };
 
-/**
- * The command line with `prefix` put before each check, so the check runs through it. A check with environment
- * assignments gets them through `env`, so the prefix sees them as part of its command.
- */
 export const throughCheck =
 	(prefix: string) =>
 	(line: string): string =>
