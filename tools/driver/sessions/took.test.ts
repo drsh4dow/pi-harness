@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 
+import { SettingsManager } from "@earendil-works/pi-coding-agent";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Option from "effect/Option";
@@ -63,6 +64,14 @@ const rows: ReadonlyArray<{
 		],
 	},
 	{
+		name: "an empty compaction is refused",
+		asked: { setup: { settings: { compaction: {} } } },
+		loaded: { settings: { compaction: {} } },
+		expected: [
+			"the driver cannot confirm the setting compaction, only compaction.enabled, compaction.reserveTokens, compaction.keepRecentTokens",
+		],
+	},
+	{
 		name: "an unknown setting set to an empty object is refused",
 		asked: { setup: { settings: { compaction, bogusSetting: {} } } },
 		loaded: { settings: { compaction, bogusSetting: {} } },
@@ -80,6 +89,11 @@ const rows: ReadonlyArray<{
 			contextWindow: undefined,
 			models: { prov: { modelOverrides: { mod: { contextWindow: 40_000 } } } },
 		},
+		expected: ["models sets a context window, which the driver confirms only as contextWindow"],
+	},
+	{
+		name: "a context window in a provider's list of models is refused",
+		asked: { contextWindow: undefined, models: { prov: { models: [{ id: "mod", contextWindow: 40_000 }] } } },
 		expected: ["models sets a context window, which the driver confirms only as contextWindow"],
 	},
 	{
@@ -117,6 +131,14 @@ test.each(rows)("unmetOf: $name", (row) => {
 	expect(unmetOf({ asked: { ...asked, ...row.asked }, loaded: { ...taken, ...row.loaded } })).toEqual([
 		...row.expected,
 	]);
+});
+
+test("unmetOf confirms a compaction exactly as pi's getCompactionSettings reads it", () => {
+	const set = { enabled: false, reserveTokens: 1234, keepRecentTokens: 567 };
+	const settings = { compaction: set };
+
+	expect(unmetOf({ asked: { ...asked, setup: { settings } }, loaded: { ...taken, settings } })).toEqual([]);
+	expect(SettingsManager.inMemory(settings).getCompactionSettings()).toEqual(set);
 });
 
 const took = (loaded: Option.Option<Loaded>) => {

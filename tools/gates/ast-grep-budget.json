@@ -100,7 +100,7 @@
 	"tools/driver/service/tripwire.ts no-comments": 5,
 	"tools/driver/sessions/probe.ts no-comments": 3,
 	"tools/driver/sessions/sessions.ts no-comments": 2,
-	"tools/driver/sessions/took.ts no-comments": 8,
+	"tools/driver/sessions/took.ts no-comments": 2,
 	"tools/driver/world/core.ts no-comments": 4,
 	"tools/driver/world/setup.ts no-comments": 9,
 	"tools/driver/world/world.ts no-comments": 19,
