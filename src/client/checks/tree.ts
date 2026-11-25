@@ -2,10 +2,10 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
-import * as ChildProcess from "effect/process/ChildProcess";
-import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
-import * as Stream from "effect/Stream";
+import type * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Str from "effect/String";
+
+import { git } from "#src/client/git/index.ts";
 
 /**
  * Where a check ran: the repository's shared git folder, the worktree's root, the folder inside it, and the tree it
@@ -18,23 +18,10 @@ export interface Worktree {
 	readonly tree: string;
 }
 
-const outcome = (handle: ChildProcessSpawner.ChildProcessHandle) =>
-	Effect.all(
-		{ code: handle.exitCode, stdout: handle.stdout.pipe(Stream.decodeText, Stream.mkString) },
-		{ concurrency: 2 },
+const gitAt = (args: ReadonlyArray<string>, at: { readonly cwd: string; readonly index?: string }) =>
+	Effect.option(
+		git({ args: ["-C", at.cwd, ...args], env: at.index === undefined ? {} : { GIT_INDEX_FILE: at.index } }),
 	);
-
-const git = (args: ReadonlyArray<string>, at: { readonly cwd: string; readonly index?: string }) =>
-	Effect.flatMap(ChildProcessSpawner.ChildProcessSpawner, (spawner) => {
-		const env = at.index === undefined ? {} : { GIT_INDEX_FILE: at.index };
-		const command = ChildProcess.make("git", args, { cwd: at.cwd, env, extendEnv: true, stderr: "ignore" });
-
-		return spawner.spawn(command).pipe(
-			Effect.flatMap(outcome),
-			Effect.scoped,
-			Effect.map(({ code, stdout }) => (code === 0 ? Option.some(stdout) : Option.none())),
-		);
-	});
 
 /** A copy of the worktree's index in a folder that lives as long as the scope. A worktree without an index gets none. */
 const indexCopy = (index: string) =>
@@ -54,13 +41,13 @@ const indexCopy = (index: string) =>
 const treeOf = ({ root, index }: { readonly root: string; readonly index: string }) =>
 	Effect.gen(function* () {
 		const copy = yield* indexCopy(index);
-		const added = yield* git(["add", "--all"], { cwd: root, index: copy });
+		const added = yield* gitAt(["add", "--all"], { cwd: root, index: copy });
 
 		if (Option.isNone(added)) {
 			return Option.none();
 		}
 
-		const written = yield* git(["write-tree"], { cwd: root, index: copy });
+		const written = yield* gitAt(["write-tree"], { cwd: root, index: copy });
 
 		return Option.map(written, Str.trim);
 	});
@@ -88,7 +75,7 @@ export const worktreeAt = (
 > =>
 	Effect.scoped(
 		Effect.gen(function* () {
-			const found = yield* git(locate, { cwd });
+			const found = yield* gitAt(locate, { cwd });
 
 			if (Option.isNone(found)) {
 				return Option.none();

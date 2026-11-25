@@ -7,12 +7,12 @@ import * as Option from "effect/Option";
 import type * as PlatformError from "effect/PlatformError";
 import * as ChildProcess from "effect/process/ChildProcess";
 import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
-import * as Rec from "effect/Record";
 import type * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
+import { git, type GitError } from "#src/client/git/index.ts";
 import { fields, type PrView, viewOf } from "./view.ts";
 
 export type { PrView, Review, ReviewDecision } from "./view.ts";
@@ -40,12 +40,11 @@ export class Gh extends Context.Service<
 
 const text = <Failure>(stream: Stream.Stream<Uint8Array, Failure>) => stream.pipe(Stream.decodeText, Stream.mkString);
 
-const output = (command: string, args: ReadonlyArray<string>, input = "", env?: Record<string, undefined>) =>
+const gh = (args: ReadonlyArray<string>) =>
 	Effect.flatMap(ChildProcessSpawner.ChildProcessSpawner, (spawner) => {
-		const failed = (why: string) => GhError.make({ args: [command, ...args], why });
-		const stdin = Stream.make(new TextEncoder().encode(input));
+		const failed = (why: string) => GhError.make({ args: ["gh", ...args], why });
 
-		return spawner.spawn(ChildProcess.make(command, args, { stdin, env, extendEnv: true })).pipe(
+		return spawner.spawn(ChildProcess.make("gh", args, { stdin: Stream.empty })).pipe(
 			Effect.flatMap((handle) =>
 				Effect.all(
 					{ code: handle.exitCode, stdout: text(handle.stdout), stderr: text(handle.stderr) },
@@ -75,8 +74,7 @@ export const ghPassthrough = ({
 		return Effect.scoped(Effect.flatMap(spawner.spawn(command), (handle) => handle.exitCode));
 	});
 
-export const runGit = ({ args, input = "" }: { readonly args: ReadonlyArray<string>; readonly input?: string }) =>
-	output("git", args, input);
+const asGhError = ({ args, why }: GitError) => GhError.make({ args, why });
 
 /**
  * `git patch-id --verbatim` over a diff with its context lines. It is strict on purpose: whitespace counts, and a base
@@ -84,8 +82,11 @@ export const runGit = ({ args, input = "" }: { readonly args: ReadonlyArray<stri
  * whole diff as it was.
  */
 export const patchIdOf = (diff: string) =>
-	output("git", ["patch-id", "--verbatim"], diff).pipe(
-		Effect.map((line) => Arr.headNonEmpty(Str.split(Str.trim(line), " "))),
+	git({ args: ["patch-id", "--verbatim"], input: diff }).pipe(
+		Effect.mapBoth({
+			onFailure: asGhError,
+			onSuccess: (line) => Arr.headNonEmpty(Str.split(Str.trim(line), " ")),
+		}),
 		Effect.filterOrFail(Str.isNonEmpty, () => GhError.make({ args: ["git", "patch-id"], why: "the diff is empty" })),
 	);
 
@@ -99,8 +100,6 @@ const decodeStacks = Schema.decodeUnknownResult(Schema.fromJsonString(Schema.Arr
 
 const membersOf = ({ pull_requests }: typeof Stack.Type): ReadonlyArray<StackMember> =>
 	Arr.map(pull_requests, ({ number, state }) => ({ number: String(number), state }));
-
-const gh = (args: ReadonlyArray<string>) => output("gh", args);
 
 const json = <Value>(args: ReadonlyArray<string>, decode: (stdout: string) => Result.Result<Value, Error>) =>
 	Effect.flatMap(gh(args), (stdout) =>
@@ -138,17 +137,13 @@ const fetchedDiff = (pr: string) =>
 			),
 		);
 
-		const withoutCallerRepository = yield* Effect.map(output("git", ["rev-parse", "--local-env-vars"]), (names) =>
-			Rec.fromIterableWith(Str.split(Str.trim(names), "\n"), (name): [string, undefined] => [name, undefined]),
-		);
+		const gitIn = (args: ReadonlyArray<string>) => Effect.mapError(git({ args: ["-C", dir, ...args] }), asGhError);
 
-		const git = (args: ReadonlyArray<string>) => output("git", ["-C", dir, ...args], "", withoutCallerRepository);
-
-		yield* git(["init", "-q", "--bare"]);
-		yield* git([...auth, "fetch", "-q", "--depth=1", "--no-tags", remote, mergeBase, head]);
+		yield* gitIn(["init", "-q", "--bare"]);
+		yield* gitIn([...auth, "fetch", "-q", "--depth=1", "--no-tags", remote, mergeBase, head]);
 
 		// `--full-index` keeps a binary change, whose diff is only its blob ids, from sharing an id with another blob of the same abbreviation.
-		return yield* git(["diff-tree", "-p", "-M", "--full-index", mergeBase, head]);
+		return yield* gitIn(["diff-tree", "-p", "-M", "--full-index", mergeBase, head]);
 	}).pipe(Effect.scoped);
 
 const tooLarge = ({ why }: GhError) => Str.includes("PullRequest.diff too_large")(why);

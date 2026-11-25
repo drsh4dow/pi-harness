@@ -14,12 +14,10 @@ import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
-import * as ChildProcess from "effect/process/ChildProcess";
-import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner";
 import * as Schema from "effect/Schema";
-import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 
+import { git } from "#src/client/git/index.ts";
 import { type GuideFile, guideFilesIn, readGuides } from "#src/features/loaded/index.ts";
 import { libraryOf } from "./guides.ts";
 import { reportOf } from "./report.ts";
@@ -73,15 +71,7 @@ const windowOf = Effect.fn("windowOf")(function* (argv: ReadonlyArray<string>) {
 	} satisfies Window;
 });
 
-const git = Effect.fn("git")(function* (args: ReadonlyArray<string>) {
-	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-	const command = ChildProcess.make("git", ["-C", root, ...args], { stdin: "ignore", stderr: "ignore" });
-	const handle = yield* spawner.spawn(command);
-	const output = handle.stdout.pipe(Stream.decodeText, Stream.mkString);
-	const [code, text] = yield* Effect.all([handle.exitCode, output], { concurrency: 2 });
-
-	return code === 0 ? Option.some(text) : Option.none();
-}, Effect.scoped);
+const gitInRoot = (args: ReadonlyArray<string>) => Effect.option(git({ args: ["-C", root, ...args] }));
 
 const touched = (log: string) => {
 	let commit = "";
@@ -99,13 +89,13 @@ const touched = (log: string) => {
 };
 
 const pastGuides = Effect.gen(function* () {
-	const log = yield* git(["log", "--format=@%H", "--name-only", "--", ...guideFolders]);
+	const log = yield* gitInRoot(["log", "--format=@%H", "--name-only", "--", ...guideFolders]);
 
 	const versions = yield* Effect.forEach(
 		touched(Option.getOrElse(log, () => "")),
 		({ name, object }) =>
 			Effect.map(
-				git(["show", object]),
+				gitInRoot(["show", object]),
 				Option.map((text) => ({ name, text })),
 			),
 		{ concurrency: 16 },

@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import * as Num from "effect/Number";
 import * as Str from "effect/String";
 
-import { runGit } from "#src/client/gh/index.ts";
+import { git } from "#src/client/git/index.ts";
 
 const kinds = ["production", "tests", "docs", "other"] as const;
 
@@ -57,11 +57,11 @@ const attributesOf = (checkAttr: string) => {
 
 /** One line that sizes `<base>...<head>` by kind of path, with binary files as zero lines. */
 export const diffSize = Effect.fn("diffSize")(function* (base: string, head: string) {
-	const mergeBase = yield* Effect.map(runGit({ args: ["merge-base", base, head] }), Str.trim);
-	const numstat = yield* runGit({ args: ["diff", "--numstat", "-z", "--no-renames", mergeBase, head] });
+	const mergeBase = yield* Effect.map(git({ args: ["merge-base", base, head] }), Str.trim);
+	const numstat = yield* git({ args: ["diff", "--numstat", "-z", "--no-renames", mergeBase, head] });
 	const changes = changesOf(numstat);
 
-	const checkAttr = yield* runGit({
+	const checkAttr = yield* git({
 		args: ["check-attr", "-z", "--stdin", "--source", head, generated, documentation],
 		input: Arr.join(
 			Arr.map(changes, ({ path }) => `${path}\0`),

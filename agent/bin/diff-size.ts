@@ -20,7 +20,7 @@ const [base = "origin/HEAD", head = "HEAD", ...extra] = process.argv.slice(2);
 const program = Arr.isReadonlyArrayEmpty(extra)
 	? diffSize(base, head).pipe(
 			Effect.flatMap(Console.log),
-			Effect.catchTag("GhError", ({ args, why }) =>
+			Effect.catchTag("GitError", ({ args, why }) =>
 				reportFailure(`diff-size: ${Arr.join(args, " ")} failed: ${Arr.headNonEmpty(Str.split(why, "\n"))}`),
 			),
 		)
