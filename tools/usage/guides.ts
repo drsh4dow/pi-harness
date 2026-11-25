@@ -8,7 +8,6 @@ export interface GuideOnDisk {
 	readonly kind: GuideKind;
 	readonly name: string;
 	readonly ownLines: number;
-	/** Only a person can invoke it, since its frontmatter sets `disable-model-invocation: true`. */
 	readonly hidden: boolean;
 }
 
