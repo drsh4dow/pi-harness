@@ -1,6 +1,11 @@
 import { afterAll, expect, test } from "bun:test";
 
-import type { AutocompleteProviderFactory, SlashCommandInfo } from "@earendil-works/pi-coding-agent";
+import {
+	type AutocompleteProviderFactory,
+	formatSkillsForPrompt,
+	loadSkillsFromDir,
+	type SlashCommandInfo,
+} from "@earendil-works/pi-coding-agent";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -28,6 +33,22 @@ const rows: ReadonlyArray<{ name: string; text: string; hides: boolean }> = [
 test.each(rows)("$name", (row) => {
 	expect(hidesFromMenu(row.text)).toBe(row.hides);
 });
+
+test("pi reads no user-invocable key, so a skill hidden from the menu still loads and reaches the model", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const dir = `${scratch}/skills`;
+
+			yield* fs.makeDirectory(`${dir}/x`, { recursive: true });
+			yield* fs.writeFileString(`${dir}/x/SKILL.md`, skillFile("user-invocable: false\n"));
+
+			const { skills } = loadSkillsFromDir({ dir, source: "user" });
+
+			expect(Arr.map(skills, (skill) => skill.name)).toEqual(["x"]);
+			expect(formatSkillsForPrompt(skills)).toContain("<name>x</name>");
+		}).pipe(Effect.provide(NodeServices.layer)),
+	));
 
 const command = (name: string, path: string): SlashCommandInfo => ({
 	name: `skill:${name}`,
