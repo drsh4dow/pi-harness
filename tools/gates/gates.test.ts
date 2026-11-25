@@ -91,15 +91,23 @@ test("the git ban rejects a git spawned outside src/client/git", () =>
 		["Run git through `git` from #src/client/git/index.ts, which drops the caller's GIT_* variables."],
 	));
 
-test("the ast-grep checks reject a comment, a suppression, a dynamic import and a relative import without .ts", () =>
+test("the comment check rejects a line comment, a doc comment and an oxlint-disable directive", () =>
 	failsWith(
 		"comments",
-		"comments",
-		[`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "src"],
+		"no-comments",
+		[`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "--filter", "^no-comments", "src"],
 		[
-			"Delete this comment.",
-			"Fix the code the rule caught.",
-			"Import at the top of the file",
-			"End a relative import in .ts",
+			"Delete this comment. Say it with a name, a type, a test, an issue or an ADR.",
+			"// Says what the next line does.",
+			"/** Says what wire is. */",
+			"// oxlint-disable-next-line eslint/no-console",
 		],
+	));
+
+test("the ast-grep checks reject a dynamic import and a relative import without .ts", () =>
+	failsWith(
+		"comments",
+		"imports",
+		[`${bin}/ast-grep`, "scan", "--config", `${repo}/sgconfig.yml`, "src"],
+		["Import at the top of the file", "End a relative import in .ts"],
 	));
