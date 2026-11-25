@@ -12,6 +12,7 @@ import {
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import * as Arr from "effect/Array";
 import * as Config from "effect/Config";
+import type * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Function from "effect/Function";
 import * as Layer from "effect/Layer";
@@ -20,7 +21,7 @@ import * as Order from "effect/Order";
 import * as Str from "effect/String";
 
 import { piHost } from "#src/client/pi/index.ts";
-import { formatDuration, sessionDuration } from "./duration.ts";
+import { formatDuration, messageSpan } from "./duration.ts";
 
 export interface FooterContext {
 	readonly sessionManager: Pick<
@@ -47,8 +48,7 @@ export interface FooterInputs {
 }
 
 interface SessionStats {
-	/** Milliseconds from the first message to the latest. None before the first message. */
-	readonly duration: Option.Option<number>;
+	readonly messageSpan: Option.Option<Duration.Duration>;
 	readonly cost: number;
 	/** None when the session never read or wrote the cache, or the latest response sent no prompt tokens. */
 	readonly cacheHitRate: Option.Option<number>;
@@ -159,7 +159,7 @@ const statsLeft = (inputs: FooterInputs, stats: SessionStats) => {
 			? Option.some(`$${stats.cost.toFixed(3)}${subscription ? " (sub)" : ""}`)
 			: Option.none();
 
-	const parts = Arr.getSomes([Option.map(stats.duration, formatDuration), cachePart, costPart]);
+	const parts = Arr.getSomes([Option.map(stats.messageSpan, formatDuration), cachePart, costPart]);
 
 	return Arr.join([...parts, contextPart(inputs, stats)], " ");
 };
@@ -240,7 +240,7 @@ export const footerView = (inputs: FooterInputs) => {
 		const entries = session.getEntries();
 
 		const fresh = {
-			duration: sessionDuration(entries),
+			messageSpan: messageSpan(entries),
 			...sessionUsage(entries),
 			context: ctx.getContextUsage(),
 			autoCompact: inputs.autoCompact(),
