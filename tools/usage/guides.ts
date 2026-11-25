@@ -67,11 +67,6 @@ const ownerOf = (holders: ReadonlyMap<string, ReadonlySet<string>>, guides: Read
 	return owner;
 };
 
-/**
- * Keeps, for each guide on disk, the body lines that only it has ever held, so an older wording still marks it.
- * `past` holds every version git has of each guide file, named by its folder or file alone, since some skills became
- * playbooks.
- */
 export const libraryOf = ({
 	today,
 	past,

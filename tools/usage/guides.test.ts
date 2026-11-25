@@ -20,3 +20,14 @@ test("a guide whose frontmatter turns off model invocation is hidden", () => {
 		["offered", false],
 	]);
 });
+
+test("a line only an older version of a guide held still marks it, though it was a skill then and is a playbook now", () => {
+	const older = "The wording this guide had as a skill, long enough to mark it.";
+
+	const { guideByMarker } = libraryOf({
+		today: [{ kind: "playbook", name: "swarm", text: file("name: swarm", "The wording this playbook has today.") }],
+		past: [{ name: "swarm", text: file("name: swarm", older) }],
+	});
+
+	expect(guideByMarker.get(older)?.name).toBe("swarm");
+});
