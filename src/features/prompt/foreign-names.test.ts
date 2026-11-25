@@ -9,10 +9,6 @@ import * as Str from "effect/String";
 
 const harness = Bun.fileURLToPath(new URL("../../..", import.meta.url));
 
-/**
- * Names from the harness a skill was ported from: Cursor's Task tool and its fields, its model rules, its paths, and
- * pstack's own skills. Each has a pi name, and an agent here can act only on that one.
- */
 const foreign =
 	/subagent_type|run_in_background|generalPurpose|cloud_base_branch|environment: "|\bTask (?:tool|subagent)|`Task`|AskQuestion|todolist|\b(?:Ask|agent) mode\b|pstack|poteto|\bCursor\b|\.cursor\b|\.mdc\b|principle skill/u;
 

@@ -72,7 +72,6 @@ const undouble = (term: string) => {
 	return term.length > 4 && doubled ? dropLast(term) : term;
 };
 
-/** Light suffix stripping, so "conflicts" and "conflict" or "branching" and "branch" share a stem. Not a real stemmer. */
 const stemSteps: ReadonlyArray<(term: string) => string> = [
 	(term) => (term.length > 10 && /ifications?$/u.test(term) ? Str.replace(/ications?$/u, "i")(term) : term),
 	stripSuffix,

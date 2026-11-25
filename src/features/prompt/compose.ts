@@ -27,7 +27,6 @@ const bullets = (lines: ReadonlyArray<string>) =>
 /** Built-in tools whose guidelines restate their own schema description, or `<codemode>` in `SYSTEM.md`. */
 const restating = ["edit", "codemode"];
 
-/** The `<rules>` section pi builds for its default prompt, without the rules pi hardcodes, since `SYSTEM.md` sets its own style. */
 const rulesSection = (options: NormalizedBuildSystemPromptOptions) => {
 	const declared = Arr.difference(options.selectedTools, options.hiddenTools);
 	const guided = Arr.difference(declared, restating);
@@ -96,13 +95,6 @@ export const briefBlocks = (brief: StagedBrief): string => {
 	return Arr.join(blocks, "\n\n");
 };
 
-/**
- * Writes `SYSTEM.md`, the role file, the delegate's brief and the principles and playbooks indexes into pi's
- * preamble, so they render before `<project_context>`. A custom preamble makes pi drop its `<tools>`, `<rules>` and `<docs>`. This adds
- * back `<rules>` as a custom section, which pi renders last. It leaves `<tools>` out, since each tool's schema already
- * describes it, and `<docs>`, which only work on this harness needs and its `CODING_STANDARDS.md` carries. The `<skills>` section
- * replaces pi's own in place. pi builds fresh options for each run, so running this again never stacks.
- */
 export const compose = (layers: Layers) => (event: BeforeAgentStartEvent) => {
 	const options = event.systemPromptOptions;
 
