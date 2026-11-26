@@ -17,7 +17,11 @@ const Settled = Schema.Struct({
 	data: Schema.Struct({ type: Schema.Literal("job-settled"), handle: Schema.String }),
 });
 
-const Call = Schema.Struct({ type: Schema.String, name: Schema.optionalKey(Schema.String) });
+const Call = Schema.Struct({
+	type: Schema.String,
+	name: Schema.optionalKey(Schema.String),
+	id: Schema.optionalKey(Schema.String),
+});
 
 const WaitCall = Schema.Struct({
 	type: Schema.Literal("message"),
@@ -29,6 +33,7 @@ const Text = Schema.Struct({ type: Schema.String, text: Schema.optionalKey(Schem
 const ReplyMessage = Schema.Struct({
 	role: Schema.Literal("toolResult"),
 	toolName: Schema.Literal("wait"),
+	toolCallId: Schema.String,
 	timestamp: Schema.Finite,
 	content: Schema.Array(Text),
 });
@@ -48,8 +53,10 @@ const settledOf = (entries: ReadonlyArray<SessionEntry>, ref: string) =>
 		Option.filter(Schema.decodeUnknownOption(Settled)(entry), ({ data }) => data.handle === ref),
 	);
 
-const callsWait = ({ message }: typeof WaitCall.Type) =>
-	Arr.some(message.content, ({ type, name }) => type === "toolCall" && name === "wait");
+const callOf = ({ message }: typeof WaitCall.Type, tool: string) =>
+	Arr.findFirst(message.content, ({ type, name }) => type === "toolCall" && name === tool);
+
+const callsWait = (call: typeof WaitCall.Type) => Option.isSome(callOf(call, "wait"));
 
 const waitCalls = (entries: ReadonlyArray<SessionEntry>) =>
 	Arr.filter(Arr.getSomes(Arr.map(entries, (entry) => Schema.decodeUnknownOption(WaitCall)(entry))), callsWait);
@@ -125,6 +132,33 @@ const steeredWait = (run: Run) =>
 		yield* Fiber.join(prompt);
 	});
 
+const batchedWait = (run: Run) =>
+	Effect.gen(function* () {
+		yield* run.root.prompt(
+			'In one response, make two tool calls together: the watch tool, named quick nap, with the command `sleep 5 && echo batched`, and the wait tool with `of` set to [{"ref":"watch-3"}], the ref that watch will get. Do not wait for the watch reply before you call wait. When the wait returns, reply with the single word done.',
+		);
+
+		const entries = yield* run.waitFor("the root's session", "5 seconds", ({ root }) => Option.some(root.entries));
+		const batch = Arr.findFirst(waitCalls(entries), (call) => Option.isSome(callOf(call, "watch")));
+
+		yield* run.check(
+			Option.isSome(batch),
+			"the root called watch and wait in one response (it did not, so this case proves nothing)",
+		);
+
+		const waitId = Option.flatMap(batch, (call) =>
+			Option.flatMap(callOf(call, "wait"), ({ id }) => Option.fromUndefinedOr(id)),
+		);
+
+		const reply = Arr.findFirst(waitReplies(entries), ({ message }) => Option.contains(waitId, message.toolCallId));
+		const text = Option.match(reply, { onNone: () => "nothing, it has no reply", onSome: textOf });
+
+		yield* run.check(
+			Str.includes('"ref":"watch-3"')(text) && Str.includes("batched")(text),
+			`the wait batched with watch carries watch-3's result (it reads ${text})`,
+		);
+	});
+
 scenario({
 	env: process.env,
 	model: "ultra-a/claude-fable-5-2",
@@ -141,5 +175,7 @@ scenario({
 				wakes.length === 0,
 				`no wake carried watch-1 after the wait did (${String(wakes.length)} did)`,
 			);
+
+			yield* batchedWait(run);
 		}),
 });

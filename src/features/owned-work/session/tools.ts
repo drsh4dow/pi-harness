@@ -196,6 +196,7 @@ const groupTool = (runtime: Runtime) =>
 		name: "group",
 		label: "group",
 		description: "Move work you hold into one group, which wakes you instead of its members.",
+		executionMode: "sequential",
 		parameters: GroupParams,
 		outputSchema: HandleOut,
 		execute: (_id, { name, of }, signal) =>
@@ -224,6 +225,7 @@ const waitTool = (runtime: Runtime) =>
 		description:
 			"Wait in this turn for jobs you hold to settle. Each result comes back in the reply as its wake would bring it, and does not wake you again. It returns at once when a result already waits or nothing you hold runs, early when the human sends a message or presses Escape, and on timeout with the jobs that still run.",
 		exposure: "model-only",
+		executionMode: "sequential",
 		parameters: WaitParams,
 		execute: (_id, { of, timeout }, signal, _update, ctx: Pick<ExtensionContext, "hasPendingMessages">) => {
 			const scope = Option.map(Option.fromUndefinedOr(of), refsOf);
