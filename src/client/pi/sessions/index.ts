@@ -1,5 +1,6 @@
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { type AssistantMessage, contentText } from "@earendil-works/pi-ai";
-import { type SessionEntry, SessionManager } from "@earendil-works/pi-coding-agent";
+import { SessionManager } from "@earendil-works/pi-coding-agent";
 import * as Arr from "effect/Array";
 import * as Context from "effect/Context";
 import * as Data from "effect/Data";
@@ -59,8 +60,7 @@ class SessionUnreadable extends Schema.TaggedError<SessionUnreadable, { readonly
 	},
 ) {}
 
-const assistantOf = (entry: SessionEntry) =>
-	entry.type === "message" && entry.message.role === "assistant" ? Option.some(entry.message) : Option.none();
+const assistantOf = (message: AgentMessage) => (message.role === "assistant" ? Option.some(message) : Option.none());
 
 const textOf = (message: AssistantMessage) => Option.liftPredicate(contentText(message.content, ""), Str.isNonEmpty);
 
@@ -74,9 +74,9 @@ const replyOf = (messages: ReadonlyArray<AssistantMessage>, file: string): Optio
 	);
 
 const assistantMessages = (file: string, dir: string) => {
-	const branch = SessionManager.open(file, dir).getBranch();
+	const { messages } = SessionManager.open(file, dir).buildSessionProjection();
 
-	return Arr.getSomes(Arr.map(branch, assistantOf));
+	return Arr.getSomes(Arr.map(messages, assistantOf));
 };
 
 const lastReply = ({ cwd, id, dir }: SessionAddress) =>

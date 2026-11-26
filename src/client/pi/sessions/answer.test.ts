@@ -54,6 +54,36 @@ test("an answer is the child's last non-empty text, written whole beside its ses
 		}).pipe(Effect.provide(piSessions)),
 	));
 
+test("an answer whose entry the child edited reads as edited, so the text it replaced never reaches the parent", () =>
+	Effect.runPromise(
+		Effect.gen(function* () {
+			const session = SessionManager.create(scratch, scratch);
+
+			session.appendMessage({ role: "user", content: "Summarize the record.", timestamp: 0 });
+
+			const answer = session.appendMessage(
+				assistantReply({ text: "Jane Roe, born 1950-01-02.", stopReason: "stop" }),
+			);
+
+			session.appendContextEdit(answer, { content: "[sealed h1] The answer still held patient identifiers." });
+
+			const id = session.getSessionId();
+
+			const reply = yield* Effect.flatMap(PiSessions, (sessions) =>
+				sessions.readAnswer({ id, cwd: scratch, dir: scratch }),
+			);
+
+			expect(reply).toEqual(
+				Option.some(
+					ChildReply.Answered({
+						text: "[sealed h1] The answer still held patient identifiers.",
+						file: `${scratch}/${id}.answer.md`,
+					}),
+				),
+			);
+		}).pipe(Effect.provide(piSessions)),
+	));
+
 test("a child whose last call ended on a provider error answers with that error", () =>
 	Effect.runPromise(
 		Effect.gen(function* () {
