@@ -45,6 +45,7 @@ import { inheritedEnv, Self, selfFromEnv, withAgentBin } from "#src/features/own
 import { Ledger, ledgerLayer } from "#src/features/owned-work/ledger/index.ts";
 import { firstRefAfter } from "#src/features/owned-work/recorded.ts";
 import type { Settled } from "#src/features/owned-work/work.ts";
+import { rootSessionEnv } from "#src/features/phi/index.ts";
 import { forkInTab, restoreDraft } from "./fork.ts";
 import * as Handover from "./handover.ts";
 import { hostLayer, messageOf, type Relay } from "./host.ts";
@@ -85,7 +86,9 @@ const runtimeOf = (pi: ExtensionAPI, { ctx, env, childExtensions, inheritance, s
 	const relay: Relay = { waiter: Option.none() };
 	const firstRef = firstRefAfter(ctx.sessionManager.getEntries());
 	const passEnv = inheritedEnv(env);
-	const ledger = ledgerLayer({ self, cwd: ctx.cwd, passEnv, firstRef, handover: Handover.stateOf(inheritance) });
+	const delegateEnv = { ...passEnv, ...rootSessionEnv({ env, session: ctx.sessionManager.getSessionId() }) };
+	const handover = Handover.stateOf(inheritance);
+	const ledger = ledgerLayer({ self, cwd: ctx.cwd, passEnv: delegateEnv, firstRef, handover });
 
 	const slices = Self.$is("Root")(self)
 		? slicesLayer({ slice: sliceOf(agentKey), rootPid: Option.some(process.pid) })
