@@ -4,7 +4,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { guardCodemode } from "./codemode/index.ts";
 import { isPhi } from "./protection.ts";
 
-export { baaProviders, isBaa, isPhi, isProtected, phiProvider, sealedId } from "./protection.ts";
+export { baaProviders, isBaa, isPhi, phiProvider, sealedId } from "./protection.ts";
 
 export const phiSessionHeaders = ({
 	model,

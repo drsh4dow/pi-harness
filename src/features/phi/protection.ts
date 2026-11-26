@@ -17,6 +17,3 @@ export const baaProviders: ReadonlyArray<string> = [
 export const isPhi = (model: Selection | undefined) => model !== undefined && model.provider === phiProvider;
 
 export const isBaa = (provider: string) => Arr.contains(baaProviders, provider);
-
-export const isProtected = (model: Selection | undefined) =>
-	isPhi(model) || (model !== undefined && isBaa(model.provider));
