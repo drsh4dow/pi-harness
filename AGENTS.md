@@ -4,6 +4,8 @@ Run `bun run check` before every commit. It must exit 0.
 
 Read `CODING_STANDARDS.md` before you write code, change a gate's config, or change the harness's prompts.
 
+Markdown documents as well as anything that goes into the agent system prompt should be treated as code, as it is the most critical piece of infrastructure for agents, no dead prose.
+
 ## Agent skills
 
 ### Issue tracker
