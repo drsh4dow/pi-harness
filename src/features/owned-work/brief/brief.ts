@@ -68,13 +68,15 @@ const designParam = Type.String({
 export const delegateParams = ({
 	table,
 	roles,
+	inheritsGoal,
 }: {
 	readonly table: ModelTable;
 	readonly roles: ReadonlyArray<ChildRole>;
+	readonly inheritsGoal: boolean;
 }) => {
 	const model = Type.String({ description: modelDescription(table) });
 
-	return Type.Object({
+	const params = Type.Object({
 		name: words(
 			"A few words that tell this delegate apart from the others you run, such as `review auth` or `classify opus 2`. The human sees it in their list of running agents. Required unless you name `continues`.",
 		),
@@ -107,6 +109,8 @@ export const delegateParams = ({
 		),
 		reviews: Type.Optional(reviewsParam),
 	});
+
+	return inheritsGoal ? params : Type.Object(params.properties, { required: ["goal"] });
 };
 
 export type DelegateParams = ReturnType<typeof delegateParams>;

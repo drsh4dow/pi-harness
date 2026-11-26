@@ -113,7 +113,9 @@ test.each(Arr.map(levelRows, (row) => ({ ...row, starts: startsOf(row) })))(
 	},
 );
 
-const delegate = Tools.delegate(runtime, ["owner", "leaf"], { cwd: "/", dir: "/d" }, modelTable, Option.none());
+const ownSession = Option.some({ dir: "/d", id: "self" });
+
+const delegate = Tools.delegate(runtime, ["owner", "leaf"], { cwd: "/", dir: "/d" }, modelTable, ownSession);
 
 const validated = (tool: Pick<ToolDefinition, "name" | "description" | "parameters">, args: JsonObject) => () => {
 	validateToolArguments(tool, { type: "toolCall", id: "c", name: tool.name, arguments: args });
@@ -133,7 +135,7 @@ test("pi refuses a delegate role other than owner or leaf", () => {
 });
 
 test("pi refuses an owner from a last-level owner's delegate tool", () => {
-	const lastLevel = Tools.delegate(runtime, ["leaf"], { cwd: "/", dir: "/d" }, modelTable, Option.none());
+	const lastLevel = Tools.delegate(runtime, ["leaf"], { cwd: "/", dir: "/d" }, modelTable, ownSession);
 
 	expect(validated(lastLevel, { name: "review", message: "Review it.", role: "owner" })).toThrow();
 	expect(validated(lastLevel, { name: "review", message: "Review it.", role: "leaf" })).not.toThrow();
@@ -142,6 +144,16 @@ test("pi refuses an owner from a last-level owner's delegate tool", () => {
 const rootTools = toolsOf(Self.Root({ role: "root", level: 1 }));
 
 const toolNamed = (wanted: string) => Option.getOrThrow(Arr.findFirst(rootTools, ({ name }) => name === wanted));
+
+test("pi refuses a root's delegate call with no goal, and passes a delegate's, which inherits its own", () => {
+	const call = { name: "review", message: "Review it.", role: "leaf" };
+	const delegates = toolsOf(Self.Delegate({ role: "owner", level: 2, slice: "s" }));
+	const delegatesTool = Option.getOrThrow(Arr.findFirst(delegates, ({ name }) => name === "delegate"));
+
+	expect(validated(toolNamed("delegate"), call)).toThrow();
+	expect(validated(toolNamed("delegate"), { ...call, goal: "Ship the fix." })).not.toThrow();
+	expect(validated(delegatesTool, call)).not.toThrow();
+});
 
 test.each([
 	{ tool: "group", args: { of: [{ ref: "delegate-1" }] } },
