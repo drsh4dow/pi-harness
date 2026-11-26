@@ -181,6 +181,9 @@ included, sees them.
   root starts. Each key is a path under HOME, such as phi-router's `.config/phi-router/config.json`, and each value
   is the JSON object the file holds. The driver writes each file owner-only, in owner-only folders.
 
+- `rootEnv` sets variables in the root's environment after the driver's own, so it can set the XDG folders the driver
+  drops, such as the `XDG_STATE_HOME` of a phi-router started outside the run. Delegates inherit them.
+
 - `contextWindow` forces compaction in a few turns. It gives the root's model a window of that many tokens and
   replaces your compaction settings, which may reserve more than the whole window, with a reserve of a quarter of it,
   so pi compacts once a session passes three quarters:
