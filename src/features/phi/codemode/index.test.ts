@@ -55,17 +55,18 @@ const scriptIn = (model: ReturnType<typeof phiModel>) =>
 	Effect.promise(() => guardCodemode({ event: codemode("models.x"), ctx: { model } }));
 
 const sessions = Effect.all([
+	scriptIn(phiModel("claude-fable-5-2")),
+	scriptIn(phiModel("sealed")),
 	scriptIn(onAccount("ent")),
 	scriptIn(onAccount("openai")),
-	scriptIn(phiModel("claude-fable-5-2")),
 	scriptIn(onAccount("ultra-a")),
 	scriptIn(onAccount("opencode-go")),
 ]);
 
-test("the codemode guard covers a BAA-provider session and a phi/<id> one, and leaves an open one alone", () =>
+test("the codemode guard covers a phi/<id> and a phi/sealed session, and leaves a BAA-provider or open one alone", () =>
 	Effect.runPromise(
-		Effect.map(sessions, ([ent, openai, phiFable, ultraA, opencodeGo]) => {
-			expect([ent?.block, openai?.block, phiFable?.block]).toEqual([true, true, true]);
-			expect([ultraA, opencodeGo]).toEqual([undefined, undefined]);
+		Effect.map(sessions, ([phiFable, phiSealed, ent, openai, ultraA, opencodeGo]) => {
+			expect([phiFable?.block, phiSealed?.block]).toEqual([true, true]);
+			expect([ent, openai, ultraA, opencodeGo]).toEqual([undefined, undefined, undefined, undefined]);
 		}),
 	));

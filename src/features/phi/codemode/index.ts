@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { isProtected } from "#src/features/phi/protection.ts";
+import { isPhi } from "#src/features/phi/protection.ts";
 
 const unicodeEscape = /(?<escape>\\u\{[\dA-Fa-f]+\}|\\u[\dA-Fa-f]{4})/u;
 
@@ -42,7 +42,7 @@ export const guardCodemode = ({
 	readonly event: ToolCallEvent;
 	readonly ctx: Pick<ExtensionContext, "model">;
 }) => {
-	const reach = event.toolName === "codemode" && isProtected(ctx.model) ? reachOf(event.input) : Option.none();
+	const reach = event.toolName === "codemode" && isPhi(ctx.model) ? reachOf(event.input) : Option.none();
 
 	const blocked = Option.map(reach, (name) => ({
 		block: true,
