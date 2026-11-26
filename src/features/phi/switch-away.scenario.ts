@@ -5,7 +5,7 @@ import * as Str from "effect/String";
 import { type Run, scenario } from "#tools/driver/index.ts";
 import { Reply, serveMock } from "./anthropic.fixture.ts";
 import { serveOpenAi } from "./openai.fixture.ts";
-import { laneLog, routerSetup } from "./router.fixture.ts";
+import { holdsStub, laneLog, routerSetup } from "./router.fixture.ts";
 
 const ssn = "123-45-6789";
 
@@ -89,9 +89,11 @@ scenario({
 
 			const onPhi = yield* piOn(run, sessions, sealedOnPhi);
 			yield* run.check(onPhi.code === 0, `pi on phi/auto exited 0 (${Str.trim(onPhi.output)})`);
+			const open = [...mocks["ultra-a"].bodies(), ...mocks["ultra-b"].bodies()];
+
 			yield* run.check(
-				Arr.some(mocks.ent.bodies(), Str.includes(ssn)),
-				"the sealed prompt went to ent while the session was on phi/auto",
+				Arr.some(open, holdsStub) && !Arr.some(open, Str.includes(ssn)),
+				"on phi/auto the sealed prompt reached the open account as a stub",
 			);
 			yield* switchedAway(run, sessions);
 		}),

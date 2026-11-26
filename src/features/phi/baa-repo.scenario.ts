@@ -52,8 +52,12 @@ const verdict = (run: Run) =>
 		yield* run.check(open.length === 0, `no request reached an open account (${String(open.length)} did)`);
 		yield* run.check(Arr.some(mocks.ent.bodies(), Str.includes("TASK-CHILD")), "the child's brief reached ent");
 		yield* run.check(
-			sessions.length === 2 && Arr.every(lanes, ({ account, reason }) => account === "ent" && reason === "BAA repo"),
-			`each lane line of the root and the child names ent for the BAA repo (${String(sessions.length)} sessions)`,
+			Arr.every(lanes, ({ account, reason }) => account === "ent" && reason === "BAA repo"),
+			"each lane line of the root and the child names ent for the BAA repo",
+		);
+		yield* run.check(
+			sessions.length === 1,
+			`the child's requests carry the root agent's session (${String(sessions.length)} sessions)`,
 		);
 	});
 
