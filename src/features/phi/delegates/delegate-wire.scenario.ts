@@ -5,11 +5,11 @@ import * as MutableRef from "effect/MutableRef";
 import * as Option from "effect/Option";
 import * as Str from "effect/String";
 
+import { type Asked, Reply, serveMock } from "#src/features/phi/anthropic.fixture.ts";
+import { serveOpenAi } from "#src/features/phi/openai.fixture.ts";
+import { holdsStub, laneLog, routerSetup } from "#src/features/phi/router.fixture.ts";
+import { foundIn, manifestCases, recordText, toolUse, wakeAnswered } from "#src/features/phi/wire.fixture.ts";
 import { type Run, type Session, scenario } from "#tools/driver/index.ts";
-import { type Asked, Reply, serveMock } from "./anthropic.fixture.ts";
-import { serveOpenAi } from "./openai.fixture.ts";
-import { holdsStub, laneLog, routerSetup } from "./router.fixture.ts";
-import { foundIn, manifestCases, recordText, toolUse, wakeAnswered } from "./wire.fixture.ts";
 
 type Carrier = "ultra-a" | "ultra-b" | "ent" | "openai" | "opencode-go";
 
