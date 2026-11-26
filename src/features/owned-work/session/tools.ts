@@ -115,7 +115,7 @@ const delegateTool = (
 	table: ModelTable,
 	ownSession: Option.Option<OwnSession>,
 ) => {
-	const parameters = delegateParams({ table, roles });
+	const parameters = delegateParams({ table, roles, inheritsGoal: Option.isSome(ownSession) });
 
 	return {
 		name: "delegate",
