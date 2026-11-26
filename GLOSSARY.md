@@ -151,13 +151,13 @@ Terms from the loaded feature and herdr-app's Skills panel. See ADR 0003.
 
 ## PHI routing
 
-Terms for the harness's side of PHI routing. phi-router routes each request of a session on a `phi` model, and [its glossary](https://github.com/drsh4dow/phi-router/blob/main/GLOSSARY.md) defines its own terms, such as **open account**, **BAA account**, **lane**, **verdict**, **stub**, **pin** and **BAA repo**. See ADRs 0015 and 0021.
+Terms for the harness's side of PHI routing. phi-router routes each request of a session on a `phi` model, and [its glossary](https://github.com/drsh4dow/phi-router/blob/main/GLOSSARY.md) defines its own terms, such as **open account**, **BAA account**, **lane**, **verdict**, **stub**, **pin** and **BAA repo**. See ADRs 0015, 0021 and 0027.
 
 - **`phi` model.** A model of the `phi` provider that phi-router's pi package registers: `phi/auto`, `phi/sealed`, and `phi/<id>` for each Anthropic model of pi's catalog.
 - **BAA provider.** A pi provider whose models may read PHI, so it runs outside phi-router: `ent`, then `openai`.
-- **Protected session.** A session on a `phi` model or a BAA provider. Its delegates stay inside the BAA boundary, and its codemode scripts may not call models.
-- **Held parent.** A protected session on a BAA provider or `phi/sealed`. Its delegates run on a BAA provider or `phi/sealed`, never on `phi/<id>`.
-- **Routing parent.** A protected session on any other `phi` model. Its delegates run on `phi/<id>` when phi-router carries the id.
+- **Protected session.** A session on a `phi` model. Its codemode scripts may not call models.
+- **Held parent.** A session on a BAA provider or `phi/sealed`. Its delegates run on a BAA provider or `phi/sealed`, never on `phi/<id>`.
+- **Routing parent.** A session on any other `phi` model. Its delegates run on `phi/<id>` when phi-router carries the id.
 - **Canary.** A synthetic identifier planted in a scenario's files, so the scenario can search request bodies for it. Never real PHI.
 
 ## Compaction
