@@ -15,7 +15,7 @@ chmod 600 "$human/.pi/agent/auth.json"
 
 exec env -i \
 	HOME="$human" \
-	PATH="$HOME/.bun/bin:/usr/bin:/bin:$HOME/.local/bin" \
+	PATH="${PATH:?a PATH with bun and pi on it}" \
 	XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:?}" \
 	TMPDIR=/tmp \
 	PI_DRIVER_SERVICE=1 \
