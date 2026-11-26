@@ -237,6 +237,7 @@ const startChild = (run: Run) => (child: ExpectedChild, index: number) =>
 scenario({
 	env: process.env,
 	model: "phi/auto",
+	offline: true,
 	files: router.files,
 	settings: { packages: [router.checkout] },
 	models: { openai: { baseUrl: openai.url }, "opencode-go": { baseUrl: opencodeGo.url } },

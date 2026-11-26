@@ -60,6 +60,7 @@ const verdict = (run: Run) =>
 scenario({
 	env: process.env,
 	model: "phi/auto",
+	offline: true,
 	files: router.files,
 	settings: { packages: [router.checkout] },
 	play: (run) =>

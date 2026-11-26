@@ -73,6 +73,7 @@ const router = routerSetup({ env: process.env, claude: mocks, openai: judge });
 scenario({
 	env: process.env,
 	model: "phi/auto",
+	offline: true,
 	files: router.files,
 	settings: {
 		compaction: { enabled: true, reserveTokens: 1_000_000, keepRecentTokens: 2000 },
