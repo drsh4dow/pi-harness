@@ -244,7 +244,8 @@ export const openWorld = (input: {
 			yield* onlyLoopback();
 		}
 
-		const { humanHome, env } = yield* envOf(layout, input.own);
+		const { humanHome, env: isolated } = yield* envOf(layout, input.own);
+		const env = { ...isolated, ...input.setup.rootEnv };
 
 		yield* Effect.forEach([layout.agent, layout.bin, layout.probe, layout.project, layout.sessions], (folder) =>
 			fs.makeDirectory(folder, { recursive: true }),
