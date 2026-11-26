@@ -61,6 +61,10 @@ own. That is how a run stays inside a network namespace that only you made, wher
 unshare -rn sh -c 'ip link set lo up && PI_DRIVER_SERVICE=1 bun src/features/phi/wire.scenario.ts'
 ```
 
+A scenario that sets `offline: true` fails before pi starts when its process sees a network interface besides
+loopback. A service always does, so a run that misses the namespace, or misspells `PI_DRIVER_SERVICE`, stops at once
+instead of reaching what listens on the host's loopback.
+
 A run whose driver in the service dies outright, by `kill -9` of that process or `systemctl --user stop` of its
 unit, leaves no process, but two things on disk: the run folder, with the link `home/.pi/agent/auth.json` to your
 `auth.json`, and the run's runtime folder `$TMPDIR/pi-driver/pi-driver-<pid>-<tag>`, which holds a dead socket and a

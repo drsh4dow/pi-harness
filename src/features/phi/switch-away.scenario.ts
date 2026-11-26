@@ -78,6 +78,7 @@ const switchedAway = (run: Run, sessions: string) =>
 scenario({
 	env: process.env,
 	model: "phi/auto",
+	offline: true,
 	files: router.files,
 	settings: { packages: [router.checkout] },
 	models: { "ultra-a": { baseUrl: mocks["ultra-a"].url } },

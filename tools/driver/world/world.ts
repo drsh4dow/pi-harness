@@ -202,6 +202,19 @@ exit 2
 	return { version: Str.trim(version.output), path };
 });
 
+const onlyLoopback = Effect.fn("onlyLoopback")(function* () {
+	const fs = yield* FileSystem.FileSystem;
+	const table = yield* fs.readFileString("/proc/self/net/dev");
+	const names = Arr.map(Arr.drop(Str.split(table, "\n"), 2), (row) => Str.trim(Str.split(row, ":")[0] ?? ""));
+	const outside = Arr.filter(names, (name) => Str.isNonEmpty(name) && name !== "lo");
+
+	return Arr.isArrayNonEmpty(outside)
+		? yield* SetupFailed.make({
+				message: `this scenario runs offline, in a network namespace of its own, but it sees ${Arr.join(outside, ", ")}`,
+			})
+		: undefined;
+});
+
 type Needs = Scope.Scope | FileSystem.FileSystem | ChildProcessSpawner.ChildProcessSpawner;
 
 const envOf = Effect.fn("envOf")(function* (layout: Layout, own: Readonly<Record<string, string | undefined>>) {
@@ -226,6 +239,11 @@ export const openWorld = (input: {
 	Effect.gen(function* () {
 		const { layout } = input;
 		const fs = yield* FileSystem.FileSystem;
+
+		if (input.setup.offline === true) {
+			yield* onlyLoopback();
+		}
+
 		const { humanHome, env } = yield* envOf(layout, input.own);
 
 		yield* Effect.forEach([layout.agent, layout.bin, layout.probe, layout.project, layout.sessions], (folder) =>

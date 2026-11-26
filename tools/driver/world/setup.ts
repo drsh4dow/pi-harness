@@ -43,6 +43,7 @@ export const modelsOf = (input: {
 };
 
 export interface Setup {
+	readonly offline?: true;
 	readonly settings?: Schema.JsonObject;
 	readonly models?: Readonly<Record<string, Schema.JsonObject>>;
 	readonly files?: (run: { readonly home: string; readonly project: string }) => Files;

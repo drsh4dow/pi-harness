@@ -169,6 +169,7 @@ const shows = (run: Run, line: string) => Effect.map(notices(run), Arr.some(Str.
 scenario({
 	env: process.env,
 	model: "phi/auto",
+	offline: true,
 	files: router.files,
 	settings: { packages: [router.checkout] },
 	models: { openai: { baseUrl: openai.url } },
