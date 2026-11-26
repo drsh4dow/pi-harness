@@ -35,14 +35,13 @@ const received = () => {
 		open,
 		ent,
 		summaries: Arr.filter([...open, ...ent], isSummary).length,
-		entTurns: Arr.filter(ent, (body) => !isSummary(body)),
 		afterSeal: Arr.filter(open, Str.includes(lastPrompt)),
 	};
 };
 
 const verdict = (run: Run, providers: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
-		const { open, ent, summaries, entTurns, afterSeal } = received();
+		const { open, ent, summaries, afterSeal } = received();
 		const lanes = yield* laneLog(run);
 
 		yield* run.say({
@@ -63,8 +62,8 @@ const verdict = (run: Run, providers: ReadonlyArray<string>) =>
 			`the send after the sealed one went to an open account's mock with the summary withheld (${String(afterSeal.length)} requests)`,
 		);
 		yield* run.check(
-			Arr.some(entTurns, Str.includes(summaryCanary)),
-			"the next request carried the sealed summary to ent",
+			ent.length === 0,
+			`the root agent stayed on the open account (${String(ent.length)} requests reached ent)`,
 		);
 	});
 

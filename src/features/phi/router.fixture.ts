@@ -102,7 +102,7 @@ export const routerSetup = ({
 	},
 });
 
-const withheld = "[withheld: holds patient identifiers, handled on the HIPAA account]";
+export const stubbed = (text: string) => /\[sealed h[1-9]\d*\]/u.test(text);
 
 const MessagesOf = Schema.fromJsonString(Schema.Struct({ messages: Schema.Json }));
 
@@ -113,7 +113,7 @@ const encodeJson = Schema.encodeOption(Schema.fromJsonString(Schema.Json));
 export const holdsStub = (body: string) => {
 	const messages = Option.flatMap(decodeMessages(body), (decoded) => encodeJson(decoded.messages));
 
-	return Option.exists(messages, Str.includes(withheld));
+	return Option.exists(messages, stubbed);
 };
 
 const Line = Schema.Struct({

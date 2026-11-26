@@ -8,14 +8,7 @@ import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
 import { type Run, scenario } from "#tools/driver/index.ts";
-import {
-	type Asked,
-	compactionPrompt,
-	type MockAnthropic,
-	Reply,
-	serveMock,
-	turnPrefixPrompt,
-} from "./anthropic.fixture.ts";
+import { type Asked, compactionPrompt, Reply, serveMock, turnPrefixPrompt } from "./anthropic.fixture.ts";
 import { serveOpenAi } from "./openai.fixture.ts";
 import { holdsStub, laneLog, routerSetup } from "./router.fixture.ts";
 import { type Case, foundIn, manifestCases, providersOf, recordText, toolUse, wakeAnswered } from "./wire.fixture.ts";
@@ -64,28 +57,7 @@ const reply = ({ lastText, body }: Asked) => {
 	);
 };
 
-type Counts = Readonly<Record<"ultra-a" | "ultra-b" | "ent", number>>;
-
-const atFirstEnt = MutableRef.make(Option.none<Counts>());
-
-const counts = (served: Readonly<Record<keyof Counts, MockAnthropic>>): Counts => ({
-	"ultra-a": served["ultra-a"].bodies().length,
-	"ultra-b": served["ultra-b"].bodies().length,
-	ent: served.ent.bodies().length,
-});
-
-const mocks = {
-	"ultra-a": serveMock(reply),
-	"ultra-b": serveMock(reply),
-	ent: serveMock((asked) => {
-		MutableRef.update(
-			atFirstEnt,
-			Option.orElseSome(() => counts(mocks)),
-		);
-
-		return reply(asked);
-	}),
-};
+const mocks = { "ultra-a": serveMock(reply), "ultra-b": serveMock(reply), ent: serveMock(reply) };
 
 const judge = serveOpenAi({
 	reply: () => Reply.Text({ text: "no chat on the judge" }),
@@ -152,19 +124,13 @@ const finalState = (run: Run) =>
 	);
 
 interface Seen {
-	readonly canaries: ReadonlyArray<string>;
-	readonly atSeal: Counts;
-	readonly atEnd: Counts;
 	readonly childProviders: ReadonlyArray<string>;
 	readonly blocked: boolean;
 }
 
-const openCount = (counted: Counts) => counted["ultra-a"] + counted["ultra-b"];
-
-const noLeak = (run: Run, { canaries, atSeal }: Seen) =>
+const noLeak = (run: Run, canaries: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const leaked = foundIn(openBodies())(canaries);
-		const missing = Arr.difference(canaries, foundIn(mocks.ent.bodies())(canaries));
 
 		yield* run.check(
 			canaries.length === 12,
@@ -174,32 +140,33 @@ const noLeak = (run: Run, { canaries, atSeal }: Seen) =>
 			leaked.length === 0,
 			`no canary reaches an open account's mock (leaked: ${Arr.join(leaked, ", ")})`,
 		);
-		yield* run.check(missing.length === 0, `every canary reached the ent mock (missing: ${Arr.join(missing, ", ")})`);
 		yield* run.check(
-			openCount(atSeal) >= 2,
-			`the clean turns reached an open account's mock (${String(openCount(atSeal))} requests)`,
+			Arr.some(openBodies(), holdsStub),
+			"a body to an open account carries the records as stubs with handles",
 		);
 	});
 
-const backOnOpen = (run: Run, { atSeal, atEnd, childProviders, blocked }: Seen) =>
+const onOpen = (run: Run, { childProviders, blocked }: Seen) =>
 	Effect.gen(function* () {
-		const later = Arr.drop(openBodies(), openCount(atSeal));
 		const childOnPhi = childProviders.length > 0 && Arr.every(childProviders, (provider) => provider === "phi");
+		const narratives = Arr.filter([...openBodies(), ...mocks.ent.bodies()], Str.includes(compactionPrompt));
+		const lines = yield* laneLog(run);
 
+		yield* run.say({
+			lanes: Arr.map(lines, ({ account, lane, model, reason }) => `${lane} ${account} ${model} ${reason}`),
+		});
 		yield* run.check(
-			openCount(atEnd) > openCount(atSeal),
-			`requests after the seal returned to an open account's mock (${String(openCount(atSeal))} at the seal, ${String(openCount(atEnd))} at the end)`,
+			mocks.ent.bodies().length === 0,
+			`the root agent stayed on the open account (${String(mocks.ent.bodies().length)} requests reached ent)`,
 		);
 		yield* run.check(
-			Arr.some(later, holdsStub),
-			"a body to an open account after the seal carries the records withheld",
+			Arr.isArrayNonEmpty(lines) && Arr.every(lines, ({ lane, account }) => lane === "clean" && account !== "ent"),
+			`phi-router's lane log shows each request on the clean lane of an open account (${String(lines.length)} lines)`,
 		);
 		yield* run.check(
 			childOnPhi && Arr.some(openBodies(), Str.includes("CHILD-TASK")),
 			`the judgment child ran through phi-router, which sent its clean brief to an open account's mock (its answers came from ${Arr.join(childProviders, ", ")})`,
 		);
-		const narratives = Arr.filter([...openBodies(), ...mocks.ent.bodies()], Str.includes(compactionPrompt));
-
 		yield* run.check(
 			narratives.length > 0,
 			`the compaction's narrative request went through phi-router (${String(narratives.length)} narrative requests)`,
@@ -207,36 +174,19 @@ const backOnOpen = (run: Run, { atSeal, atEnd, childProviders, blocked }: Seen) 
 		yield* run.check(blocked, "the codemode script that calls models was blocked by the PHI guard");
 	});
 
-const lanesSeen = (run: Run) =>
-	Effect.gen(function* () {
-		const lines = yield* laneLog(run);
-		const rows = Arr.map(lines, ({ account, lane, model, reason }) => `${lane} ${account} ${model} ${reason}`);
-		const first = Arr.findFirstIndex(lines, ({ lane }) => lane === "sealed");
-
-		const cleanAfter = Option.exists(first, (index) =>
-			Arr.some(Arr.drop(lines, index + 1), ({ lane }) => lane === "clean"),
-		);
-
-		yield* run.say({ lanes: rows });
-		yield* run.check(
-			Option.isSome(first) && cleanAfter,
-			`phi-router's lane log shows a sealed request and clean ones after it (${String(lines.length)} lines)`,
-		);
-		yield* run.check(
-			Arr.every(lines, ({ lane, account }) => (lane === "sealed") === (account === "ent")),
-			"each sealed line names ent and each clean line an open account",
-		);
-	});
-
-const verdict = (run: Run, { canaries, atSeal }: Pick<Seen, "canaries" | "atSeal">) =>
+const verdict = (run: Run, canaries: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const { rootProviders, childProviders, blocked } = yield* finalState(run);
-		const seen = { canaries, atSeal, atEnd: counts(mocks), childProviders, blocked };
 
-		yield* run.say({ atSeal, atEnd: seen.atEnd, rootProviders, childProviders, judged: judge.decisions().length });
-		yield* noLeak(run, seen);
-		yield* backOnOpen(run, seen);
-		yield* lanesSeen(run);
+		yield* run.say({
+			open: openBodies().length,
+			ent: mocks.ent.bodies().length,
+			rootProviders,
+			childProviders,
+			judged: judge.decisions().length,
+		});
+		yield* noLeak(run, canaries);
+		yield* onOpen(run, { childProviders, blocked });
 	});
 
 const router = routerSetup({ env: process.env, claude: mocks, openai: judge });
@@ -254,9 +204,7 @@ scenario({
 			yield* run.root.prompt("STEP-CLEAN. Read the notes.");
 			yield* run.root.prompt("STEP-PHI. Read the records one at a time.");
 
-			const atSeal = Option.getOrElse(MutableRef.get(atFirstEnt), () => counts(mocks));
-
 			yield* stepsAfterSeal(run);
-			yield* verdict(run, { canaries, atSeal });
+			yield* verdict(run, canaries);
 		}),
 });

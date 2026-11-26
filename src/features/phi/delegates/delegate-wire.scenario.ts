@@ -7,7 +7,7 @@ import * as Str from "effect/String";
 
 import { type Asked, Reply, serveMock } from "#src/features/phi/anthropic.fixture.ts";
 import { serveOpenAi } from "#src/features/phi/openai.fixture.ts";
-import { holdsStub, laneLog, routerSetup } from "#src/features/phi/router.fixture.ts";
+import { holdsStub, laneLog, routerSetup, stubbed } from "#src/features/phi/router.fixture.ts";
 import { foundIn, manifestCases, recordText, toolUse, wakeAnswered } from "#src/features/phi/wire.fixture.ts";
 import { type Run, type Session, scenario } from "#tools/driver/index.ts";
 
@@ -15,14 +15,11 @@ type Carrier = "ultra-a" | "ultra-b" | "ent" | "openai" | "opencode-go";
 
 const openCarriers: ReadonlyArray<Carrier> = ["ultra-a", "ultra-b", "opencode-go"];
 
-const onEnt = "ent/claude-opus-5-5";
-
 interface ExpectedChild {
 	readonly mark: string;
 	readonly alias: "judgment" | "worker" | "fable" | "investigator" | "divergent";
 	readonly startsOn: string;
-	readonly cleanLandsOn: ReadonlyArray<string>;
-	readonly sealedLandsOn: string;
+	readonly landsOn: ReadonlyArray<string>;
 }
 
 const onOpen = (id: string) => [`ultra-a/${id}`, `ultra-b/${id}`];
@@ -32,36 +29,31 @@ const children: ReadonlyArray<ExpectedChild> = [
 		mark: "judgment",
 		alias: "judgment",
 		startsOn: "phi/claude-opus-5-5",
-		cleanLandsOn: onOpen("claude-opus-5-5"),
-		sealedLandsOn: onEnt,
+		landsOn: onOpen("claude-opus-5-5"),
 	},
 	{
 		mark: "worker",
 		alias: "worker",
 		startsOn: "phi/claude-opus-5-5",
-		cleanLandsOn: onOpen("claude-opus-5-5"),
-		sealedLandsOn: onEnt,
+		landsOn: onOpen("claude-opus-5-5"),
 	},
 	{
 		mark: "fable",
 		alias: "fable",
 		startsOn: "phi/claude-fable-5-2",
-		cleanLandsOn: onOpen("claude-fable-5-2"),
-		sealedLandsOn: onEnt,
+		landsOn: onOpen("claude-fable-5-2"),
 	},
 	{
 		mark: "investigator",
 		alias: "investigator",
 		startsOn: "openai/gpt-6.1-sol",
-		cleanLandsOn: ["openai/gpt-6.1-sol"],
-		sealedLandsOn: "openai/gpt-6.1-sol",
+		landsOn: ["openai/gpt-6.1-sol"],
 	},
 	{
 		mark: "divergent",
 		alias: "divergent",
 		startsOn: "phi/sealed",
-		cleanLandsOn: [onEnt],
-		sealedLandsOn: onEnt,
+		landsOn: ["ent/claude-opus-5-5"],
 	},
 ];
 
@@ -72,23 +64,39 @@ const marksOf = ({ mark }: Pick<ExpectedChild, "mark">) => ({
 	afterResult: `AFTER-${mark}`,
 });
 
-const stepsOf = (child: ExpectedChild): ReadonlyArray<readonly [string, Reply]> => {
+interface Step {
+	readonly mark: string;
+	readonly matches: (asked: Asked) => boolean;
+	readonly next: Reply;
+}
+
+const saying =
+	(mark: string) =>
+	({ lastText }: Asked) =>
+		Str.includes(mark)(lastText);
+
+const stepsOf = (child: ExpectedChild): ReadonlyArray<Step> => {
 	const mark = marksOf(child);
+	const record = `${child.mark}.record.txt`;
+
+	const readRecord = (asked: Asked) =>
+		saying(mark.recordResult)(asked) || (stubbed(asked.lastText) && Str.includes(record)(asked.body));
 
 	return [
-		[
-			mark.rootPrompt,
-			toolUse("delegate")({
+		{
+			mark: mark.rootPrompt,
+			matches: saying(mark.rootPrompt),
+			next: toolUse("delegate")({
 				name: `${child.mark} child`,
 				role: "leaf",
 				model: child.alias,
 				goal: "Answer a wire test",
-				message: `${mark.brief}. Read ${child.mark}.record.txt, then ${child.mark}.after.txt, then reply done.`,
+				message: `${mark.brief}. Read ${record}, then ${child.mark}.after.txt, then reply done.`,
 			}),
-		],
-		[mark.brief, toolUse("read")({ path: `${child.mark}.record.txt` })],
-		[mark.recordResult, toolUse("read")({ path: `${child.mark}.after.txt` })],
-		[mark.afterResult, Reply.Text({ text: "done" })],
+		},
+		{ mark: mark.brief, matches: saying(mark.brief), next: toolUse("read")({ path: record }) },
+		{ mark: mark.recordResult, matches: readRecord, next: toolUse("read")({ path: `${child.mark}.after.txt` }) },
+		{ mark: mark.afterResult, matches: saying(mark.afterResult), next: Reply.Text({ text: "done" }) },
 	];
 };
 
@@ -104,12 +112,12 @@ interface Served {
 const served: Array<Served> = [];
 
 const replying = (carrier: Carrier) => (asked: Asked) => {
-	const step = Arr.findFirst(steps, ([mark]) => Str.includes(mark)(asked.lastText));
+	const step = Arr.findFirst(steps, ({ matches }) => matches(asked));
 
-	served.push({ carrier, model: asked.model, mark: Option.map(step, ([mark]) => mark), body: asked.body });
+	served.push({ carrier, model: asked.model, mark: Option.map(step, ({ mark }) => mark), body: asked.body });
 
 	return Option.getOrElse(
-		Option.map(step, ([, next]) => next),
+		Option.map(step, ({ next }) => next),
 		() => Reply.Text({ text: "done" }),
 	);
 };
@@ -170,24 +178,16 @@ const landed = (run: Run, child: ExpectedChild, planted: ReadonlyArray<string>) 
 	Effect.gen(function* () {
 		const mark = marksOf(child);
 		const [task, record, after] = [turnsOf(mark.brief), turnsOf(mark.recordResult), turnsOf(mark.afterResult)];
-		const onClean = (turn: Served) => Arr.contains(child.cleanLandsOn, pairOf(turn));
-		const onSealed = (turn: Served) => pairOf(turn) === child.sealedLandsOn;
+		const turns = [...task, ...record, ...after];
 
 		yield* run.check(
-			Arr.isArrayNonEmpty(task) && Arr.every(task, onClean),
-			`the ${child.mark} child's clean brief went to ${Arr.join(child.cleanLandsOn, " or ")} (it went to ${pairsOf(task)})`,
-		);
-		yield* run.check(
-			Arr.isArrayNonEmpty(record) && Arr.every(record, onSealed),
-			`the ${child.mark} child's sealed turn went to ${child.sealedLandsOn} (it went to ${pairsOf(record)})`,
-		);
-		yield* run.check(
-			Arr.isArrayNonEmpty(after) && Arr.every(after, onClean),
-			`the ${child.mark} child's clean turn after the seal went to ${Arr.join(child.cleanLandsOn, " or ")} (it went to ${pairsOf(after)})`,
+			Arr.every([task, record, after], Arr.isArrayNonEmpty) &&
+				Arr.every(turns, (turn) => Arr.contains(child.landsOn, pairOf(turn))),
+			`each of the ${child.mark} child's turns went to ${Arr.join(child.landsOn, " or ")} (they went to ${pairsOf(turns)})`,
 		);
 		yield* run.check(
 			Arr.every([...record, ...after], recordAsDue(planted)),
-			`each of the ${child.mark} child's turns from the record on carries it raw to a BAA account and withheld from an open one`,
+			`each of the ${child.mark} child's turns from the record on carries it raw to a BAA account and as a stub to an open one`,
 		);
 	});
 
