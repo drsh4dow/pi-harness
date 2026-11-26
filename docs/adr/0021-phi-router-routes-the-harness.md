@@ -5,6 +5,8 @@ supersedes: 0013, 0016, 0017
 
 # phi-router routes the harness, and owned-work maps an alias to a phi model or a BAA provider
 
+Amended in part by ADR 0027, which limits the codemode guard, and the term protected session, to a session on a `phi` model. The delegate rules below still cover a session on a BAA provider as a held parent.
+
 The harness ran its own PHI router in process: the policy, the judge, the verdict cache, the border, the lane log and the eval corpus, under `src/features/phi-router/`. [phi-router](https://github.com/drsh4dow/phi-router) now does the same work as one local service for pi, Claude Code and Codex, and its pi package adds the provider `phi`. Two copies of the routing would drift, and only one of them is tested against every harness. So the harness uses phi-router and keeps only what phi-router cannot see.
 
 ## Decision
