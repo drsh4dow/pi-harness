@@ -135,6 +135,7 @@ const parentEnv = inheritedEnv({
 	PI_OWNED_WORK_LEVEL: "2",
 	PI_OWNED_WORK_ROLE: "owner",
 	PI_OWNED_WORK_SLICE: "pi-ow-test-delegate1",
+	PHI_ROUTER_SESSION: "root-session-of-another-pi",
 });
 
 const brief = {

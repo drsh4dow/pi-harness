@@ -9,6 +9,7 @@ import * as Str from "effect/String";
 
 import type { ChildPi, Design, PiCli, SessionAddress, StagedBrief } from "#src/client/pi/index.ts";
 import { type RunSpec, terminalNameOf } from "#src/client/terminals/index.ts";
+import { isRootSessionVariable } from "#src/features/phi/index.ts";
 import type { ReviewTarget } from "#src/features/pr/index.ts";
 
 export const levels = 3;
@@ -75,7 +76,9 @@ export const atLevel = ({ level, role }: { readonly level: number; readonly role
 
 export const inheritedEnv = (env: Readonly<Record<string, string | undefined>>): Readonly<Record<string, string>> =>
 	Rec.filterMap(env, (value, key) =>
-		value === undefined || /^HC_TERMINAL_|^PI_OWNED_WORK_/u.test(key) ? Result.failVoid : Result.succeed(value),
+		value === undefined || /^HC_TERMINAL_|^PI_OWNED_WORK_/u.test(key) || isRootSessionVariable(key)
+			? Result.failVoid
+			: Result.succeed(value),
 	);
 
 export const withAgentBin = (agentDir: string) => (env: Readonly<Record<string, string | undefined>>) => {

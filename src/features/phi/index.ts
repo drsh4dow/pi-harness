@@ -14,6 +14,18 @@ export const phiSessionHeaders = ({
 	readonly session: string;
 }): ProviderHeaders => (isPhi(model) ? { "x-phi-session": session } : {});
 
+const rootSessionVariable = "PHI_ROUTER_SESSION";
+
+export const rootSessionEnv = ({
+	env,
+	session,
+}: {
+	readonly env: Readonly<Record<string, string | undefined>>;
+	readonly session: string;
+}) => ({ [rootSessionVariable]: env[rootSessionVariable] ?? session });
+
+export const isRootSessionVariable = (key: string) => key === rootSessionVariable;
+
 export const guardProtectedCodemode = (pi: Pick<ExtensionAPI, "on">) => {
 	pi.on("tool_call", (event, ctx) => guardCodemode({ event, ctx }));
 };
