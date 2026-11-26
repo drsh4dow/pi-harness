@@ -68,8 +68,17 @@ const wakesOf = (entries: ReadonlyArray<SessionEntry>) =>
 		entry.type === "custom_message" && entry.customType === entryKind ? [textOf(entry.content)] : [],
 	);
 
+const waitedOf = (entries: ReadonlyArray<SessionEntry>) =>
+	Arr.flatMap(entries, (entry) =>
+		entry.type === "message" && entry.message.role === "toolResult" && entry.message.toolName === "wait"
+			? Arr.filter([textOf(entry.message.content)], Str.includes('"outcome"'))
+			: [],
+	);
+
+const handBacksOf = (entries: ReadonlyArray<SessionEntry>) => [...wakesOf(entries), ...waitedOf(entries)];
+
 const finalAnswer = ({ root: { entries } }: Sessions) => {
-	const woken = wakesOf(entries).length >= Arr.flatMap(entries, delegateCalls).length;
+	const woken = handBacksOf(entries).length >= Arr.flatMap(entries, delegateCalls).length;
 
 	const settled = Option.filter(
 		Option.flatMap(Arr.last(entries), assistantOf),
@@ -104,7 +113,7 @@ scenario({
 			const answered = yield* Effect.exit(
 				Effect.andThen(
 					run.root.prompt(prompt, budget),
-					run.waitFor("the root's answer after its delegates' wakes", budget, finalAnswer),
+					run.waitFor("the root's answer after its delegates handed back", budget, finalAnswer),
 				).pipe(
 					Effect.timeoutOrElse({
 						duration: budget,
@@ -120,7 +129,7 @@ scenario({
 			);
 
 			const outcome = yield* Effect.orDie(
-				encodeOutcome({ answer: lastAnswer(sessions), delegates, wakes: wakesOf(sessions.root.entries) }),
+				encodeOutcome({ answer: lastAnswer(sessions), delegates, wakes: handBacksOf(sessions.root.entries) }),
 			);
 
 			yield* run.say(`phi-accounts ${outcome}`);
